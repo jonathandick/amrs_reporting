@@ -1,0 +1,491 @@
+{% extends "Frontend/base.html" %}
+ 
+{% block content %}
+
+<script type="text/javascript" charset="utf-8">
+
+$(document).ready(function() {
+  $('#automated_replies_table').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+  
+  $('#alert_trigger').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $("#start_date").datepicker({dateFormat: 'mm/dd/y', changeMonth:true,changeYear:true});
+  $("#end_date").datepicker({dateFormat: 'mm/dd/y', changeMonth:true,changeYear:true});
+
+
+});
+
+(function($) {
+
+	$.fn.tagit = function(options) {
+
+		var el = this;
+
+		const BACKSPACE		= 8;
+		const ENTER			= 13;
+		const SPACE			= 32;
+		const COMMA			= 44;
+
+		// add the tagit CSS class.
+		el.addClass("tagit");
+
+		// create the input field.
+		var html_input_field = "<li class=\"tagit-new\"><input class=\"tagit-input\" type=\"text\" /></li>\n";
+		el.html (html_input_field);
+
+		tag_input		= el.children(".tagit-new").children(".tagit-input");
+
+		{% for tag in tags %}
+			create_choice("{{ tag.name }}");
+		{% endfor %}
+
+		$(this).click(function(e){
+			if (e.target.tagName == 'A') {
+				// Removes a tag when the little 'x' is clicked.
+				// Event is binded to the UL, otherwise a new tag (LI > A) wouldn't have this event attached to it.
+				$(e.target).parent().remove();
+			}
+			else {
+				// Sets the focus() to the input field, if the user clicks anywhere inside the UL.
+				// This is needed because the input field needs to be of a small size.
+				tag_input.focus();
+			}
+		});
+
+		tag_input.keypress(function(event){
+			if (event.which == BACKSPACE) {
+				if (tag_input.val() == "") {
+					// When backspace is pressed, the last tag is deleted.
+					$(el).children(".tagit-choice:last").remove();
+				}
+			}
+			// Comma/Space/Enter are all valid delimiters for new tags.
+			else if (event.which == COMMA || event.which == SPACE || event.which == ENTER) {
+				event.preventDefault();
+
+				var typed = tag_input.val();
+				typed = typed.replace(/,+$/,"");
+				typed = typed.trim();
+
+				if (typed != "") {
+					if (is_new (typed)) {
+						create_choice (typed);
+					}
+					// Cleaning the input.
+					tag_input.val("");
+				}
+			}
+		});
+
+		tag_input.autocomplete({
+			source: options.availableTags, 
+			select: function(event,ui){
+				if (is_new (ui.item.value)) {
+					create_choice (ui.item.value);
+				}
+				// Cleaning the input.
+				tag_input.val("");
+
+				// Preventing the tag input to be update with the chosen value.
+				return false;
+			}
+		});
+
+		function is_new (value){
+			var is_new = true;
+			this.tag_input.parents("ul").children(".tagit-choice").each(function(i){
+				n = $(this).children("input").val();
+				if (value == n) {
+					is_new = false;
+				}
+			})
+			return is_new;
+		}
+		function create_choice (value){
+			var el = "";
+			el  = "<li class=\"tagit-choice\">\n";
+			el += value + "\n";
+			el += "<a class=\"close\">x</a>\n";
+			el += "<input type=\"hidden\" style=\"display:none;\" value=\""+value+"\" name=\"item[tags][]\">\n";
+			el += "</li>\n";
+			var li_search_tags = this.tag_input.parent();
+			$(el).insertBefore (li_search_tags);
+			this.tag_input.val("");
+		}
+	};
+
+	String.prototype.trim = function() {
+		return this.replace(/^\s+|\s+$/g,"");
+	};
+
+})(jQuery);
+</script>
+
+	<script>
+	$(document).ready(function(){
+		$("#mytags").tagit({
+			availableTags: ["tag"{% for tag in all_tags %},"{{ tag.name }}"{% endfor %}],
+	                allowSpaces: true
+		});
+	});
+	</script>
+
+<script type="text/javascript">
+  
+function getMetrics(selectobj) {
+   if (window.XMLHttpRequest)
+   {// code for IE7+, Firefox, Chrome, Opera, Safari
+       xmlhttp=new XMLHttpRequest();
+   }
+   else
+   {// code for IE6, IE5
+       xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+   }
+   xmlhttp.onreadystatechange=function()
+   {
+      if (xmlhttp.readyState==4 && xmlhttp.status==200)
+      {
+         var response_obj = eval('(' + xmlhttp.responseText + ')');         
+         m_block = document.getElementById('metric_names');
+         m_block.innerHTML = "";
+         for(var i in response_obj) {
+            var value = response_obj[i]; 
+            m_block.innerHTML += i + " : " + value + "<br/>"
+         }
+      }
+   }
+
+   chosen_option = selectobj.options[selectobj.selectedIndex]
+   xmlhttp.open("GET","/caresmarts/ajax_test?report_summary_id=" + chosen_option.value,true);
+   xmlhttp.send();      
+}
+
+
+function validate_form() {
+   var form = document.getElementById('message_form');
+   var errors = '';
+   var tags = document.getElementById('mytags');
+   if(form.name.value == '') { errors += 'Message Name can not be empty \n'; }
+   errors += validate_message();
+
+   if(errors == '') { form.submit(); }
+   else { alert(errors); }
+}
+
+function validate_message() {
+   var form = document.getElementById('message_form');
+   var errors = '';
+   var message = form.message.value;
+   var code = form.code.value;
+   var req_str = ' (use +' + code + 'to respond)';
+   if(message == '') {
+      errors += 'Message can not be left blank.\n';
+   }
+   else {
+       var message_length = message.length;
+       if (message_length > 160) { 
+          var num_over = message_length - 160;
+          errors += 'Your message is ' + num_over + ' characters over the limit. Please shorten your message.\n';
+       }
+   }
+   return errors;
+
+}
+
+function validate_date() {
+
+}
+
+function validate_code() {
+
+}
+
+function validate_response_type() {
+   var form = document.getElementById('message_form');
+   var errors = '';
+   var requires_response = form.requires_response.value;
+   var response_type = form.response_type.value;
+   if(requires_response == 'True') {
+      if(response_type == '') {
+          errors += 'If this message requires a response, you must select a response type.\n';
+      }
+   }
+   return errors; 
+}
+
+
+function validate_schedule_by_day() {
+
+}
+
+
+function validate_schedule_by_date() {}
+
+
+</script>
+
+{% if message_template.messager%}<br/><br/><a href='/caresmarts/messager/{{message_template.messager.id}}/'>Return to Messager Dashboard</a><br/>{%endif%}
+
+<div style="padding: 10px 20px 0px 20px;">
+
+{% if not message_template.template_id %} 
+{% if prev_id %}<a href='/caresmarts/message_template?id={{prev_id}}'>Go to previous template</a>  | {%endif%} 
+{% if next_id %}<a href='/caresmarts/message_template?id={{next_id}}'>Go to next template</a>  {%endif%} 
+
+{%endif%}
+
+{% if message_template.id %}
+<h2>Edit Message {% if message_template.voided %} (Voided) {% endif %}</h2>
+{% else %}
+<h2>Create New Message</h2> 
+{% endif %}
+
+{{ post }}
+
+<form action="/caresmarts/message_template/" method="post" id='message_form'>
+{% if message_template%}<input type='hidden' name='message_template_id' value='{{ message_template.id }}'/>{%endif%}
+{% if message_template.messager%}<input type='hidden' name='messager_id' value='{{ message_template.messager.id }}'/>{%endif%}
+{% if message_template.template_id%}<input type='hidden' name='template_id' value='{{ message_template.template_id }}'/>{%endif%}
+{% if message_template.module_id%}<input type='hidden' name='module_id' value='{{ message_template.module_id }}'/>{%endif%}
+{% if message_template.message_orderset%}<input type='hidden' name='message_orderset_id' value='{{ message_template.message_orderset.id }}'/>{%endif%}
+{% if message_template.order_number%}<input type='hidden' name='order_number' value='{{ message_template.order_number }}'/>{%endif%}
+
+
+<table id='form_attributes__form'>
+  <tr>
+    <td>
+<table id='program_info'>
+<tr><td>Message Name:</td><td><input type='text' name='name' {% if message_template.name %} value='{{ message_template.name }}' {%endif%}{% if message_template.voided %} disabled='disabled' {% endif %}/></td></tr>
+<tr>
+  <td>Message:</td>
+  <td><textarea name='message' rows='5' cols='50' {% if message_template.voided %} disabled='disabled' {% endif %}>{%if message_template.message %}{{ message_template.message }}{%endif%}</textarea></td>
+  <td>
+  </td>
+</tr>
+<tr><td>Start Date</td><td><input id='start_date' type='text' name='start_date' {%if message_template.start_date%}value='{{message_template.start_date|date:"m/d/y"}}'{%endif%} /></td></tr>
+<tr><td>End Date</td><td><input id='end_date' type='text' name='end_date' {%if message_template.end_date%} value='{{message_template.end_date|date:"m/d/y"}}' {%endif%}/></td></tr>
+
+<tr><td>Messager Attribute:</td><td><input type='text' name='messager_attribute' {%if message_template.messager_attribute%} value='{{ message_template.messager_attribute }}'{%endif%} {% if message_template.voided %} disabled='disabled' {% endif %}/> (Short Name)</td></tr>
+<tr style='display:none;'><td>Code:</td><td>+<input type='text' name='code' value='{{message_template.code}}' {% if message_template.voided %} disabled='disabled' {% endif %}/></td</tr>
+<tr>
+  <td>Requires Response:</td>
+  <td>
+    <select name='requires_response' {% if message_template.voided %} disabled='disabled' {% endif %}>
+      <option value='True' {% if message_template.requires_response %} selected {% endif %}>Yes</option>
+      <option value='False' {% if not message_template.requires_response %} selected {% endif %}>No</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>Response Type:</td>
+  <td>
+    <select name='response_type' {% if message_template.voided %} disabled='disabled' {% endif %}>
+      <option></option>
+      <option value='1' {% ifequal message_template.response_type '1' %} selected {% endifequal %}>Yes/No</option>
+      <option value='2' {% ifequal message_template.response_type '2' %} selected {% endifequal %}>Number</option>
+      <option value='3' {% ifequal message_template.response_type '3' %} selected {% endifequal %}>Anything</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td style="padding-top:18px;">Tags:</td>
+  <td>
+    <ul id="mytags">
+	{% for tag in tags %}<li>{{ tag.name }}</li>{% endfor %}
+    </ul>
+  </td>
+</tr>
+</table>
+</td>
+
+
+  <td style="padding-left: 20px;">
+    <table id='metrics__form'>
+      <tr>
+	<td>
+	  To include a metric in your message, use the following notation:
+	  &#123;&#123;short_name:n&#125;&#125;  n is the number of days in the time period. <br/><br/>
+	  For example, the id  for
+          the process metric "num_sent" is 1. So to include the number of messages sent in the past seven days, you would do the following: " 
+	  sent &#123;&#123;num_sent:7&#125;&#125; messages in the past seven days."<br/>
+        </td>
+      </tr>
+    </table>
+  </td>
+</tr>
+</table>
+
+
+
+<br/>
+<br/>
+<hr/>
+<table id="schedule" cellpadding="20">
+  <tr>
+    <th class="first_col">Schedule by Day</th>
+    <th>Schedule by Date</th>
+  </tr>
+  <tr>
+    <td>
+      Here, you may schedule messages to be sent by day of the week, e.g. every Wednesday at 09:00. 
+      Please enter times in 24-hour format separated by a ';', e.g. 09:00;14:00<br/><br/>
+      <table id='schedule_by_day'>	
+	<tr><td>Monday</td><td><input type='text' name='monday' value='{{ daily_schedule.monday }}'/></td></tr>
+	<tr><td>Tuesday</td><td><input type='text' name='tuesday' value='{{ daily_schedule.tuesday }}'/></td></tr>
+	<tr><td>Wednesday</td><td><input type='text' name='wednesday' value='{{ daily_schedule.wednesday }}'/></td></tr>
+	<tr><td>Thursday</td><td><input type='text' name='thursday' value='{{ daily_schedule.thursday }}'/></td></tr>
+	<tr><td>Friday</td><td><input type='text' name='friday' value='{{ daily_schedule.friday }}'/></td></tr>
+	<tr><td>Saturday</td><td><input type='text' name='saturday' value='{{ daily_schedule.saturday }}'/></td></tr>
+	<tr><td>Sunday</td><td><input type='text' name='sunday' value='{{ daily_schedule.sunday }}'/></td></tr>
+      </table>
+    </td>
+    <td>
+      Here, you may schedule a message on a particular date. Enter the date (MM/DD/YY) followed by a space, followed by a set of times separated by a ';'.
+      Place each date on a different line. <br/>
+      <p>For example:<br/>
+      10/13/09 09:35;10:35 <br/> 
+      01/01/10 00:00 <br/>
+      </p>
+
+      <table id="schedule_by_date">
+	<tr>
+	  <td>
+	    <textarea name='date_schedule' cols='50' rows='5'>{% for date,times in date_schedule.items %}{{ date }} {{ times }} &#10;{% endfor %}</textarea>
+	  </td>
+	</tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<br/>
+<br/>
+<br/>
+{%if not message_template.template_id %}<input type='checkbox' checked name='go_to_next_message' value='True'/>Go to Next Message After Saving <br/><br/>{%endif%}
+{% if message_template.id %}
+<input type="button" value="Save Message" onClick='javascript:validate_form()' {% if message_template.voided %} disabled='disabled' {% endif %} />
+{% else %}
+<input type="button" value="Create Message" onClick='javascript:validate_form()' />
+{% endif %}
+</form>
+
+<br/>
+<br/>
+<hr/>
+<a href="#" onclick="document.getElementById('automated_replies').style.display = 'block';" {% if message_template.voided or not message_template.id %} style='display:none;' {% endif %}>Show Automated Reply Options</a>
+
+<div id="automated_replies" {% if not automated_replies %}style="display:none" {%endif%}>
+<br />
+<table id="automated_replies_table" width="100%">
+	<thead>
+	    <tr> 
+	      <th>ID</th>
+	      <th>Condition</th>
+	      <th>Answer</th>
+	      <th>Reply</th>
+	      <th></th>
+	    </tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
+	{% for reply in automated_replies %}
+		<tr>
+			<td>{{ reply.id }}</td>
+			<td>{{ reply.get_condition_html }}</td>
+			<td>{{ reply.get_answer_html }}</td>
+			<td>{{ reply.get_reply_html }}</td>
+			<td><a href="/caresmarts/remove_automated/?id={{ reply.id }}&id={{ message_template.id }}">Remove</a></td>
+		</tr>
+	{% endfor %}
+	</tbody>
+</table>
+<br />
+<form id="add_automated" name="add_automated" action="/caresmarts/add_automated/" method="post">
+<input type="hidden" name="id" id="id" value="{{ message_template.id }}" />
+Answer: <select name='condition'>
+  <option value='in'>in</option>
+  <option value='not in'>not in</option>
+  <option value="0" >&gt;</option>
+  <option value="1" >&lt;</option>
+  <option value="2" >=</option>
+  <option value="3" >&lt;&gt;</option>
+</select>
+ <input type="text" name="answer" id="answer" />&nbsp;&nbsp;OR&nbsp;&nbsp;Answer Stack: 
+<select id="answer_stack" name="answer_stack">
+	<option value="-1">None</option>
+{% for stack in answer_stacks %}
+	<option value="{{ stack.id }}">{{ stack.name }}</option>
+{% endfor %}
+</select>
+<br />
+Reply: &nbsp;&nbsp;&nbsp;<input type="text" name="reply" id="reply" />&nbsp;&nbsp;OR&nbsp;&nbsp;Reply Stack: &nbsp;&nbsp;
+<select id="reply_stack" name="reply_stack">
+	<option value="-1">None</option>
+{% for stack in answer_stacks %}
+	<option value="{{ stack.id }}">{{ stack.name }}</option>
+{% endfor %}
+</select>
+<br /><br />
+<input type="submit" value="Add Automated Reply" />
+</form>
+</div>
+
+<br/>
+<br/>
+<br/>
+<br/>
+<hr/>
+<a href="#" onclick="document.getElementById('alerts').style.display = 'block';" {% if message_template.voided or not message_template.id %} style='display:none;' {% endif %}>Show Alert Information</a>
+
+<div id="alerts" {% if not alert_triggers %}style="display:none"{%endif%}>
+<br />
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="alert_trigger"> 
+  <thead> 
+    <tr> 
+      <th>Id</th>
+      <th>Alert Subject</th> 
+      <th>Form Name</th> 
+      <th></th> 
+      <th></th> 
+    </tr> 
+  </thead> 
+  <tbody>
+    {% for trigger in alert_triggers %}
+    <tr>
+      <td>{{trigger.id}}</td>
+      <td><b>{{ trigger.subject }}</b></td>
+      <td>{{trigger.alert_message}}</td>
+      <td><a href="/alert/edit_existing_alert_trigger/{{ trigger.id }}/">Edit</a></td>
+      <td><a href="/alert/delete_existing_alert_trigger/{{ trigger.id }}/">Delete</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table> 
+</fieldset>
+<br>
+<a href="/alert/create_alert_trigger_2?{% if message_template.messager %}messager_id={{message_template.messager.id}}&{%endif%}id={{ message_template.id }}">Create New Alert</a>
+</div>
+
+</div>
+
+{% endblock %}

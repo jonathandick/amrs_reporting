@@ -1,0 +1,291 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+
+<script type="text/javascript">
+$(document).ready(function(){
+  $("#start_date").datepicker({dateFormat: 'mm/dd/yy', changeMonth:true,changeYear:true,});
+  $("#end_date").datepicker({dateFormat: 'mm/dd/yy', changeMonth:true,changeYear:true,});
+
+  $('#metrics').dataTable( {
+  "sScrollY": "500px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+});
+
+function deselect_options(obj_id) {
+    select = document.getElementById(obj_id);
+    for (var i=0; i<select.options.length; i++) {
+        select.options[i].selected = false;
+    }
+}
+
+
+</script>
+
+
+<script type="text/javascript" charset="utf-8">
+function create_defined_metric()
+{
+
+}
+
+</script>
+
+
+<br/>
+<b>{{metric.name}}: {{stat}}</b>
+<br/><br/>
+<a href='/report_summary/edit_metric'>Create new metric...</a>
+<br/><br/>
+<hr>
+<b>Create/Edit Metric:</b>
+<br /><br />
+<!-- current stat code: <textarea cols='100' rows='5'>{{stat_code}}</textarea> -->
+
+<br>
+<form id='defined_metric_form' method='post' action='/report_summary/edit_metric'>
+<input type='hidden' name='defined_metric_id' value='{%ifequal metric.metric_type 'defined_metric'%}{{metric.id}}{%endifequal%}'/>
+<table id="metric_design__design_report_summary" cellpadding="10" border='1'>
+  <tr>
+    <td>    
+      <table>
+	<tr><td>Name:</td><td><input type='text' name='metric_name' value='{{ metric.name }}' size='20'/></td></tr>
+	<tr><td>Short Name:</td><td><input type='text' name='metric_short_name' value='{{ metric.short_name }}' size='20'/></td></tr>
+	<tr><td>Description:&nbsp;&nbsp;&nbsp;&nbsp;</td><td><textarea name='metric_description' rows='3' cols='26'>{{ metric.description }}</textarea></td></tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <table>
+      <tr>
+	<td>Patient List: <br/><input type='button' onclick="deselect_options('select_patient_lists')" value='Deselect all'/></td>
+	<td>
+	  <select name='patient_list' size='5' id='select_patient_lists'>
+	    <option></option>
+	    {% for plist in patient_lists %}
+	    <option value='{{plist.id}}' {%ifequal plist.id|stringformat:"s" metric.patient_list%} selected='True' {%endifequal%}>{{plist.list_name}}</option>
+	    {% endfor %}
+	  </select>
+	</td>
+      </tr>
+      <tr>
+	<td>Tags: <br/><input type='button' onclick="deselect_options('select_tags')" value='Deselect all'/></td>
+	<td>
+	  <select name='tags' multiple='multiple' size='5' id='select_tags'>
+	    {% for tag in tags %}
+	    <option value={{tag.id}} {% if tag.id|stringformat:"s" in current_tags%} selected=True {% endif %}>{{tag.name}}</option>
+	    {% endfor %}
+	  </select>
+	</td>
+      </tr>
+    </table>
+  </tr>
+  <tr>
+    <td>
+      <table>	
+	<tr>
+	  <td>Start Date:</td>
+	  <td><input type='text' id="start_date" name='start_date' value='{{ metric.start_date|date:'m/d/Y' }}' size='20'/></td>
+	  <td>or for <input type='text' name='day_span' {%ifnotequal metric.day_span -1 %} value='{{metric.day_span}}'{%endifnotequal%} size='2-'/> days before end date</td>
+	</tr>
+	<tr>
+	  <td>End Date:</td>
+	  <td><input type='text' id="end_date" name='end_date' value='{{ metric.end_date|date:'m/d/Y' }}' size='20'/></td>	
+	  <td>or <input type='checkbox' value='checked' name='end_now' {% if metric.end_now %} checked='True' {%endif%}/>set to "today"</td>
+	</tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <table>
+	<tr>
+	  <td class='first_col'>Messages sent by:</td>
+	  <td>
+	    <select name='type'>
+	      <option></option>
+	      <option value=''>all</option>
+	      <option value='patient_message' {% ifequal metric.type 'patient_message'%} selected='True' {% endifequal %}>patient messages</option>
+	      <option value='system_message' {% ifequal metric.type 'system_message'%}  selected='True' {% endifequal %}>system_messages</option>
+	    </select>
+	  </td>
+	</tr>
+        <tr>
+          <td class='first_col'>
+	    Message Category:<br/><br/>
+	    Include: <input type='radio' value='include' name='include_categories' {% if include_categories%} checked {%endif%}/>&nbsp;
+	    Exclude<input type='radio' value='exclude' name='include_categories' {% if not include_categories%} checked {%endif%}/>
+	    <br/><input type='button' onclick="deselect_options('select_categories')" value='Deselect all'/>
+	  </td>
+          <td>
+          <select name='categories' multiple='multiple' size='5' id='select_categories'>
+            {% for cat in categories %}
+            <option value={{cat}} {% if cat|stringformat:"s" in current_categories %} selected=True {% endif %}>{{cat}}</option>
+            {% endfor %}
+          </select>
+
+          </td>
+        </tr>
+	<tr>
+	  <td class='first_col'>Response Expected</td>
+	  <td>
+	    <select name='response_expected'> 
+	      <option></option>
+ 	      <option value='True' {% ifequal metric.get_requires_response 'True' %} selected='True' {% endifequal %} >Yes</option>
+	      <option value='False' {% ifequal metric.get_requires_response 'False'%} selected='True' {% endifequal %}>No</option>
+	    </select>
+	  </td>
+	</tr>
+	<tr>
+          <td class='first_col'>Response Type</td>
+          <td>
+            <select name='response_type'>
+              <option></option>
+              <option value='1' {% ifequal metric.get_response_type '1' %} selected='True' {% endifequal %}>Yes/No</option>
+              <option value='2' {% ifequal metric.get_response_type '2' %} selected='True' {% endifequal %}>Number</option>
+	      <option value='3' {% ifequal metric.get_response_type '3'%} selected='True' {% endifequal %}>Anything</option>
+            </select>
+          </td>
+        </tr>
+
+
+	<tr>
+	  <td class='first_col'>Matched</td>
+	  <td>
+	    <select name='matched'> 
+	      <option></option>
+	      <option value='True'{% ifequal metric.get_matched 'True' %} selected='True' {% endifequal %} >Yes</option>
+	      <option value='False'{% ifequal metric.get_matched 'False' %} selected='True' {% endifequal %} >No</option>
+	    </select>
+	  </td>
+	</tr>
+
+        <tr>
+          <td class='first_col'>Has type mismatch:</td>
+          <td>
+            <select name='has_type_mismatch'>
+              <option></option>
+              <option value='True'{% ifequal metric.get_has_type_mismatch 'True' %} selected='True' {% endifequal %} >Yes</option>
+              <option value='False'{% ifequal metric.get_has_type_mismatch 'False' %} selected='True' {% endifequal %} >No</option>
+            </select>
+          </td>
+        </tr>
+
+
+	<tr>
+	  <td class='first_col'>Orphan</td>
+	  <td>
+	    <select name='orphan'> 
+	      <option></option>
+	      <option value='True' {% ifequal metric.get_orphan 'True' %} selected='True' {% endifequal %} >Yes</option>
+	      <option value='False' {% ifequal metric.get_orphan 'False' %} selected='True' {% endifequal %} >No</option>
+	    </select>
+	  </td>
+	</tr>
+	<tr>
+	  <td>Function</td>
+	  <td>
+            <select name='function'>
+	      <option value='Count' {% ifequal metric.function 'count'%} selected='True' {% endifequal %}>Count</option>
+	      <option value='Avg' {% ifequal metric.function 'Avg'%} selected='True' {% endifequal %}>Average</option>
+	      <option value='median' {% ifequal metric.function 'median'%} selected='True' {% endifequal %}>Median</option>
+	      <option value='Max' {% ifequal metric.function 'Max'%} selected='True' {% endifequal %}>Max</option>
+	      <option value='Min' {% ifequal metric.function 'Min'%} selected='True' {% endifequal %}>Min</option>
+	      <option value='Sum' {% ifequal metric.function 'Sum'%} selected='True' {% endifequal %}>Sum</option>
+            </select>
+	  </td>
+	</tr>
+
+      </table>
+    </td>
+	<td align="right" class="middle" style="line-height:24px;">
+	  <table>
+	    <tr>
+	      <td>Message Value</td>
+	      <td>
+		<select name='content_operator'>
+		  <option value='='{%ifequal '=' metric.get_content_operator %} selected='True'{%endifequal%}>=</option>
+		  <option value='not'{%ifequal 'not' metric.get_content_operator %} selected='True'{%endifequal%}>not =</option>
+		  <option value='__lte='{%ifequal '__lte=' metric.get_content_operator %} selected='True'{%endifequal%}>&lt;</option>
+		  <option value='__gte='{%ifequal '__gte=' metric.get_content_operator %} selected='True'{%endifequal%}>&gt;</option>
+		  <option value='in'{%ifequal 'in' metric.get_content_operator %} selected='True'{%endifequal%}>in</option>
+		  <option value='not in'{%ifequal 'not in' metric.get_content_operator %} selected='True'{%endifequal%}>not in</option>
+		</select>
+	      </td>
+	      <td>
+		<input type='text' name='content_value' value='{{metric.get_content_value}}'/> or 
+		<select name='answer_stack_id'>
+		  <option></option>
+		  {% for stack in answer_stacks %}
+		  <option value={{stack.id}} {%ifequal stack.id metric.get_answer_stack_id %} selected='True'{%endifequal%}>{{stack.name}}</option>
+		  {%endfor%}
+		</select>
+	      </td>
+	    </tr>
+	    <tr>
+	      <td>Range</td>
+	      <td>
+                <select name='range_operator'>
+                  <option value='in'>in</option>
+                  <option value='not in'>not in</option>
+                </select>
+              </td>
+              <td><input type='text' name='range' value='{{metric.get_range}}'/></td>
+            </tr>
+            <tr>
+	      <td>Use response time: </td>
+	      <td><input type="checkbox" name="time_to_respond" value="checked" {% ifequal metric.function_field 'time_to_respond' %} checked='True' {% endifequal %}/></td>
+	      <td></td>
+	    </tr>
+	  </table>	  
+	</td>
+  </tr>
+</table>
+<br />
+<input type='submit' value='Create Metric'/>
+</form>
+
+<br/> <br/><hr/>
+Design Derived Metric:
+<form action="/report_summary/edit_metric/" method="post">
+  <input type='hidden' name='derived_metric_id' value='{% if metric.calculation %}{{metric.id}}{%endif%}'/> 
+  <table> 
+    <tr><td>Name:</td><td><input type='text' name='name' value='{% if metric.calculation %} {{metric.name}}{%endif%}'></td></tr>
+    <tr><td>Short name:</td><td><input type='text' name='short_name' value='{% ifequal metric.type 'derived_metric'%}{{metric.short_name}}{%endifequal%}'</td></tr>
+    <tr><td>Description:</td><td><textarea name="description">{% if meric.calculation %} {{metric.description}} {%endif%}</textarea></td></tr>
+    <tr><td colspan='2'><textarea name='calculation' rows='2' cols='100'>{{metric.calculation}}</textarea></td></tr>
+  </table>
+  <input type="submit">
+</form>
+  
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="metrics">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Short Name</th>
+      <th>Description</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for metric in metrics %}
+    <tr>
+      <td>{{metric.id}}</td>
+      <td><a href='/report_summary/edit_metric?id={{metric.id}}'>{{metric.name}}</a></td>
+      <td>{{metric.short_name}}</td>
+      <td>{{metric.description}}</td>
+      <td><a href="/caresmarts/remove_metric?id={{metric.id}}">Delete Metric</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% endblock %}

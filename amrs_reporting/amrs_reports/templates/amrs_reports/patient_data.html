@@ -1,0 +1,19 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+
+
+<form action='/caresmarts/get_patient_data' method='post'>
+  <textarea name='cols'>{{cols}}</textarea>
+  <br><br>
+  <input type="Submit">
+</form>
+<textarea>
+  {{rows}}
+</textarea>
+
+
+
+
+
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/jquery_patient_search.js"></script>
+<style type="text/css" title="currentStyle">
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_page.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/examples/examples_support/themes/smoothness/jquery-ui-1.8.4.custom.css";
+</style>
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/DataTables-1.7.2/media/js/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+  $('#example').dataTable( {
+  "bJQueryUI": true,
+  "sPaginationType": "full_numbers"
+  } );
+  $('#patients').dataTable( {
+  "bJQueryUI": true,
+  "sPaginationType": "full_numbers"
+  });
+
+  
+  $( "#start_date" ).datepicker({dateFormat: 'mm/dd/y'});
+  $( "#end_date" ).datepicker({dateFormat: 'mm/dd/y'});
+
+  } );
+</script>
+<script type="text/javascript" charset="utf-8">
+function validate_form() {
+form = document.getElementById('form');
+var errors = '';
+if (form.start_date.value == '') { errors += 'Please specify a start date. \n'}
+if (form.end_date.value == '') { errors += 'Please specify an end date. \n'}
+if (errors == '') { form.submit(); }
+else {alert(errors); }
+
+}
+</script>
+
+<form action='/caresmarts/assign_ordersets/' method='post' id='form'>
+<h3 class='banner'>Message Ordersets</h3>
+<ul>
+  <li><a href='/caresmarts/message_orderset/'>Create Message Orderset</a></li>
+  <li><a href='/caresmarts/message_template/'>Create Message Template</a></li>
+</ul>  
+<hr>
+<b>Please select the messages to be used by clicking the checkbox below:</b>
+<br><br>
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="example"> 
+  <thead>
+    <tr>
+      <th></th>
+      <th>Orderset Name</th>
+      <th>Orderset Description</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for mo in mos %}
+    <tr class="GradeX">
+      <td><input type='checkbox' name='selected' value='{{mo.id}}'/></td>
+      <td> {{ mo.name }} </td> 
+      <td>{{ mo.description }}</td>
+      <td> <a href='/caresmarts/message_orderset?message_orderset_id={{ mo.id }}'>Edit</a></td>
+      <td> <a href='/caresmarts/void_message_orderset?message_orderset_id={{ mo.id }}'>Void</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<hr>
+
+<br>
+<br>
+<table id="patient">
+  <tr>
+    <td valign='top'>
+      <table>
+	<tr><td>Start date (MM/DD/YY):</td><td><input type='text' name='start_date' id='start_date'></td></tr>
+	<tr><td>End date (MM/DD/YY): </td><td><input type='text' name='end_date' id='end_date'></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+<br>
+{% if patients %}
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="patients">
+  <thead>
+    <tr>
+      <th></th>
+      <th>Name</th>
+      <th>Id</th>
+      <th>Birthdate</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for patient in patients %}
+    <tr class="GradeX">
+      <td><input type='checkbox' name='patients' value='{{patient.id}}'/></td>
+      <td><a href='/caresmarts/patient/{{ patient.pk }}'>{{ patient.first_name }} {{ patient.last_name }}</a></td>
+      <td>{{patient.identifier}}</td>
+      <td>{{patient.birthdate|date:"m/d/Y"}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<input type='hidden' name='patients' value='{{patient.id}}'/>
+<input type='hidden' name='patient_id' value='{{patient.id}}'/>
+{% endif %}
+
+
+<br/>
+<br/>
+{% if patients %}
+<input type='submit' value='Assign messages to patients'/>
+{% else %}
+<input type='submit' value='Assign messages to {{patient.first_name}} {{patient.last_name}}'/>
+<br><br>
+<a href='/caresmarts/patient/{{patient.id}}/'>Return to patient dashboard</a>
+{% endif %}
+
+</form>
+
+
+
+
+{% endblock %}

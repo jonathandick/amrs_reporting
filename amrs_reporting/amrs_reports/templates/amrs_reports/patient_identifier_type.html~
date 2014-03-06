@@ -1,0 +1,66 @@
+{% extends "powerup/base.html" %}
+
+{% block content %}
+
+<script type="text/javascript">
+
+function validate_form() {
+   var form = document.getElementById('pit_form');
+   var errors = '';
+   if(form.name.value == '') { errors += 'Name can not be blank \n'; }
+   if(form.description.value == '') { errors += 'Description can not be blank \n'; }
+   if(errors == '') { form.submit(); }
+   else { alert(errors); }
+}
+
+</script>
+
+<h2>Manage Patient Identifier Types</h2>
+
+{% if messages %}
+    <ul>
+    {% for message in messages %}
+        <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+
+<form action='/powerup/patient_identifier_type' method='post' id='pit_form'>
+<input type='hidden' name='patient_identifier_type_id' value='{{pit.id}}'/>
+<table>
+  <tr>
+    <td>Name</td>
+    <td><input type='text' name='name' value='{{pit.name}}'></td>
+  </tr>
+  <tr>
+    <td>Description</td>
+    <td><textarea name='description' cols='50' rows='5'>{{pit.description}}</textarea></td>
+  </tr>
+</table>
+<input type='button' value='Submit' onClick='javascript:validate_form()'/>
+<br/>
+<br/>
+<hr>
+<br/>
+<h3>Patient Identifiers</h3>
+<table>
+  <tr>
+    <td>Name</td>
+    <td>Description</td>
+    <td></td>
+    <td></td>
+  </tr>
+  {% for pit in pits %}
+  <tr>
+    <td>{{ pit.name }} </td>
+    <td>{{ pit.description }} </td>
+    <td><a href='/powerup/patient_identifier_type?function=edit&patient_identifier_type_id={{pit.id}}'>Edit</a></td>
+    <td><a href='/powerup/patient_identifier_type?function=void&patient_identifier_type_id={{pit.id}}'>Void</a></td>
+  </tr>
+  {% endfor %}
+</table>
+      
+
+
+{% endblock %}

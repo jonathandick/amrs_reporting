@@ -1,0 +1,72 @@
+{% extends "ltfu/base.html" %}
+{% load staticfiles %}
+{% load mathfilters %}
+
+{% block content %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+  $('#ltfu_ampath').dataTable( {
+  "width":"100%",
+  "sScrollY": "auto",
+  "aoColumnDefs": [{ "foo": "numeric", "aTargets": [ 0 ] }],
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth" : false
+   } );
+
+});
+
+</script>
+
+<div id='datatable_wrapper'>
+
+<H2> AMPATH System-wide LTFU Statistics</H2>
+
+
+<table id='ltfu_ampath' class="displays">
+  <thead>
+    <tr>
+      <th class="gradeA">Year</th>
+      <th class="gradeA"># HIV Enc</th>
+      <th class="gradeA"># HIV Pts</th>
+      <th class="gradeA">LTFU Total</th>
+      <th class="gradeA">LTFU on ARVS</th>
+      <th class="gradeA">LTFU From Clinic</th>
+      <th class="gradeA">LTFU Adult</th>
+      <th class="gradeA">LTFU Peds</th>
+      <th class="gradeA">LTFU PMTCT</th>
+      <th class="gradeA">Outreach Visit</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in ltfu_ampath_table %}
+    <tr>
+      <td>{{row.year}}</td>
+      <td>{{row.hiv_clinic_visits}}</td>
+      <td>{{row.hiv_patients}}</td>
+      <td>{{row.ltfu_total|mul:100|div:row.hiv_patients}}% ({{row.ltfu_total}})</td>
+      <td>{{row.ltfu_on_arvs|mul:100|div:row.ltfu_total}}% ({{row.ltfu_on_arvs}})</td>
+      <td>{{row.ltfu_clinic_visits|div:row.ltfu_total|mul:100|floatformat:"0"}}% ({{row.ltfu_clinic_visits}})</td>
+      <td>{{row.adult|div:row.ltfu_total|mul:100|floatformat:"0"}}% ({{row.adult}})</td>
+      <td>{{row.peds|div:row.ltfu_total|mul:100|floatformat:"0"}}% ({{row.peds}})</td>
+      <td>{{row.pmtct|div:row.ltfu_total|mul:100|floatformat:"0"}}% ({{row.pmtct}})</td>
+      <td>{{row.outreach_visit|div:row.ltfu_total|mul:100|floatformat:"0"}}% ({{row.outreach_visit}})</td>
+    </tr>
+    {%endfor%}
+    </tbody>
+</table>
+
+</div>
+
+
+
+
+
+
+{% endblock %}

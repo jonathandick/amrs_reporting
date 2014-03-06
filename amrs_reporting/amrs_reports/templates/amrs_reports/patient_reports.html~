@@ -1,0 +1,40 @@
+{% extends "powerup/base.html" %}
+
+{% block content %}
+
+<h2>Patient Reports</h2>
+
+<hr>
+
+<table id="patient_reports">
+  <tr>
+    <th>Form</th>
+    <th>System Message</th>
+    <th>Date System Messeage Sent</th>
+    <th>Requires Response</th>
+    <th>Patient Message</th>
+    <th>Date Patient Message Received</th>
+    <th>Time To Respond</th>
+    <th>Match</th>
+    <th>No code match</th>
+    <th>Orphan</th>
+  </tr>
+  {% for report in reports %}
+  <tr>
+    <td>{{ report.form_name }}</td>
+    <td>{{ report.system_message }}</td>
+    <td>{{ report.system_message_datetime }}</td>
+    <td>{{ report.requires_response}}</td>
+    <td>{{ report.patient_message}}</td>
+    <td>{{ report.patient_message_datetime}}</td>
+    <td>{{ report.time_to_respond}}</td>
+    <td>{{ report.match}}</td>
+    <td>{{ report.no_code_match}}</td>
+    <td>{{ report.orphan}}</td>
+  </tr>
+  {% endfor %}
+</table>
+
+<a href="/powerup/patient/{{ patient_id }}">Back to patient dashboard</a>
+
+{% endblock %}

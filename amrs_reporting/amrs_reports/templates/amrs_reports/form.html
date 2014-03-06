@@ -1,0 +1,286 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+<script type="text/javascript">
+  
+function add_response_set() {
+    var tbl = document.getElementById('system_response_table');
+    var tBody = tbl.getElementsByTagName('tbody')[0];
+    var lastRow = tbl.rows.length;
+    // if there's no header row in the table, then iteration = lastRow + 1
+    var row = tbl.insertRow(lastRow);
+    var newTR = document.createElement('tr');
+    var user_responses_td = document.createElement('td');
+    var system_response_td = document.createElement('td');
+    var ur_var_name = "user_responses_" + (lastRow - 1);
+    var sr_var_name = "system_response_" + (lastRow - 1);
+    user_responses_td.innerHTML = "<textarea name='" + ur_var_name + "' id='" + ur_var_name + "' cols='50' rows='3'></textarea>";
+    system_response_td.innerHTML = "<textarea name='" + sr_var_name + "' id='" + sr_var_name + "' cols='50' rows='3'></textarea>";
+
+    newTR.appendChild(user_responses_td);
+    newTR.appendChild(system_response_td);
+    tBody.appendChild(newTR);
+}
+
+function getMetrics(selectobj) {
+   if (window.XMLHttpRequest)
+   {// code for IE7+, Firefox, Chrome, Opera, Safari
+       xmlhttp=new XMLHttpRequest();
+   }
+   else
+   {// code for IE6, IE5
+       xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+   }
+   xmlhttp.onreadystatechange=function()
+   {
+      if (xmlhttp.readyState==4 && xmlhttp.status==200)
+      {
+         var response_obj = eval('(' + xmlhttp.responseText + ')');         
+         m_block = document.getElementById('metric_names');
+         m_block.innerHTML = "";
+         for(var i in response_obj) {
+            var value = response_obj[i]; 
+            m_block.innerHTML += i + " : " + value + "<br/>";
+         }
+      }
+   }
+
+   chosen_option = selectobj.options[selectobj.selectedIndex]
+   xmlhttp.open("GET","/caresmarts/ajax_test?report_summary_id=" + chosen_option.value,true);
+   xmlhttp.send();      
+}
+
+
+function validate_form() {
+   var form = document.getElementById('message_form');
+   var errors = '';
+
+   if(form.name.value == '') { errors += 'Message Name can not be empty \n'; }
+   errors += validate_message();
+   errors += validate_code();
+   if(form.start_date.value == '') { errors += 'Start Date can not be empty \n'; }
+   if(form.end_date.value == '') { errors += 'End Date can not be empty \n'; }
+   if(form.code.value == '') { errors += 'Code can not be empty \n'; }
+   errors += validate_response_type();
+
+   if(errors == '') { form.submit(); }
+   else { alert(errors); }
+}
+
+function validate_message() {
+   var form = document.getElementById('message_form');
+   var errors = '';
+   var message = form.message.value;
+   var code = form.code.value;
+   var req_str = ' (use +' + code + 'to respond)';
+   if(message == '') {
+      errors += 'Message can not be left blank.\n';
+   }
+   else {
+       var message_length = req_str.length + message.length;
+       if (message_length > 160) { 
+          var num_over = message_length - 160;
+          errors += 'Your message is ' + num_over + ' characters over the limit. Please shorten your message.\n';
+       }
+   }
+   return errors;
+
+}
+
+function validate_date() {
+
+}
+
+function validate_code() {
+
+}
+
+function validate_response_type() {
+   var form = document.getElementById('message_form');
+   var errors = '';
+   var requires_response = form.requires_response.value;
+   var response_type = form.response_type.value;
+   if(requires_response == 'True') {
+      if(response_type == '') {
+          errors += 'If this message requires a response, you must select a response type.\n';
+      }
+   }
+   return errors; 
+}
+
+
+function validate_schedule_by_day() {
+
+}
+
+
+function validate_schedule_by_date() {}
+
+function validate_code() {
+   var errors = '';
+   var form = document.getElementById('message_form');
+   var code = form.code.value;
+   var codes = [{% for code in codes%} '{{code}}',{% endfor %}]; //I'm using the django template system to build a javascript array
+   if(codes.indexOf(code) != -1) { 
+      errors += 'You are already using ' + code + '. You already use these codes: [' + codes + ']'; 
+   }
+   return '';
+}
+
+
+</script>
+<script>
+  $(function() {
+  $( "#start_date" ).datepicker({dateFormat: 'mm/dd/y'});  
+  $( "#end_date" ).datepicker({dateFormat: 'mm/dd/y'});
+  });
+</script>
+
+{% if form_id %}
+<h2>Edit Message</h2>
+{% else %}
+<h2>Create New Message</h2> 
+{% endif %}
+
+<form action="/caresmarts/form/" method="post" id='message_form'>
+<input type='hidden' name='patient_id' value='{{ patient_id }}'/>
+{% if form_id %}
+<input type='hidden' name='form_id' value='{{ form_id }}'/>
+{% endif %}
+
+<table id='form_attributes__form'>
+  <tr>
+    <td class='first_col'>
+<table id='program_info'>
+<tr><td>Message Name:</td><td><input  type='text' name='name' value='{{ name }}'/></td></tr>
+<tr>
+  <td>Message{%if disabled%}(READ-ONLY){%endif%}:</td>
+  <td><textarea name='message' {%if disabled%} readonly='readonly' {%endif%} rows='3' cols='35'>{{ message }}</textarea></td>
+  <td>
+  </td>
+</tr>
+<tr><td>Start Date (MM/DD/YY):</td><td><input  type='text' name='start_date' value='{{start_date}}' id='start_date'/></td</tr>
+<tr><td>End Date (MM/DD/YY):</td><td><input  type='text' name='end_date' value='{{end_date}}' id='end_date'/></td</tr>
+<tr><td>Code:</td><td>+<input type='text' name='code' value='{{code}}'/></td</tr>
+<tr>
+  <td>Apply Label:</td>
+  <td>
+    <select name='form_label_type_id'>
+      <option></option>
+      {% for form_label_type in form_label_types %}
+      <option value='{{form_label_type.id}}' {% ifequal form_label_type.name form_label_type_name %} selected {% endifequal %}>
+	{{form_label_type.name}}
+      </option>
+      {% endfor %}
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>Response Expected</td>
+  <td>
+    <select  name='requires_response'>
+      <option value='False' {% if not requires_response %} selected {% endif %}>No</option>
+      <option value='True' {% if requires_response %} selected {% endif %}>Yes</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>Response Type</td>
+  <td>
+    <select  name='response_type'>
+      <option></option>
+      <option value='1' {% ifequal response_type '1' %} selected {% endifequal %}>Yes/No</option>
+      <option value='2' {% ifequal response_type '2' %} selected {% endifequal %}>Number</option>
+      <option value='3' {% ifequal response_type '3' %} selected {% endifequal %}>Anything</option>
+    </select>
+  </td>
+</tr>
+</table>
+</td>
+
+  <td>
+    <!--
+    <table id='metrics__form'>
+      <tr>
+	<td>
+	  To include a metric in your message, use the following notation:
+	  &#123;&#123;id:n&#125;&#125; where id is the id of the metric 
+	  and n is the number of days in the time period. <br/>
+	  For example, the id  for
+          the process metric "num_sent" is 1. So to include the number of messages sent in the past seven days, you would do the following: " 
+	  sent &#123;&#123;1:7&#125;&#125; messages in the past seven days."<br/>
+	  <br/>
+	  Select a report to see metric ids:
+	</td>
+      <tr class='first_row'>
+	<td class='first_row'>
+	  <select name='report_summary_id' id='report_summary_id' onChange='getMetrics(this)'>
+	    <option></option>
+	    {% for rs in report_summaries %}
+	    <option value={{rs.id}}>{{rs.name}}</option>
+	    {% endfor %}
+	  </select>
+	</td>
+      </tr>
+      <tr>
+	<td><div id='metric_names'>.</div></td>
+      </tr>
+    </table>
+    -->
+  </td>
+</tr>
+</table>
+
+<br/>
+<hr/>
+
+<table id="schedule">
+  <tr>
+    <th class="first_col">Schedule by Day</th>
+    <th>Schedule by Date</th>
+  </tr>
+  <tr>
+    <td>
+      Here, you may schedule messages to be sent by day of the week, e.g. every Wednesday at 09:00. <br/>
+      Please enter times in 24-hour format separated by a ';', e.g. 09:00;14:00<br/>
+      <table id='schedule_by_day'>
+	<tr><td>Monday</td><td><input  type='text' name='monday' value='{{ daily_schedule.monday }}'/></td></tr>
+	<tr><td>Tuesday</td><td><input  type='text' name='tuesday' value='{{ daily_schedule.tuesday }}'/></td></tr>
+	<tr><td>Wednesday</td><td><input  type='text' name='wednesday' value='{{ daily_schedule.wednesday }}'/></td></tr>
+	<tr><td>Thursday</td><td><input  type='text' name='thursday' value='{{ daily_schedule.thursday }}'/></td></tr>
+	<tr><td>Friday</td><td><input  type='text' name='friday' value='{{ daily_schedule.friday }}'/></td></tr>
+	<tr><td>Saturday</td><td><input  type='text' name='saturday' value='{{ daily_schedule.saturday }}'/></td></tr>
+	<tr><td>Sunday</td><td><input  type='text' name='sunday' value='{{ daily_schedule.sunday }}'/></td></tr>
+      </table>
+    </td>
+    <td>
+      Here, you may schedule a message on a particular date. Enter the date (MM/DD/YY) followed by a space, followed by a set of times separated by a ';'.
+      Place each date on a different line. <br/>
+      <p>For example:<br/>
+      10/13/09 09:35;10:35 <br/> 
+      01/01/10 00:00 <br/>
+      </p>
+
+      <table id="schedule_by_date">
+	<tr>
+	  <td>
+	    <textarea  name='date_schedule' cols='50' rows='5'>{% for date,times in date_schedule.items %}{{ date }} {{ times }} &#10;{% endfor %}</textarea>
+	  </td>
+	</tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<br/>
+<hr/>
+
+{% if form_id %}
+<input  type="button" value="Edit Message" onClick='javascript:validate_form()'/>
+{% else %}
+<input  type="button" value="Create Message" onClick='javascript:validate_form()'/>
+{% endif %}
+</form>
+
+
+{% endblock %}

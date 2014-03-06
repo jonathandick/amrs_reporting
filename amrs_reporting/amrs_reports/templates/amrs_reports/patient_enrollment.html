@@ -1,0 +1,16 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+
+<form action='/caresmarts/patient_enrollment/' method='post'>
+  <select name='patientlist_id'>
+       <option value='-1'>All active patients</option>
+       {% for l in patientlists %}
+       <option value={{l.id}}> {{l.list_name}}</option>
+       {% endfor %}
+  </select>
+  <input type='submit'/>
+</form>
+
+{% endblock %}
+

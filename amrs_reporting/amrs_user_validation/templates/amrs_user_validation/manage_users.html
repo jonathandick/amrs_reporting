@@ -1,0 +1,50 @@
+{% extends "amrs_user_validation/base.html" %}
+
+
+{% block content %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+  $('#users').dataTable( {
+  "sScrollY": "250px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  } );
+
+</script>
+
+<table id='users'>
+  <thead>
+    <tr>
+      <th>Username</th>
+      <th>Name</th>
+      <th>Role</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for user in amrs_users %}
+    <tr>
+      <td>{{user.username}}</td>
+      <td>{{user.last_name}}, {{user.first_name}}</td>
+      <td>{{user.role}}</td>
+      <td>
+	<a href='/amrs_user_validation/edit_amrs_user?amrs_user_id={{user.id}}'>Edit</a> | 
+	<a href='/amrs_user_validation/delete_amrs_user?amrs_user_id={{user.id}}'>Delete</a>
+      </td>
+    </tr>
+    {%endfor%}
+  </tbody>
+</table>
+	
+
+<a href='/amrs_user_validation/'>User Management Home</a> <br/><br/>
+<a href='/amrs_user_validation/create_amrs_user'>Create AMRS User</a>      
+{% endblock %}

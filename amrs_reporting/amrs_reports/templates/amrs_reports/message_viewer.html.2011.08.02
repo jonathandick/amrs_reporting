@@ -1,0 +1,133 @@
+{% extends "powerup/base.html" %}
+
+{% block content %}
+<script type="text/javascript">
+
+function view_all_messages() {
+   var form = document.getElementById('filter_form');
+   var patient_id = form.patient_id.value;
+   window.location = '/powerup/message_viewer?patient_id=' + patient_id;
+}
+
+</script>
+
+<script type="text/javascript" language="javascript" src="/static/powerup/javascript/jquery_patient_search.js"></script>
+<style type="text/css" title="currentStyle">
+  @import "/static/powerup/javascript/DataTables-1.7.2/media/css/demo_page.css";
+  @import "/static/powerup/javascript/DataTables-1.7.2/media/css/demo_table.css";
+</style>
+<script type="text/javascript" language="javascript" src="/static/powerup/javascript/DataTables-1.7.2/media/js/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+  $('#messages').dataTable( {
+        }
+  );
+  } );
+</script>
+
+
+
+
+<h2>Message History</h2>
+<br/>
+{% ifnotequal args.patient_id '' %}
+<a href='/powerup/patient/{{args.patient_id}}/'>Return to patient dashboard</a>
+{% endifnotequal %}
+
+<br/>
+<br/>
+<form action='/powerup/message_viewer' method='post' id='filter_form'>
+<input type='hidden' name="patient_id" value='{{args.patient_id}}'/>
+<table>
+  <tr>
+    <td><b>Filters:</b></td>
+    <td></td>
+  </tr>
+  {% ifnotequal args.patients ''%}
+  <tr>
+    <td>Patient:</td>
+    <td>
+      <select name='patient_id_filter'>
+	<option></option>
+	{% for patient in args.patients %}
+	<option value='{{patient.id}}' {% ifequal patient.id|stringformat:"s" args.patient_id_filter %} selected {% endifequal %}>{{patient.last_name}}, {{patient.first_name}}</option>
+	{% endfor %}
+      </select>
+    </td>
+  </tr>
+  {% endifnotequal %}
+  <tr>
+    <td>Start Date (MM/DD/YY):</td>
+    <td><input type="text" name="start_date" value='{{args.start_date}}'/></td>
+  </tr>
+  <tr>
+    <td>End Date (MM/DD/YY):</td>
+    <td><input type="text" name="end_date" value='{{args.end_date}}'/></td>
+  </tr>
+  <tr>
+    <td>Message:</td>
+    <td>
+      <select name="formid">
+	<option></option>
+	{% for form in args.forms %}
+	<option value="{{form.form_id}}" {% ifequal form.form_id formid %} selected {% endifequal %}>{{form.name}}</option>
+	{% endfor %}
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td>Form Label:</td>
+     <td> 
+      <select name="form_label_type_id">
+	<option></option>
+        {% for flt in args.form_label_types %}
+	<option value='{{flt.id}}' {% ifequal flt.id|stringformat:"s" args.form_label_type_id %} selected {% endifequal %}>
+          {{flt.name}}
+	</option>
+	{% endfor %}
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td><input type="Submit" value="Filter"/></td><td></td>
+  </tr>
+  <tr>
+    <td><input type="button" value="View All Messages" onClick="javascript:view_all_messages()"/></td>
+    <td></td>
+  </tr>
+</table>
+</form>
+
+<br/>
+<hr>
+<br/>
+
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="messages">
+  <thead>
+    <tr>
+      {% ifnotequal args.patients '' %}
+      <th>Patient</th>
+      {% endifnotequal %}
+      <th>Date</th>
+      <th>System Message</th>
+      <th>Patient Message</th>
+      <th>Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for report in args.reports %}
+    <tr>
+      {% if report.patient %}
+      <td>{{ report.patient.last_name }}, {{report.patient.first_name}}</td>
+      {% endif %}
+      <td>{{ report.form_delivery_date }} {{ report.form_delivery_time|time }}</td>
+      <td>{{ report.form.message }}</td>
+      <td>{{ report.patient_message }}</td>
+      <td>{{ report.patient_message_date }} {{report.patient_message_time|time}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+
+{% endblock %}

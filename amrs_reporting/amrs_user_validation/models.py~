@@ -1,0 +1,79 @@
+from django.db import models
+from django.contrib.auth.models import User                                                                                                              from datetime import date, time, datetime, timedelta                                                                                                      
+from django.db.models import Avg,Min,Max,Count,Q,Sum                                                                                                      
+
+# Create your models here.
+
+
+class Authorize(models.Model):
+    
+    @staticmethod
+    def authorize(user,permitted_roles):
+         r = Role.objects.filter(user_id=user.id, role__in=permitted_roles)
+         return len(r) > 0
+
+    
+
+class Role(models.Model) :    
+    user_id = models.IntegerField()
+    role = models.CharField(max_length=300)
+
+
+class AMRSUser(models.Model):
+    
+    first_name = models.CharField(max_length=160)
+    middle_name = models.CharField(max_length=160,null=True,blank=True)
+    last_name = models.CharField(max_length=160)
+    username = models.CharField(max_length=30)
+    email = models.CharField(max_length=100,null=True,blank=True)
+    cell_phone_number = models.CharField(max_length=20)
+    
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    voided = models.BooleanField(default=False)
+    date_voided = models.DateTimeField(blank=True,null=True)
+
+    requires_password_change = models.BooleanField(default=False)
+
+    def __unicode__(self):
+        return (self.first_name + " " + self.last_name)
+
+
+    def init(self):
+        args = {'first_name' : 'Jonathan',
+                'last_name' : 'Dick',
+                'email' : 'jonathan.j.dick@gmail.com',
+                'username' : 'jdick',
+                'password' : 'jdick',
+                'phone_number' : '+254724679898'}
+
+        p = AMRSUser()
+        p.set_manager_info(args)
+        
+        
+    def set_amrs_user(self,args) :
+        new_user = False
+        if self.id is None : new_user = True
+
+        error_free = True
+        try : 
+            for key,value in args.iteritems() : 
+                if hasattr(self,key) : setattr(self,key,value)
+        except Exception, e:
+            print e
+            error_free = False
+            
+        if error_free :
+            self.save()
+            if new_user :
+                if 'email' not in args or args['email'] is None : email = ''
+                else : email = args['email']
+                user = User.objects.create_user(username=args['username'], email=email, password=args['password1'])
+                self.requires_password_change = True
+                self.save()
+
+            return True
+
+        else : return False
+
+

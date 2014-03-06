@@ -1,0 +1,10 @@
+function handleSendMessage() {
+    if(http.readyState == 4){
+        var params = new Array();
+        params = http.responseText.split(';');
+        var row = '<tr>';
+        for(i=0;i<params.length;i++) { row += '<td>' + params[i] + '</td>'; }
+        row += </tr>;
+        document.getElementById('message_log');
+	}
+}

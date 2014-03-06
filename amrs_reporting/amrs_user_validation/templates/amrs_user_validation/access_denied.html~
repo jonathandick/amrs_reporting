@@ -1,0 +1,9 @@
+{% extends "amrs_user_validation/base.html" %}
+
+
+{% block content %}
+
+<h2>You do not have access to view this page. Please contact the systems administrator if this is an error.</h2>
+<a href='amrs_user_validation/login'>Login as different user</a>
+
+{% endblock %}

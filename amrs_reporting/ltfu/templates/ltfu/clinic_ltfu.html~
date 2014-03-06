@@ -1,0 +1,101 @@
+{% extends "amrs_reports/base.html" %}
+{% load staticfiles %}
+{% block content %}
+
+<script type="text/javascript" language="javascript" src="{% static 'js/flot/jquery.flot.js'%}"></script>
+<script type="text/javascript">
+  
+  $(document).ready(function() {
+
+  $('#report').dataTable( {
+  "width":"100%",
+  "sScrollY": "auto",
+  "aoColumnDefs": [{ "foo": "numeric", "aTargets": [ 0 ] }],
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth" : false
+   } );
+
+  $('#report_backup').dataTable( {
+  "width":"100%",
+  "sScrollY": "auto",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false
+   } );
+
+/*
+  $.plot($('#graph'),
+  [{label : "Foo", data:[{% for row in rows %}{% for cell in row %}{% if forloop.counter == 1 %}{{cell}}] {%endif%}{% if forloop.counter == 3 %}[{{cell}},{%endif%}{%endfor%}{%endfor%}]
+  });
+
+*/
+  } );
+
+</script>
+
+<div id='datatable_wrapper'>
+<table id='report' class="displays">
+  <thead>
+    <tr>
+      {% for col in cols %}
+      <th class="gradeA">{{col.0}}</th>
+      {%endfor%}
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rows %}
+    <tr>
+      {% for cell in row %}
+      <td>
+	{% if cell == 0%} {{cell}} 
+	{% elif cell%} {{cell}}{%endif%}
+      </td>
+      {% endfor %}
+    </tr>
+    {%endfor%}
+    </tbody>
+</table>
+</div>
+
+
+<hr>
+<br/><br/>
+<form action='/amrs_reports/run_report_table' method='post'>
+  {% csrf_token %}
+  <input type='hidden' name='report_table_id' value='{{report_table.id}}'/>
+  <table>
+    <tr>
+      <th>Parameter Name</th>
+      <th>Value</th>
+      <th>Default Value</th>
+    </tr>
+    {% for param in parameters %}
+    <tr>
+      <td>{{param.name}}</td>
+      <td><input type='text' name='{{param.name}}'/></td>
+      <td>{{param.default_value}}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+      <td><input type='submit' value='Run Report Table'/></td>
+      <td></td>
+      <td></td>
+  </table>
+  
+</form>
+
+<hr>
+
+<h3>Graph</h3>
+<div id='graph' style="width:600px;height:300px">
+</div>
+
+{% endblock %}

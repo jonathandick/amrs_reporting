@@ -1,0 +1,8 @@
+mathfilters/__init__.py
+mathfilters/tests.py
+mathfilters/templatetags/__init__.py
+mathfilters/templatetags/mathfilters.py
+pip-egg-info/django_mathfilters.egg-info/PKG-INFO
+pip-egg-info/django_mathfilters.egg-info/SOURCES.txt
+pip-egg-info/django_mathfilters.egg-info/dependency_links.txt
+pip-egg-info/django_mathfilters.egg-info/top_level.txt

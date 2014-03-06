@@ -1,0 +1,72 @@
+{% extends "amrs_user_validation/base.html" %}
+
+
+{% block content %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+  $('#report_tables').dataTable( {
+  "sScrollY": "250px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#reports').dataTable( {
+  "sScrollY": "100px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  } );
+
+</script>
+
+<h3>{% if messages %} {{messages}} {%endif%}</h3>
+<hr>
+{{role.role}}
+<h3>Edit user:</h3>
+<form method='post' action='/amrs_user_validation/edit_user'>
+  {%csrf_token%}
+  <input type='hidden' name='user_id' value='{{user.id}}'/>
+  <table>
+    <tr>      
+      <td>First Name: </td><td><input type='text' name='first_name' value='{{user.first_name}}'/></td>
+    </tr>
+    <tr>      
+      <td>Last Name: </td><td><input type='text' name='last_name' value='{{user.last_name}}'/></td>
+    </tr>
+    <tr>      
+      <td>Username: </td><td><input type='text' name='username' value='{{user.username}}'/></td>
+    </tr>
+    <tr>
+      <td>Role: </td>
+      <td>
+	<select name='role'>
+	  <option value='admin' {%if role.role == 'admin'%}selected{%endif%}>admin</option>
+	  <option value='clinician' {%if role.role == 'clinician'%}selected{%endif%}>clinician<option>
+	</select>
+    </tr>
+    <tr>
+      <td>Password: </td><td><input type='password' name='password'/></td>
+    </tr>
+    <tr>
+      <td>Retype Password: </td><td><input type='password' name='password2'/></td>
+    </tr>
+
+    <tr>
+      <td><input type='submit' value='Edit user'/></td><td></td>
+    </tr>
+  </table>
+</form>
+
+
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+<div style="padding: 10px 20px 0px 20px;">
+	{% if domain %}
+	<h2>Rename Domain: {{ domain.name }}</h2>
+	{% else %}
+	<h2>Create Domain</h2>
+	{% endif %}
+	<br/>
+	<form name="domain" action="/caresmarts/create_domain" method="post">
+		<input type='hidden' name='domain_id' value='{{domain.id}}'/>
+		Domain Name: 
+		<input type="text" name="name" value="{{domain.name}}" />
+		<input type="submit" value="Save Domain" />
+	</form>
+</div>
+
+{% endblock %}

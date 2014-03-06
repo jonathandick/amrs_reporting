@@ -1,0 +1,21 @@
+{% extends "caresmarts/base.html" %}
+
+
+{% block content %}
+
+<table>
+  <tr>
+    <td>Name</td>
+    <td>Description</td>
+    <td>Edit</td>
+  </tr>
+  {% for form_label_type in form_label_types %}
+  <tr>
+    <td>{{form_label_type.name}}</td>
+    <td>{{form_label_type.description}}</td>
+    <td><a href='/caresmarts/design_form_label_type?form_label_type_id={{ form_label_type.id }}'>Edit</a></td>
+  </tr>
+  {% endfor %}
+</table>
+<a href='/caresmarts/design_form_label_type'>Create new form label</a>
+{% endblock %}

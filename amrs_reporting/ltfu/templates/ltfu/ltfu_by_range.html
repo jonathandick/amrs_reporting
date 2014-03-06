@@ -1,0 +1,66 @@
+{% extends "ltfu/base.html" %}
+{% load staticfiles %}
+{% block content %}
+
+<script type="text/javascript" language="javascript" src="{% static 'js/flot/jquery.flot.js'%}"></script>
+<script type="text/javascript">
+  
+  $(document).ready(function() {
+
+  $('#report').dataTable( {
+  "width":"100%",
+  "sScrollY": "auto",
+  "aoColumnDefs": [{ "foo": "numeric", "aTargets": [ 0 ] }],
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth" : false
+   } );
+
+  $('#report_backup').dataTable( {
+  "width":"100%",
+  "sScrollY": "auto",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false
+   } );
+
+  } );
+
+</script>
+
+<div id='datatable_wrapper'>
+<h3> Clinic: {{location.name}} </h3>
+<table id='report' class="displays">
+  <thead>
+    <tr>
+      <th class="gradeA">ID</th>
+      <th class="gradeA">arv line</th>
+      <th class="gradeA">last enc date</th>
+      <th class="gradeA">encounter type</th>
+      <th class="gradeA">rtc date</th>
+      <th class="gradeA">days from rtc date</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in ltfu_by_range %}
+    <tr>
+      <td><a href='https://amrs.ampath.or.ke/amrs/patientDashboard.form?patientId={{row.person_id}}'>{{row.person_id}}</a></td>
+      <td>{{row.arv_regimen}}</td>
+      <td>{{row.encounter_datetime}}</td>
+      <td>{{row.name}}</td>
+      <td>{{row.rtc_date}}</td>
+      <td>{{row.days_from_rtc_date}}</td>
+    </tr>
+    {%endfor%}
+    </tbody>
+</table>
+</div>
+
+{% endblock %}

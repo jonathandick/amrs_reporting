@@ -1,0 +1,513 @@
+{% extends 'caresmarts/base.html' %}
+
+{% block content %}
+
+
+
+
+<script type="text/javascript">
+function validate_form1()
+{
+   var form = document.getElementById('patient_form');
+   var errors = "";
+   
+   if(form.username.value == '') { errors += 'Username cannot be blank.\n'; }
+   if(form.first_name.value == '') { errors += 'First name cannot be blank.\n'; }
+   if(form.last_name.value == '') { errors += 'Last name cannot be blank.\n'; }
+   if(form.area_code.value == '' || form.prefix.value == '' || form.suffix.value == '') { errors += 'Phone number cannot be blank.\n'; }
+   if(form.address.value == '') { errors += 'Address cannot be blank.\n'; }
+   if(form.city.value == '') { errors += 'City cannot be blank.\n'; }
+   if(form.state.value == '') { errors += 'State cannot be blank.\n'; }
+   if(form.zip_code.value == '') { errors += 'Zip code cannot be blank.\n'; }
+   if(form.alt_contact_first_name.value == '') { errors += 'Alternate contact first name cannot be blank.\n'; }
+   if(form.alt_contact_last_name.value == '') { errors += 'Alternate contact last name cannot be blank.\n'; }
+   if(form.alternate_area_code.value == '' || form.alternate_prefix.value == '' || form.alternate_suffix.value == '') { errors += 'Alternate contact phone number cannot be blank.\n'; }
+   
+   if(errors != "")
+   {
+	alert(errors);
+   }
+   else
+   {
+	// form.submit();
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "block";
+	document.getElementById("page3").style.display = "none";
+	document.getElementById("page4").style.display = "none";
+	document.getElementById("page5").style.display = "none";
+   }
+}
+
+
+function validate_form2()
+{
+   var form = document.getElementById('patient_form');
+   var errors = "";
+   
+   if(errors != "")
+   {
+	alert(errors);
+   }
+   else
+   {
+	// form.submit();
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "block";
+	document.getElementById("page4").style.display = "none";
+	document.getElementById("page5").style.display = "none";
+   }
+}
+
+
+function validate_form3()
+{
+   var form = document.getElementById('patient_form');
+   var errors = "";
+   
+   if(errors != "")
+   {
+	alert(errors);
+   }
+   else
+   {
+	// form.submit();
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "none";
+	document.getElementById("page4").style.display = "block";
+	document.getElementById("page5").style.display = "none";
+   }
+}
+
+
+function validate_form4()
+{
+   var form = document.getElementById('patient_form');
+   var errors = "";
+   
+   if(errors != "")
+   {
+	alert(errors);
+   }
+   else
+   {
+	// form.submit();
+	document.getElementById("message_3").value = "Message #3: Is your name " + form.first_name.value + " " + form.last_name.value + "? Respond 'yes' or 'no'.";
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "none";
+	document.getElementById("page4").style.display = "none";
+	document.getElementById("page5").style.display = "block";
+   }
+}
+
+
+function validate_form5()
+{
+   var form = document.getElementById('patient_form');
+   var errors = "";
+   
+   if(errors != "")
+   {
+	alert(errors);
+   }
+   else
+   {
+	form.submit();
+   }
+}
+
+
+function quickAddPatient()
+{
+   var form = document.getElementById('patient_form');
+   form.quick_add.value = 'true';
+   form.submit();
+}
+
+function go_step1()
+{
+	document.getElementById("page1").style.display = "block";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "none";
+	document.getElementById("page4").style.display = "none";
+	document.getElementById("page5").style.display = "none";
+}
+
+function go_step2()
+{
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "block";
+	document.getElementById("page3").style.display = "none";
+	document.getElementById("page4").style.display = "none";
+	document.getElementById("page5").style.display = "none";
+}
+
+function go_step3()
+{
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "block";
+	document.getElementById("page4").style.display = "none";
+	document.getElementById("page5").style.display = "none";
+} 
+
+function go_step4()
+{
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "none";
+	document.getElementById("page4").style.display = "block";
+	document.getElementById("page5").style.display = "none";
+}
+
+function go_step5()
+{
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "none";
+	document.getElementById("page4").style.display = "none";
+	document.getElementById("page5").style.display = "block";
+}
+
+function userName()
+{
+	document.getElementById("id_alias").value = document.getElementById("id_first_name").value + document.getElementById("id_last_name").value + Math.floor(Math.random()*10000000);
+}
+
+
+
+$(document).ready(function(){
+    $("#birth_date").datepicker({dateFormat: 'mm/dd/yy', changeMonth:true,changeYear:true});
+    $("#birth_date").datepicker("option","yearRange",'1901:2012');
+
+    $("#next_appointment").datepicker({dateFormat: 'mm/dd/yy', changeMonth:true,changeYear:true});
+    $("#next_appointment").datepicker("option","yearRange",'2012:2014');
+});
+
+
+{% if page %}
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "none";
+	document.getElementById("page4").style.display = "block";
+	document.getElementById("page5").style.display = "none";
+{% endif %}
+
+
+</script>
+
+{% if patient_id %} <h2>&nbsp;&nbsp;&nbsp;Edit Patient</h2> 
+{% else %} <h2>&nbsp;&nbsp;&nbsp;Add Patient</h2> 
+{% endif %}
+
+{% if errors %}
+    <ul>
+    {% for error in errors %}
+        <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+<p>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Please try again.</p>
+{% endif %}
+<form action="/caresmarts/edit_patient/" method="post" id='patient_form'>
+{% if patient_id %}
+<input type='hidden' name='patient_id' value='{{ patient_id }}'/>
+{% endif %}
+<input type='hidden' id='quick_add' name='quick_add' value='false'/>
+
+<div id="page1" style="padding-left: 20px;"><!-- Screen 1 (Basic User Demographics) -->
+<h3>Basic User Demographics</h3>
+<p>I'm going to start by asking you some general questions like your name and phone number.</p>
+<table cellspacing="10">
+<tr><td>Username: </td><td><input id="id_alias" type="text" name='username' maxlength="20" readonly="readonly" value="{{patient.alias}}"/></td></tr>
+<tr><td>First Name: *</td><td><input id="id_first_name" type="text" name="first_name" value="{{patient.first_name}}" maxlength="30" onchange="javascript:userName()" /></td></tr>
+<tr><td>Middle Name: </td><td><input id="id_middle_name" type="text" name="middle_name" value="{{patient.middle_name}}" maxlength="30" /></td></tr>
+<tr><td>Last Name: *</td><td><input id="id_last_name" type="text" name="last_name" value="{{patient.last_name}}" maxlength="30" onchange="userName()" /></td></tr>
+<tr><td>Preferred Name (Nickname):</td><td><input id="id_preferred_name" type="text" name="preferred_name" value="{{patient.preferred_name}}" maxlength="30" /></td></tr>
+<tr>
+  <td>Mobile Phone Number: *</td>
+  <td>
+    (<input id="id_area_code" type="text" name="area_code" value="{{phone.area_code}}" maxlength="3" size="3"/>) 
+    <input id="id_prefix" type="text" name="prefix" value="{{phone.prefix}}" maxlength="3" size="3"/>-
+    <input id="id_suffix" type="text" name="suffix" value="{{phone.suffix}}" maxlength="4" size="4"/>
+  </td>
+</tr>
+<tr>
+  <td>Landline Phone Number:</td>
+  <td>
+    (<input id="id_landline_area_code" type="text" name="landline_area_code" value="{{patient.landline_area_code}}" maxlength="3" size="3"/>) 
+    <input id="id_landline_prefix" type="text" name="landline_prefix" value="{{patient.landline_prefix}}" maxlength="3" size="3"/>-
+    <input id="id_landline_suffix" type="text" name="landline_suffix" value="{{patient.landline_suffix}}" maxlength="4" size="4"/>
+  </td>
+</tr>
+<tr>
+  <td>Work Phone Number: </td>
+  <td>
+    (<input id="id_alternate_area_code" type="text" name="alternate_area_code" value="{{patient.alternate_area_code}}" maxlength="3" size="3"/>) 
+    <input id="id_alternate_prefix" type="text" name="alternate_prefix" value="{{patient.alternate_prefix}}" maxlength="3" size="3"/>-
+    <input id="id_alternate_suffix" type="text" name="alternate_suffix" value="{{patient.alternate_suffix}}" maxlength="4" size="4"/>
+  </td>
+</tr>
+<tr><td>Address *:</td><td><input id="id_address" type="text" name="address" value="{{patient.address}}" maxlength="30" /></td></tr>
+<tr><td>City *:</td><td><input id="id_city" type="text" name="city" value="{{patient.city}}" maxlength="30" /></td></tr>
+<tr><td>State *:</td><td><input id="id_state" type="text" name="state" value="{{patient.state}}" maxlength="30" /></td></tr>
+<tr><td>Zip Code *:</td><td><input id="id_zip_code" type="text" name="zip_code" value="{{patient.zip_code}}" maxlength="30" /></td></tr>
+<tr><td>Email Address:</td><td><input id="id_email" type="text" name="email" value="{{patient.email}}" maxlength="30" /></td></tr>
+<tr>
+   <td>Okay to contact by email?</td>
+   <td>
+     <select name='email_contact_ok'>
+      <option value='0' {% ifequal patient.email_contact_ok '0' %} selected {% endifequal %}>N/A</option>
+      <option value='1' {% ifequal patient.email_contact_ok '1' %} selected {% endifequal %}>Yes</option>
+      <option value='2' {% ifequal patient.email_contact_ok '2' %} selected {% endifequal %}>No</option>
+    </select>
+   </td>
+</tr>
+<tr><td>Alternate Contact First Name: *</td><td><input id="id_alt_contact_first_name" type="text" name="alt_contact_first_name" value="{{patient.alt_contact_first_name}}" maxlength="30" /></td></tr>
+<tr><td>Alternate Contact Last Name: *</td><td><input id="id_alt_contact_last_name" type="text" name="alt_contact_last_name" value="{{patient.alt_contact_last_name}}" maxlength="30" /></td></tr>
+<tr>
+  <td>Alternate Contact Phone Number: *</td>
+  <td>
+    (<input id="alternate_area_code" type="text" name="alternate_area_code" value="{{patient.alternate_area_code}}" maxlength="3" size="3"/>) 
+    <input id="alternate_prefix" type="text" name="alternate_prefix" value="{{patient.alternate_prefix}}" maxlength="3" size="3"/>-
+    <input id="alternate_suffix" type="text" name="alternate_suffix" value="{{patient.alternate_suffix}}" maxlength="4" size="4"/>
+  </td>
+</tr>
+<tr>
+  <td>Alternate Contact Secondary Phone Number:</td>
+  <td>
+    (<input id="id_alt_contact_secondary_area_code" type="text" name="alt_contact_secondary_area_code" value="{{patient.alt_contact_secondary_area_code}}" maxlength="3" size="3"/>) 
+    <input id="id_alt_contact_secondary_prefix" type="text" name="alt_contact_secondary_prefix" value="{{patient.alt_contact_secondary_prefix}}" maxlength="3" size="3"/>-
+    <input id="id_alt_contact_secondary_suffix" type="text" name="alt_contact_secondary_suffix" value="{{patient.alt_contact_secondary_suffix}}" maxlength="4" size="4"/>
+  </td>
+</tr>
+<tr><td>Birthdate (MM/DD/YYYY): *</td><td><input type="text" id="birth_date" name="birthdate" maxlength="30" value='{{patient.birthdate|date:'m/d/Y'}}'/></td></tr>
+<!--tr><td>Ethnicity:</td><td><input id="id_ethnicity" type="text" name="ethnicity" value="{{patient.ethnicity}}" maxlength="30" /></td></tr-->
+<tr>
+  <td>Gender:</td>
+  <td>
+    <select name='gender'>
+      <option value='0' {% ifequal patient.gender '0' %} selected {% endifequal %}>F</option>
+      <option value='1' {% ifequal patient.gender '1' %} selected {% endifequal %}>M</option>
+    </select>
+  </td>
+</tr>
+</table>
+<br/>
+<input type="button" value="Proceed to Step 2" onClick="javascript:validate_form1()"/>
+{% if patient_id %}
+ OR <input type="submit" value="Save Changes and Return To Dashboard" />
+{% else %}
+ OR <input type="button" value="Quick Add Patient" onClick="javascript:quickAddPatient()" />
+{% endif %}
+</div>
+
+<div id="page2" style="display:none; padding-left: 20px;"><!-- Screen 2 (Diabetes Information) -->
+<h3>Diabetes Information</h3>
+<p>Now I'm going to ask you some questions about your diabetes.</p>
+<!--table cellspacing="10">
+<tr><td>Years of Diabetes:</td><td><input id="id_years_of_diabetes" type="text" name="years_of_diabetes" value="{{patient.years_of_diabetes}}" maxlength="30" /></td></tr>
+<tr>
+  <td>Treatment Perscribed:</td>
+  <td>
+    <select name='medication'>
+      <option value='0' {% ifequal patient.medication '0' %} selected {% endifequal %}>I have not been prescribed either insuline or pills for my diabetes. (Diet alone)</option>
+      <option value='1' {% ifequal patient.medication '1' %} selected {% endifequal %}>Diabetes pills alone.</option>
+      <option value='2' {% ifequal patient.medication '2' %} selected {% endifequal %}>Diabetes pills and/or injection medication other than insulin. (e.g., Byetta)</option>
+      <option value='3' {% ifequal patient.medication '3' %} selected {% endifequal %}>An insulin shot 1 or 2 times per day +/- diabetes pills or non-insulin injections.</option>
+      <option value='4' {% ifequal patient.medication '4' %} selected {% endifequal %}>An insulin shot 3 or more times per day +/- diabetes pills or non-insulin injections.</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>Intensity of glucose monitoring prescribed:</td>
+  <td>
+    <select name='intensity'>
+      <option value='0' {% ifequal patient.intensity '0' %} selected {% endifequal %}>Zero times per day</option>
+      <option value='1' {% ifequal patient.intensity '1' %} selected {% endifequal %}>As needed or when I'm not feeling well</option>
+      <option value='2' {% ifequal patient.intensity '2' %} selected {% endifequal %}>A few times per week</option>
+      <option value='3' {% ifequal patient.intensity '3' %} selected {% endifequal %}>Daily</option>
+      <option value='4' {% ifequal patient.intensity '4' %} selected {% endifequal %}>More than once per day</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>Have you ever seen a diabetes educator at the University of Chicago?</td>
+  <td>
+    <select name='seen_educator'>
+      <option value='0' {% ifequal patient.intensity '0' %} selected {% endifequal %}>No</option>
+      <option value='1' {% ifequal patient.intensity '1' %} selected {% endifequal %}>Yes</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>Have you ever seen a nutritionist at the University of Chicago?</td>
+  <td>
+    <select name='seen_nutritionist'>
+      <option value='0' {% ifequal patient.intensity '0' %} selected {% endifequal %}>No</option>
+      <option value='1' {% ifequal patient.intensity '1' %} selected {% endifequal %}>Yes</option>
+    </select>
+  </td>
+</tr-->
+{% autoescape off %}
+{{ diabetes_care_questions }}
+{% endautoescape %}
+<table cellspacing="10" style='width:100%;'>
+<tr>
+  <td>Primary Care Doctor:</td>
+  <td align='right'>
+    <select name='primary_care_doctor'>
+	{% for doctor in doctors %}
+	      <option value="{{ doctor.first_name }} {{ doctor.last_name }} ({{ doctor.email }})" {% if doctor.first_name in patient.primary_care_doctor and doctor.last_name in patient.primary_care_doctor %}selected="selected"{% endif %}>{{ doctor.last_name }}, {{ doctor.first_name }}</option>
+	{% endfor %}
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>Endocrinologist:</td>
+  <td align='right'>
+    <select name='endocrinologist'>
+	<option value="">N/A</option>
+	{% for endocrinologist in endocrinologist %}
+	      <option value="{{ endocrinologist.first_name }} {{ endocrinologist.last_name }} ({{ endocrinologist.email }})" {% if endocrinologist.first_name in patient.endocrinologist and endocrinologist.last_name in patient.endocrinologist %}selected="selected"{% endif %}>{{ endocrinologist.last_name }}, {{ endocrinologist.first_name }}</option>
+	{% endfor %}
+    </select>
+  </td>
+</tr>
+<tr><td>Next Doctor Appointment (MM/DD/YYYY):</td><td align='right'><input type="text" id="next_appointment" name="next_appointment" maxlength="30" value='{{patient.next_appointment|date:'m/d/Y'}}'/></td></tr>
+</table>
+<br/>
+<input type="button" value="Proceed to Step 3" onClick="javascript:validate_form2()"/>
+{% if patient_id %}
+ OR <input type="submit" value="Save Changes and Return To Dashboard" />
+{% endif %}
+</div>
+
+<div id="page3" style="display:none; padding-left: 20px; line-height: 150%;"><!-- Screen 3 (Self-Management Behaviors) -->
+<h3>Self-Management Behaviors</h3>
+<p>Taking care of your diabetes is often difficult. I’m going to now ask you a series of questions about your habits when it comes to diet, exercise, medications, blood sugar testing, and foot care. Your answers will help us select a text messaging program to best fit your needs.</p>
+<table cellspacing="10">
+<tr>
+  <td><b>Diet</b></td>
+</tr>
+<tr>
+  <td>{% autoescape off %}{{ diet_self_management_questions }}{% endautoescape %}</td>
+</tr>
+<tr>
+  <td><br /><b>Exercise</b></td>
+  <td></td>
+</tr>
+<tr>
+  <td>{% autoescape off %}{{ exercise_self_management_questions }}{% endautoescape %}</td>
+</tr>
+<tr>
+  <td><br /><b>Medications</b></td>
+  <td></td>
+</tr>
+<tr>
+  <td>{% autoescape off %}{{ medication_self_management_questions }}{% endautoescape %}</td>
+</tr>
+<tr>
+  <td><br /><b>Blood Sugar Monitoring</b></td>
+  <td></td>
+</tr>
+<tr>
+  <td>{% autoescape off %}{{ blood_sugar_monitoring_questions }}{% endautoescape %}</td>
+</tr>
+<tr>
+  <td><br /><b>Foot Care</b></td>
+  <td></td>
+</tr>
+<tr>
+  <td>{% autoescape off %}{{ foot_care_questions }}{% endautoescape %}</td>
+</tr>
+
+<tr>
+  <td><br /><b>Smoking</b></td>
+  <td></td>
+</tr>
+<tr>
+  <td>{% autoescape off %}{{ smoking_history_questions }}{% endautoescape %}</td>
+</tr>
+</table>
+<br/>
+<input type="button" value="Proceed to Step 4" onClick="javascript:validate_form3()"/>
+{% if patient_id %}
+ OR <input type="submit" value="Save Changes and Return To Dashboard" />
+{% endif %}
+</div>
+
+<div id="page4" style="display:none; padding-left: 20px;"><!-- Screen 4 (Message Preferences) -->
+<h3>Message Preferences</h3>
+<p>Next, I'm going to ask you a series of questions to help us select the text messaging program that best fits your work and life schedule.</p>
+<table cellspacing="10" style="width:100%;">
+<tr>
+  <td>Timezone</td>
+  <td>
+    <select name='utc_offset'>
+      <option value='-8' {% ifequal patient.utc_offset -8 %} selected {% endifequal %}>PST</option>
+      <option value='-7' {% ifequal patient.utc_offset -7 %} selected {% endifequal %}>MST</option>
+      <option value='-6' {% ifequal patient.utc_offset -6 %} selected {% endifequal %}>CST</option>
+      <option value='-5' {% ifequal patient.utc_offset -5 %} selected {% endifequal %}>EST</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>Phone Type:</td>
+  <td>
+    <select name='phone_type'>
+      <option value='0' {% ifequal patient.phone_type '0' %} selected {% endifequal %}>Basic Phone</option>
+      <option value='1' {% ifequal patient.phone_type '1' %} selected {% endifequal %}>Smart Phone</option>
+    </select>
+  </td>
+</tr>
+<tr><td>Unlimited Text Messaging Plan:</td><td><select name='is_unlimited'><option>True</option><option>False</option></select></td></tr>
+<tr>
+  <td>Preferred Number of Messages: *</td>
+  <td>
+    <select name='num_messages'>
+      <option value='0' {% ifequal patient.num_messages 0 %} selected {% endifequal %}>High</option>
+      <option value='1' {% ifequal patient.num_messages 1 %} selected {% endifequal %}>Medium</option>
+      <option value='2' {% ifequal patient.num_messages 2 %} selected {% endifequal %}>Low</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>Active:</td>
+  <td>
+    <input type="checkbox" name="active" value="{{patient.active}}" {% if patient.active or not patient %} checked=true {% endif %}/>
+  </td>
+</tr>
+<tr><td>Public:</td><td><select name='is_public'><option>True</option><option>False</option></select></td></tr>
+<tr>
+  <td colspan="2">{% autoescape off %}{{ timing_prefs_questions }}{% endautoescape %}</td>
+</tr>
+
+</table>
+<br/>
+<input type="button" value="Save Patient" onClick="javascript:validate_form5()"/>
+</div>
+
+<div id="page5" style="display:none; padding-left: 20px;"><!-- Screen 5 (Tutorial and Initiation) -->
+<h3>Tutorial and Initiation</h3>
+Now we're going to do some practice exercises to get you comfortable with the text messaging system. This is not a test, but we do want to make sure you know how to use the system and the system is working right. I will work with you to make sure that at the end of this phone call, you feel confident sending and receiving text messages.
+<br /><br />
+<input type="button" id="message_1" value="Message #1: Please say aloud: 'Hello World'."/><br /><br />
+<input type="button" id="message_2" value="Message #2: Text me your age."/><br /><br />
+<input type="button" id="message_3" value="Message #3: Is your name [name]? Respond 'yes' or 'no'."/><br /><br />
+<input type="button" id="message_4" value="Message #4: Is this a) hard, b) easy, or c) in the middle?"/><br />
+<br /><br />
+<input type="button" value="Save Parent" onClick="javascript:validate_form5()"/>
+</div>
+
+</form>
+
+<div style="padding: 22px; padding-top: 40px; padding-bottom: 20px;">
+	<a href="#" onClick="javascript:go_step1()">User Information</a> | 
+	<a href="#" onClick="javascript:go_step2()">Diabetes Information</a> | 
+	<a href="#" onClick="javascript:go_step3()">Self-Management Behaviors</a> | 
+	<a href="#" onClick="javascript:go_step4()">System Preferences</a>
+</div>
+
+{% endblock %}

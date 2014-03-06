@@ -1,0 +1,174 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+<script type="text/javascript">
+</script>
+
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/jquery_patient_search.js"></script>
+<style type="text/css" title="currentStyle">
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_page.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table.css";
+</style>
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/DataTables-1.7.2/media/js/jquery.dataTables.js"></script>
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/jquery_patient_search.js"></script>
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+
+  $('#analyzed_messages').dataTable( {
+  "sScrollY": "400px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#process_stats').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $("#patient_tabs").tabs();
+
+  } );
+
+</script>
+
+
+<div style="padding-left: 20px; padding-right: 20px;">
+<h2>Message Analysis</h2>
+<br/>
+{% ifnotequal args.patient '' %}
+<a href='/caresmarts/patient/{{patient.id}}/'>Return to {{patient.first_name}} {{patient.last_name}}'s Dashboard</a>
+{% endifnotequal %}
+
+<br/>
+<br/>
+
+<!--
+<form action='/caresmarts/message_viewer' method='post' id='filter_form'>
+<input type='hidden' name="patient_id" value='{{args.patient.id}}'/>
+<table>
+  <tr>
+    <td><b>Filters:</b></td>
+    <td></td>
+  </tr>
+  {% ifnotequal args.patients ''%}
+  <tr>
+    <td>Patient:</td>
+    <td>
+      <select name='patient_id_filter'>
+	<option></option>
+	{% for patient in args.patients %}
+	<option value='{{patient.id}}' {% ifequal patient.id|stringformat:"s" args.patient_id_filter %} selected {% endifequal %}>{{patient.last_name}}, {{patient.first_name}}</option>
+	{% endfor %}
+      </select>
+    </td>
+  </tr>
+  {% endifnotequal %}
+  <tr>
+    <td>Start Date (MM/DD/YY):</td>
+    <td><input type="text" name="start_date" value='{{args.start_date}}'/></td>
+  </tr>
+  <tr>
+    <td>End Date (MM/DD/YY):</td>
+    <td><input type="text" name="end_date" value='{{args.end_date}}'/></td>
+  </tr>
+  <tr>
+    <td><input type="Submit" value="Filter"/></td><td></td>
+  </tr>
+  <tr>
+    <td><input type="button" value="View All Messages" onClick="javascript:view_all_messages()"/></td>
+    <td></td>
+  </tr>
+</table>
+</form>
+
+<br/>
+<hr>
+<br/>
+-->
+
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="analyzed_messages">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>System Message</th>
+      <th>Parent Message</th>
+      <th>Time to Respond (min)</th>
+      <th>Tags</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for report in reports %}   
+
+    <tr>
+      <td>{{ report.datetime|date:"m/d/y H:i:s"}}</td>
+      {% if report.system_message_log %}
+      <td>{{ report.system_message_log.message }}</td>
+      {% else %}
+      <td></td>
+      {% endif %}
+
+      {% if report.patient_message_log %}
+      <td>{{ report.patient_message_log.message }}</td>
+      {% else %}
+      <td></td>
+      {% endif %}
+      {% if report.time_to_respond %}
+      <td>{{report.time_to_respond}}</td>
+      {% else %}
+      <td>-</td>
+      {% endif %}
+      
+      <td>
+      {% for tag in report.tags %}
+      	{{ tag.name }}
+      {% endfor %}
+      </td>
+    </tr>
+    {% endfor %}
+
+  </tbody>
+</table>
+
+<br><br><br>
+
+<u><h3>Process Metrics</h3></u>
+<table id="process_stats">
+  <thead>
+    <tr>
+      <th>Time period</th>
+      <th># sent by parent</th>
+      <th># received by parent</th>
+      <th>% responded to, required</th>
+      <th>avg response time, required</th>
+      <th># responded, no prompt</th>
+      <th># no code responses</th>
+      <th># orphans</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for stats in process_stats %}  
+    <tr class='gradeZ'>
+      <td>{{stats.time_period}}</td>
+      <td>{{stats.num_sent}}</td>
+      <td>{{stats.num_received}}</td>
+      <td>{{stats.percent_responded_required}}%</td>
+      <td>{{stats.required_time_to_respond}}</td>    
+      <td>{{stats.responded_no_prompt}}</td>
+      <td>{{stats.no_code_match}}</td>
+      <td>{{stats.orphan}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,174 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+<script type="text/javascript">
+
+function view_all_messages() {
+   var form = document.getElementById('filter_form');
+   var patient_id = form.patient_id.value;
+   window.location = '/caresmarts/message_viewer?patient_id=' + patient_id;
+}
+
+</script>
+
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/jquery_patient_search.js"></script>
+<style type="text/css" title="currentStyle">
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_page.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table.css";
+</style>
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/DataTables-1.7.2/media/js/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+  $('#messages').dataTable( {
+        }
+  );
+  } );
+</script>
+
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/jquery_patient_search.js"></script>
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+
+  $('#message_log').dataTable( {
+  "sScrollY": "600px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false,
+  "aaSorting": [[2,'asc']],
+  "aoColumns": [null,null,{ "sType": 'date' },null,null,null],
+  "fnDrawCallback": function ( oSettings ) {
+      if ( oSettings.bSorted || oSettings.bFiltered )
+      {
+          for ( var i=0, iLen=oSettings.aiDisplay.length ; i<iLen ; i++ )
+          {
+             $('td:eq(0)', oSettings.aoData[ oSettings.aiDisplay[i] ].nTr ).html( i+1 );
+          }
+      }
+
+  }
+  } );
+
+  $("#patient_tabs").tabs();
+
+  } );
+
+</script>
+
+
+
+<div style="padding: 10px 20px 0px 20px;">
+<h2>Message History</h2>
+<br/>
+{% ifnotequal args.patient_id '' %}
+<a href='/caresmarts/patient/{{args.patient_id}}/'>Return to Patient Dashboard</a><br/>
+{% endifnotequal %}
+{% if args.mls %}<a href='/caresmarts/message_log_analyzer_2?patient_id={{args.patient_id}}'>Analyze Messages</a>{% endif %}<br/>
+
+<br/>
+<br/>
+
+<form action='/caresmarts/message_viewer' method='post' id='filter_form'>
+<input type='hidden' name="patient_id" value='{{args.patient_id}}'/>
+<table>
+  <tr>
+    <td><b>Filters:</b></td>
+    <td></td>
+  </tr>
+  {% ifnotequal args.patients ''%}
+  <tr>
+    <td>Patient:</td>
+    <td>
+      <select name='patient_id_filter'>
+	<option></option>
+	{% for patient in args.patients %}
+	<option value='{{patient.id}}' {% ifequal patient.id|stringformat:"s" args.patient_id_filter %} selected {% endifequal %}>{{patient.last_name}}, {{patient.first_name}}</option>
+	{% endfor %}
+      </select>
+    </td>
+  </tr>
+  {% endifnotequal %}
+
+  {% ifnotequal args.patient_lists ''%}
+  <tr>
+    <td>Patient List:</td>
+    <td>
+      <select name='patient_list_id'>
+	<option></option>
+	{% for patient_list in args.patient_lists %}
+	<option value='{{patient_list.id}}' {% ifequal patient_list.id|stringformat:"s" args.patient_list_id %} selected {% endifequal %}>
+	  {{patient_list.list_name}}
+	</option>
+	{% endfor %}
+      </select>
+    </td>
+  </tr>
+  {% endifnotequal %}
+
+
+
+
+
+  <tr>
+    <td>Start Date (MM/DD/YY):</td>
+    <td><input type="text" name="start_date" value='{{args.start_date}}'/></td>
+  </tr>
+  <tr>
+    <td>End Date (MM/DD/YY):</td>
+    <td><input type="text" name="end_date" value='{{args.end_date}}'/></td>
+  </tr>
+  <tr>
+    <td><input type="Submit" value="Filter"/></td><td></td>
+  </tr>
+  <tr>
+    <td><input type="button" value="View All Messages" onClick="javascript:view_all_messages()"/></td>
+    <td></td>
+  </tr>
+</table>
+</form>
+
+<br/>
+<hr>
+<br/>
+
+
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="message_log">
+  <thead>
+    <tr>
+      <th></th>
+      <th>Patient</th>
+      <th>Date</th>
+      <th>Patient</th>
+      <th>System</th>
+      <th>Category</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for ml in args.mls %}
+    <tr>
+      <td style="font-size:12px;">{{forloop.counter}}</td>
+      <td style="font-size:12px;">{{ ml.patient.last_name }}, {{ml.patient.first_name}}</td>      
+      <td style="font-size:12px;">{{ ml.datetime|date:"m/d/y H:i:s" }} </td>
+      
+      {% ifequal ml.type "patient_message" %}
+      <td style="font-size:12px;">{{ ml.message }}</td>
+      <td></td>
+      {% endifequal %}
+      
+      {% ifequal ml.type "system_message" %}
+      <td></td>
+      <td style="font-size:12px;">{{ ml.message }}</td>
+
+      {% endifequal %}
+      <td style="font-size:12px;">{{ ml.category }}</td>
+
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+{% endblock %}

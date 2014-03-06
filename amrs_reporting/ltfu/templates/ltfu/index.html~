@@ -1,0 +1,66 @@
+{% extends "ltfu/base.html" %}
+
+{% block content %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+  $('#report_tables').dataTable( {
+  "sScrollY": "250px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $("#ltfu_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
+
+  });
+
+
+</script>
+<h4>Lost to Follow-up (LTFU)</h4>
+<ul>
+  <li><a href='/ltfu/ltfu_ampath'>AMPATH-wide LTFU statistics by year</a><br/><br/></li>
+  <li><a href='/ltfu/ltfu_clinics'>LTFU statistics across all clinics</a><br/><br/></li>
+  <li> <b>List all LTFU patients at a specific clinic:</b>
+    <form action='/ltfu/ltfu_clinic' method='post'> {% csrf_token %}
+    <table>
+      <tr>
+	<td>Clinic: 
+	  <select name='location_id'>
+	    {% for location in locations %}
+	    <option value='{{location.location_id}}'>{{location.name}}</option>
+	    {% endfor %}
+	  </select>
+	</td>
+	<td>LTFU Date : <input id='ltfu_date' type='text' name='ltfu_date' value='2014-01-01'/></td>
+	<td><input type='submit'/></td>
+      </tr>	  
+    </table>
+    </form>
+  </li>
+  <li> <b>Identify patients about to be designated LTFU</b>
+    <form action='/ltfu/ltfu_by_range' method='post'> {% csrf_token %}
+      <table>
+      <tr>
+	<td>Clinic: 
+	  <select name='location_id'>
+	    {% for location in locations %}
+	    <option value='{{location.location_id}}'>{{location.name}}</option>
+	    {% endfor %}
+	  </select>
+	</td>
+	<td>start range:<input type='text' name='start_range' value='60'></td>
+	<td>end range:<input type='text' name='end_range' value='90'></td>
+	<td><input type='submit'/></td>
+      </tr>	  
+    </table>
+    </form>
+  </li>
+    
+</ul>
+
+{% endblock %}

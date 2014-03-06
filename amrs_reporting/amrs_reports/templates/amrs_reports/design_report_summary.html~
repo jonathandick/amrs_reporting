@@ -1,0 +1,509 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+
+<script type="text/javascript">
+
+function get_params(form_id) {
+   var form = document.getElementById(form_id);
+   var elements = form.elements;
+   var length = elements.length;
+   var s = '';
+   var element = '';
+   for(var i=0; i< elements.length; i++) {
+       element = elements[i];
+       if(element.type == 'select-multiple') {
+            var options = element.options;
+            for(var j=0; j < options.length; j++) {
+               option = options[j];
+               if(option.selected) {
+                  s += '&' + element.name + '=' + options[j].value;
+               }
+            }
+       }
+       else if (element.value != '') {
+           s += '&' + element.name + '=' + encodeURIComponent(element.value);
+       }
+   }
+   return s;
+}   
+
+
+
+function add_metric(x,name,id) {
+   if (x == 'from_form') {
+       var sel_obj = document.getElementById('add_metric');
+       var option = sel_obj[sel_obj.selectedIndex];
+       name = option.text;
+       id = option.value;
+   }
+
+   tbl = document.getElementById('current_metrics__design_report_summary');
+   var lastRow = tbl.rows.length;   
+   var row = tbl.insertRow(lastRow);
+   row.setAttribute('id',id);
+   var cellLayout = row.insertCell(0);
+   cellLayout.innerHTML = '<input type="text" name="layout_' + id + '" size="2"/>'
+
+   var cellLeft = row.insertCell(1);
+   cellLeft.innerHTML = name;
+
+   var cellRight = row.insertCell(2);
+   var s = '<a href="javascript: remove_metric(' + id + ')">remove</a>';
+   cellRight.innerHTML = s;
+  
+   var cell = row.insertCell(3);
+   cell.innerHTML = id
+   cell.style.display = 'none';			     
+}
+
+
+function remove_metric(row_id) {
+   var row = document.getElementById(row_id);
+   row.parentNode.parentNode.deleteRow(row.rowIndex);
+}
+
+
+function create_report_summary() {
+    var form = document.getElementById("create_report_summary_form");
+    metrics_tbl = document.getElementById('current_metrics__design_report_summary');
+    if (metrics_tbl.rows.length <= 2)
+    {
+	alert("You haven't added any metrics to your report!");
+	return;
+    }
+    else if (document.getElementById('report_name').value == "")
+    {
+	alert("A required field was left blank!");
+	return;
+    }
+    var s = '';
+    var metric_order = '';
+    var cur_order = '';
+    for(var i=2; i < metrics_tbl.rows.length; i++) {
+        var tr = metrics_tbl.rows[i];
+        var cell = tr.cells[3];	     
+        s += cell.innerHTML + ',';
+	cur_order = tr.cells[0].childNodes[0].value;
+        if(cur_order != "") {		     
+   	   metric_order += cell.innerHTML + "=" + cur_order + ";";
+        }
+    }
+    var hiddenField = document.createElement("input");
+    hiddenField.setAttribute("type", "hidden");
+    hiddenField.setAttribute("name", "metric_ids");
+    hiddenField.setAttribute("value",s);
+    form.appendChild(hiddenField);
+    
+    var hf2 = document.createElement("input");
+    hf2.setAttribute("type", "hidden");
+    hf2.setAttribute("name", "metric_order");
+    hf2.setAttribute("value",metric_order);
+    form.appendChild(hf2);
+    
+    form.submit();
+}
+
+
+function create_defined_metric() {
+   if (window.XMLHttpRequest)
+   {// code for IE7+, Firefox, Chrome, Opera, Safari
+       xmlhttp=new XMLHttpRequest();
+   }
+   else
+   {// code for IE6, IE5
+       xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+   }
+   xmlhttp.onreadystatechange=function()
+   {
+      if (xmlhttp.readyState==4 && xmlhttp.status==200)
+      {     
+         var response_obj = eval('(' + xmlhttp.responseText + ')');
+         var name = response_obj[0];
+         var id = response_obj[1];
+         add_metric("",name,id);
+      }
+   }
+   var params = get_params('defined_metric_form');
+   alert(params);
+   xmlhttp.open("POST","/caresmarts/create_defined_metric",true);
+   xmlhttp.send(params);
+}
+
+function create_derived_metric() {
+   if (window.XMLHttpRequest)
+   {// code for IE7+, Firefox, Chrome, Opera, Safari
+       xmlhttp=new XMLHttpRequest();
+   }
+   else
+   {// code for IE6, IE5
+       xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+   }
+   xmlhttp.onreadystatechange=function()
+   {
+      if (xmlhttp.readyState==4 && xmlhttp.status==200)
+      {
+         var response_obj = eval('(' + xmlhttp.responseText + ')');
+         var name = response_obj[0];
+         var id = response_obj[1];
+         add_metric("",name,id);
+      }
+   }
+   var params = get_params('derived_metric_form');
+   xmlhttp.open("POST","/caresmarts/create_derived_metric",true);
+   xmlhttp.send(params);
+}
+
+$(document).ready(function(){
+    $("#start_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,
+    changeYear:true,});
+    $("#start_date").datepicker("option","yearRange",'1901:2011');
+    $("#end_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,
+    changeYear:true,});
+    $("#end_date").datepicker("option","yearRange",'1901:2011');
+});
+
+</script>
+
+<script type="text/javascript" charset="utf-8"> 
+  $(document).ready(function() {
+  
+{% for metric in report_metrics %}
+
+add_metric('','{{ metric.name }}','{{ metric.id }}');
+
+{% endfor %}
+  
+  $('#current_metrics__design_report_summary').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+});
+</script>
+
+<div style="padding: 0px 10px 10px 10px;">
+<h1>Create Report</h1>
+<form id='create_report_summary_form' action='/caresmarts/create_report_summary' method='post'>
+<input type='hidden' name='step' value='1' />
+<input type='hidden' name='editing_id' value='{{ report_summary.id }}' />
+<table>
+  <tr><td>Report Name</td><td><input type='text' name='report_name' id='report_name' value='{{ report_summary.name }}' /></td></tr>
+  <tr><td>Report Description</td><td><textarea name='report_description' id='report_description'>{{ report_summary.description }}</textarea></td></tr>
+  <tr>
+    <td>Make Public</td>
+    <td>
+      <select name='is_public'>
+	<option value='True'>Yes</option>
+	<option value='False' {% if not report_summary.is_public %}selected='selected'{% endif %}>No</option>
+      </select>
+    </td>
+  </tr>
+</table>
+</form>
+<hr>
+
+<table id='added_metrics__design_report_summary' cellpadding="10">
+  <tr>
+    <td class='first_col' valign="top">
+      <table id='current_metrics__design_report_summary' cellpadding="10">
+	<thead> 
+	    <tr> 
+	      <th>Order</th>
+	      <th>Metric</th>
+	      <th>Remove</th>
+	    </tr> 
+	  </thead>
+	  <tbody>
+	    <tr>
+		<td></td>
+		<td></td>
+		<td></td>
+	    </tr>
+	  </tbody>
+      </table>
+    </td>
+    <td class='second_col' valign="top">
+      <table>
+	<tr><td><b>Add Existing Metric to Report:</b></td><td><b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Create New Metric for Report:</b></td></tr>
+	<tr>
+	  <td>	
+	    <select name='add_metric' id='add_metric' row='10'>
+	      {% for metric in metrics %}
+              <option value='{{metric.id}}'>{{metric.name}}</option>
+   	      {% endfor %}
+	    </select>
+	  </td>
+	  <td>
+	    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<input type='button' onClick='javascript:document.getElementById("createMetric").style.display = "block";' value='Create Metric'/>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <input type='button' onClick='javascript:add_metric("from_form")' value='Add Metric'/>
+	  </td>
+	  <td></td>
+	</tr>
+      </table>	  
+    </td>
+  </tr>
+</table>
+
+<br/>
+&nbsp;&nbsp;<input type='button' value='Create Report' onClick='javascript: create_report_summary()'/>
+<br/>
+<br/>
+
+<div id="createMetric" style="display: none; padding: 10px 10px 10px 10px;" />
+<form id='defined_metric_form' method='post'>
+<table id="metric_design__design_report_summary" cellpadding="10">
+  <tr class='first_row'>
+    <th>General</th>
+    <th>Function</th>
+    <th></th>
+    <th>Numerator</th>
+    <th>Denominator</th>
+  <tr>
+    <td>
+      <table id='metric_design_column1__design_report_summary'>
+	<tr><td>Name:</td><td><input type='text' name='metric_name' value='{{ metric.name }}' size='20'/></td></tr>
+	<tr><td>Short Name:</td><td><input type='text' name='metric_short_name' value='{{ metric.short_name }}' size='20'/></td></tr>
+	<tr><td>Description:&nbsp;&nbsp;&nbsp;&nbsp;</td><td><textarea name='metric_description' rows='3' cols='26'>{{ metric.description }}</textarea></td></tr>
+	<tr><td>Tags:</td><td>
+		<select name='form_label_type' multiple='multiple' size='5'>
+	      {% for flt in form_label_types %}
+	      <option value={{flt.id}}>{{flt.name}}</option>
+	      {% endfor %}
+	    </select>
+	</td></tr>
+	<tr><td>Start Date:</td><td><input type='text' id="start_date" name='start_date' value='{{ metric.start_date }}' size='20'/></td></tr>
+	<tr><td>End Date:</td><td><input type='text' id="end_date" name='end_date' value='{{ metric.end_date }}' size='20'/></td></tr>
+	<tr><td>Patient List:</td><td>
+		<select name='patients' multiple='multiple' size='5'>
+	      {% for plist in patient_lists %}
+	      <option value={{plist.id}}>{{plist.list_name}}</option>
+	      {% endfor %}
+	    </select>
+	</td></tr>
+	<!--tr>
+	  <td>Use Form Labels</td>
+	  <td>
+	    <select name='form_label_type'>
+	      <option></option>
+	      {% for flt in form_label_types %}
+	      <option value={{flt.id}}>{{flt.name}}</option>
+	      {% endfor %}
+	    </select>
+	  </td>
+	</tr>
+	<tr>
+	  <td>Use patient cohort</td>
+	  <td><input type='text' name='patients'/></td>
+	</tr-->
+      </table>
+    </td>
+    <td class="middle">
+      <select name='content_function'>
+	      <option value='Count'>Count</option>
+	      <option value='Avg'>Average</option>
+	      <option value='Max'>Max</option>
+	      <option value='Min'>Min</option>
+	      <option value='Sum'>Sum</option>
+      </select>
+      <!--table id='metric_design_column2__design_report_summary'>
+	<tr>
+	  <td>value</td>
+	  <td>
+	    <select name='content_operator' size='1'>
+	      <option></option>
+	      <option value='='>equals</option>
+	      <option value='__gt='>greater than</option>
+	      <option value='__lt='>less than</option>
+	    </select>
+	  </td>
+	  <td class='last_row'>
+	    <input type='text' name='content_value' size='1'/>
+	  </td>
+	<tr>
+	  <td>
+	    <select name='content_ranges_operator'>
+	      <option></option>
+	      <option>within</option>
+	      <option>not within</option>
+	    </select>
+	  </td>
+	  <td colspan='2'><input type='text' name='content_ranges'/></td>
+	</tr>
+	<tr>
+	  <td>time range(s)</td>
+	  <td colspan='2'><input type='text' name='time_ranges'/></td>
+	</tr>
+	<tr>
+	  <td>Function</td>
+	  <td>
+            
+	  </td>
+	</tr>
+      </table-->
+    </td>
+    <!--td>
+      <table id='metric_design_column3__design_report_summary'>
+	<tr>
+	  <td>Function</td>
+	  <td>
+            <select name='process_function'>
+	      <option value=''></option>
+	      <option value='Count'>Count</option>
+	      <option value='Avg'>Average</option>
+	      <option value='Max'>Max</option>
+	      <option value='Min'>Min</option>
+	      <option value='Sum'>Sum</option>
+            </select>
+	  </td>
+	</tr>
+	<tr>
+	  <td class='first_col'>Which Messages</td>
+	  <td>
+	    <select name='process_function_field'>
+	      <option></option>
+	      <option value=''>all</option>
+	      <option value='patient_message_date'>patient = sender</option>
+	      <option value='form_delivery_date'>patient = receiver</option>
+	    </select>
+	  </td>
+	</tr>
+	<tr>
+	  <td class='first_col'>Requires Response</td>
+	  <td>
+	    <select name='requires_response'> 
+	      <option></option>
+	      <option value='True'>Yes</option>
+	      <option value='False'>No</option>
+	    </select>
+	  </td>
+	</tr>
+
+	<tr>
+	  <td class='first_col'>Matched</td>
+	  <td>
+	    <select name='matched'> 
+	      <option></option>
+	      <option value='True'>Yes</option>
+	      <option value='False'>No</option>
+	    </select>
+	  </td>
+	</tr>
+
+	<tr>
+	  <td class='first_col'>No code match</td>
+	  <td>
+	    <select name='no_code_match'> 
+	      <option></option>
+	      <option value='True'>Yes</option>
+	      <option value='False'>No</option>
+	    </select>
+	  </td>
+	</tr>
+
+	<tr>
+	  <td class='first_col'>Responded, no prompt</td>
+	  <td>
+	    <select name='responded_no_prompt'> 
+	      <option></option>
+	      <option value='True'>Yes</option>
+	      <option value='False'>No</option>
+	    </select>
+	  </td>
+	</tr>
+
+	<tr>
+	  <td class='first_col'>Orphan</td>
+	  <td>
+	    <select name='orphan'> 
+	      <option></option>
+	      <option value='True'>Yes</option>
+	      <option value='False'>No</option>
+	    </select>
+	  </td>
+	</tr>
+      </table>
+    </td-->
+	<td align="right" class="middle" style="line-height:24px;">
+		Value:<br />
+		Range:<br />
+		Responded:<br />
+		Time&nbsp;To&nbsp;Respond:
+	</td>
+	<td class="middle">
+		<input type="text" name="content_value" size="10" /><br />
+		<input type="text" name="content_ranges" size="10" /><br />
+		<select name='responded_no_prompt'> 
+		      <option></option>
+		      <option value='True'>Yes</option>
+		      <option value='False'>No</option>
+		</select><br />
+		<input type="checkbox" name="content_time_to_respond" value="checked" />
+	</td>
+	<td>
+		<input type="text" name="denominator_value" size="10" /><br />
+		<input type="text" name="denominator_ranges" size="10" /><br />
+		<select name='denominator_responded_no_prompt'> 
+		      <option></option>
+		      <option value='True'>Yes</option>
+		      <option value='False'>No</option>
+		</select><br />
+		<input type="checkbox" name="denominator_time_to_respond" value="checked" />
+	</td>
+  </tr>
+</table>
+<br />
+<input type='button' onClick="javascript: create_defined_metric()" value='Create Metric'/>
+</form>
+</div>
+
+<!--hr/>
+<h4>Create a derived metric</h4>
+<br/>
+<form action='/caresmarts/design_report_summary' method='post' id='derived_metric_form'>
+<table>
+  <tr>
+    <td>
+      <table id='derived_metric_design__design_report_summary'>
+	<tr>
+	  <td>Name</td><td><input type='text' name='derived_metric_name' size='15'></td>
+	</tr>
+	<tr>
+	  <td>Description</td><td><input type='text' name='derived_metric_description' size='50'></td>
+	</tr>
+	<tr>
+	  <td>Expression</td><td><textarea name='derived_metric_calculation' cols='40'></textarea></td>
+	</tr>
+      </table>
+      <input type='button' onClick="javascript: create_derived_metric()" value='Create derived metric'/>
+    </td>
+    <td>
+      <table>
+	<tr>
+	  <td>The following metrics are available</td>
+	</tr>
+	<tr>
+	  <td>
+	    <select multiple='multiple'>
+	      {% for metric in metrics %}
+	      <option>{{metric.name}}</option>
+	      {% endfor %}
+	    </select>
+	    </td>
+	</tr>
+      </table>
+    </td>
+  </tr>
+</table-->
+      
+</form>
+</div>
+
+{% endblock %}

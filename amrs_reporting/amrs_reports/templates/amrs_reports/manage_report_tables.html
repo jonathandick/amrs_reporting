@@ -1,0 +1,72 @@
+{% extends "amrs_reports/base.html" %}
+
+
+
+{% block content %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+  $('#report_tables').dataTable( {
+  "sScrollY": "250px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#reports').dataTable( {
+  "sScrollY": "100px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  } );
+
+</script>
+
+<h4>Report Tables</h4>
+
+{% if report_tables %}
+  <table id='report_tables' class="display">
+    <thead>
+      <tr>
+	<th width='300px'>Report Table Name</th>
+	<th width='500px'>Description</th>
+	<th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for rt in report_tables %}
+      <tr>
+        <td class="gradeX">
+	  <b>{{rt.name}}</b>
+	</td>
+	<td class = "gradeA">
+	  {{rt.description}}
+	</td>
+	<td class="gradeA">
+	  <a href='/amrs_reports/run_report_table?report_table_id={{ rt.id }}'>Run</a>		  
+	  | <a href='/amrs_reports/create_report_table?report_table_id={{ rt.id }}'>Edit</a> 
+	  | <a href='/amrs_reports/delete_report_table?report_table_id={{ rt.id }}'>Delete</a> 
+	</td>
+	  {% endfor %}
+      </tr>
+    </tbody>
+  </table>
+
+{% else %}
+    <p>No report tables have been created.</p>
+{% endif %}
+<a href="/amrs_reports/create_report_table/">Create new report table</a> <br/><br/>
+<a href="/amrs_reports/run_report_table/">Run report table</a> 
+<br/><br/>
+
+
+{% endblock %}

@@ -1,0 +1,115 @@
+{% extends "Frontend/base.html" %}
+
+{% block content %}
+
+<script type="text/javascript">
+
+function validate_form() {
+   var form = document.getElementById('pat_form');
+   var errors = '';
+   if(form.name.value == '') { errors += 'Name can not be blank \n'; }
+   if(form.description.value == '') { errors += 'Description can not be blank \n'; }
+   if(errors == '') { form.submit(); }
+   else { alert(errors); }
+}
+
+</script>
+
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+  $('#attribute_types').dataTable( {
+  "bPaginate": false,
+  "sScrollY": "200px",
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  } );
+</script>
+
+
+
+<h2>Manage Messager Attribute Types</h2>
+
+{% if messages %}
+    <ul>
+    {% for message in messages %}
+        <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+
+<form action='{% url "apps.Frontend.views.messager_attribute_type"%}' method='post' id='pat_form'>
+{% csrf_token %}
+<input type='hidden' name='messager_attribute_type_id' value='{{mat.id}}'/>
+<table>
+  <tr>
+    <td>Name</td>
+    <td><input type='text' name='name' value='{{mat.name}}'></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Short Name</td>
+    <td><input type='text' name='short_name' value='{{mat.short_name}}'></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Description</td>
+    <td><textarea name='description' cols='50' rows='5'>{{mat.description}}</textarea></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Values</td>
+    <td><textarea name='values' cols='50' rows='5'>{% for mav in mat.get_values %}{%ifequal mav.value mat.default_value%}**{%endifequal%}{{ mav.value }}&#10;{% endfor %}</textarea></td>
+    <td>Please include possible values for this attribute here. Put each new value on it's own line. If you want to set a default value, start the line with **. For example:<br/><br/>Metformin<br/>**Glipizide<br/></td>
+  </tr>
+</table>
+<input type='button' value='Submit' onClick='javascript:validate_form()'/>
+<br/>
+<br/>
+<div class='alt_bg_color'>
+<hr class='panel'>
+<h3>Existing Messager Attributes</h3>
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="attribute_types">
+  <thead>
+    <tr>
+      <th>Id</th>
+      <th>Name</th>
+      <th>Short Name</th>
+      <th>Description</th>
+      <th>Values</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for mat in mats %}
+    <tr class='gradeU'>
+      <td> {{ mat.id }} </td>
+      <td> {{ mat.name }} </td>
+      <td> {{ mat.short_name }} </td>
+      <td>{{ mat.description }}</td>
+      <td>
+	<select>
+	{% for value in mat.get_values %}
+	<option>{{value.value}}</option>
+	{% endfor %}
+	</option>
+      </td>
+      <td><a href='/pa/messager_attribute_type?messager_attribute_type_id={{mat.id}}'>Edit</a></td>
+      <td><a href='{% url "apps.Frontend.views.void_messager_attribute_type" as url%}?messager_attribute_type_id={{mat.id}}'>Void</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<br><br>
+<hr class='panel'>
+</div>
+
+      
+
+
+{% endblock %}

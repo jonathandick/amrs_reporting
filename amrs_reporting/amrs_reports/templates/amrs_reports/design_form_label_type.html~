@@ -1,0 +1,20 @@
+{% extends "powerup/base.html" %}
+
+
+{% block content %}
+
+<form action='/powerup/design_form_label_type' method='post'>
+<table>
+  <tr>
+    <td>Name</td>
+    <td><input type='text' name='name'/></td>
+  </tr>
+  <tr>
+    <td>Description</td>
+    <td><textarea name='description'></textarea></td>
+  </tr>
+</table>
+<input type='submit'/>
+</form>
+
+{% endblock %}

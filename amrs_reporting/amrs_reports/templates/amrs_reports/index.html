@@ -1,0 +1,49 @@
+{% extends "amrs_reports/base.html" %}
+
+
+
+{% block content %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+  $('#report_tables').dataTable( {
+  "sScrollY": "250px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#reports').dataTable( {
+  "sScrollY": "100px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  } );
+
+</script>
+
+<h4>Apps</h4>
+<ul>
+  <li><a href='/ltfu/index'>LTFU</a></li>
+  <li><a href=''>HIV Quality of Care</a></li>
+  <li><a href=''>Human Resources</a></li>
+  <li><a href=''>Data Quality</a></li>
+</ul>
+<h4>Administrative</h4>
+<ul>
+  <li><a href='/amrs_user_validation/'>Manage Users and Permissions</a></li>
+  <li><a href='/amrs_reports/manage_report_tables'>Manage Report Tables</a></li>
+  <li><a href='/amrs_reports/manage_reports'>Manage Reports</a></li>
+</ul>
+
+
+{% endblock %}

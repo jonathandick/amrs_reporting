@@ -1,0 +1,23 @@
+{% extends "powerup/base.html" %}
+
+{% block content %}
+
+<br/>
+<table border='1' width='600'>
+  <tr>
+    <td>Report</td>
+    <td>Description</td>
+    <td>Void</td>
+  </tr>
+  {% for rs in report_summaries %}
+  <tr>
+    <td>rs.name</td>
+    <td>rs.description</td>
+    <td><a href='/powerup/void_report_summary?report_summary_id={{rs.id}}'>Void</a></td>
+  </tr>
+  {% endfor %}
+</table>
+<br/>
+<br/>
+<a href='/powerup/design_report_summary_template'>Design new summary report template</a>
+{% endblock %}

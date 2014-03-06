@@ -1,0 +1,240 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+
+<script type="text/javascript">
+
+
+function get_values(selectobj) {
+   if (window.XMLHttpRequest)
+   {// code for IE7+, Firefox, Chrome, Opera, Safari
+       xmlhttp=new XMLHttpRequest();
+   }
+   else
+   {// code for IE6, IE5
+       xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+   }
+   xmlhttp.onreadystatechange=function()
+   {
+      if (xmlhttp.readyState==4 && xmlhttp.status==200)
+      {
+         var response_obj = eval('(' + xmlhttp.responseText + ')');
+         var select = document.getElementById('pa_select')
+         var i;
+         for(i=select.options.length-1;i>=0;i--) { select.remove(i); }
+         for(var i in response_obj) {
+            var value = response_obj[i];
+            var option = document.createElement('option');
+            option.text = value;
+            option.value = value;
+            try {
+               select.add(option, null); // standards compliant; doesn't work in IE
+            }
+            catch(ex) {
+               select.add(option); // IE only
+            }
+         }
+      }
+   }
+   form = document.getElementById('pa_form');
+   form.date.value = '';
+   form.value.value = '';
+   chosen_option = selectobj.options[selectobj.selectedIndex]
+   xmlhttp.open("GET","/caresmarts/ajax_get_values?patient_attribute_type_id=" + chosen_option.value,true);
+   xmlhttp.send();
+}
+
+
+
+
+
+
+function add_age_condition(x,name,id) {
+   form = document.getElementById('condition_form');
+   form.
+   tbl = document.getElementById('conditions');
+   var lastRow = tbl.rows.length;   
+   var row = tbl.insertRow(lastRow);
+   row.setAttribute('id',id);
+   var cellLayout = row.insertCell(0);
+   cellLayout.innerHTML = tbl.rows.length;
+
+   var cellLeft = row.insertCell(1);
+   cellLeft.innerHTML = ;
+
+   var cellRight = row.insertCell(2);
+   var s = '<a href="javascript: remove_metric(' + id + ')">remove</a>';
+   cellRight.innerHTML = s;
+  
+   var cell = row.insertCell(3);
+   cell.innerHTML = id
+   cell.style.display = 'none';			     
+}
+
+
+function remove_metric(row_id) {
+   var row = document.getElementById(row_id);
+   row.parentNode.parentNode.deleteRow(row.rowIndex);
+}
+
+
+function create_report_summary() {
+    var form = document.getElementById("create_report_summary_form");
+    metrics_tbl = document.getElementById('current_metrics__design_report_summary');
+    var s = '';
+    var metric_order = '';
+    var cur_order = '';
+    for(var i=1; i < metrics_tbl.rows.length; i++) {
+        var tr = metrics_tbl.rows[i];
+        var cell = tr.cells[3];	     
+        s += cell.innerHTML + ',';
+	cur_order = tr.cells[0].childNodes[0].value;
+        if(cur_order != "") {		     
+   	   metric_order += cell.innerHTML + "=" + cur_order + ";";
+        }
+    }
+    var hiddenField = document.createElement("input");
+    hiddenField.setAttribute("type", "hidden");
+    hiddenField.setAttribute("name", "metric_ids");
+    hiddenField.setAttribute("value",s);
+    form.appendChild(hiddenField);
+    
+    var hf2 = document.createElement("input");
+    hf2.setAttribute("type", "hidden");
+    hf2.setAttribute("name", "metric_order");
+    hf2.setAttribute("value",metric_order);
+    form.appendChild(hf2);
+    
+    form.submit();
+}
+
+
+function create_defined_metric() {
+   if (window.XMLHttpRequest)
+   {// code for IE7+, Firefox, Chrome, Opera, Safari
+       xmlhttp=new XMLHttpRequest();
+   }
+   else
+   {// code for IE6, IE5
+       xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+   }
+   xmlhttp.onreadystatechange=function()
+   {
+      if (xmlhttp.readyState==4 && xmlhttp.status==200)
+      {     
+         var response_obj = eval('(' + xmlhttp.responseText + ')');
+         var name = response_obj[0];
+         var id = response_obj[1];
+         add_metric("",name,id);
+      }
+   }
+   var params = get_params('defined_metric_form');
+   xmlhttp.open("POST","/caresmarts/create_defined_metric",true);
+   xmlhttp.send(params);
+}
+
+function create_derived_metric() {
+   if (window.XMLHttpRequest)
+   {// code for IE7+, Firefox, Chrome, Opera, Safari
+       xmlhttp=new XMLHttpRequest();
+   }
+   else
+   {// code for IE6, IE5
+       xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+   }
+   xmlhttp.onreadystatechange=function()
+   {
+      if (xmlhttp.readyState==4 && xmlhttp.status==200)
+      {
+         var response_obj = eval('(' + xmlhttp.responseText + ')');
+         var name = response_obj[0];
+         var id = response_obj[1];
+         add_metric("",name,id);
+      }
+   }
+   var params = get_params('derived_metric_form');
+   xmlhttp.open("POST","/caresmarts/create_derived_metric",true);
+   xmlhttp.send(params);
+}
+
+
+</script>
+
+<form action='' method='post' id='condition_form'>
+<table>
+  <tr>
+    <td>Age</td>
+    <td>
+      <select name='age_condition'>
+	<option></option>
+	<option value='='>equals</option>
+        <option value='__gt='>greater than</option>
+        <option value='__lt='>less than</option>
+      </select>
+    </td>
+    <td>
+      <input type='text' name='age'/>
+    </td>
+    <td>
+      <input type='button' onClick='javascript:add_age_condition()' value='add condition'/>
+    </td>
+  </tr>
+  <tr>
+    <td>Gender</td>
+    <td>equals</td>      
+    <td>
+      <select name='gender'>
+	<option></option>
+	<option value='0'>F</option>
+	<option value='1'>M</option>
+      </select>
+    </td>
+    <td>
+      <input type='button' value='add condition' onClick='javascript:add_gender_condition()'/>
+    </td>
+  <tr>
+    <td>Patient Attribute</td>
+    <td>
+      <select name='patient_attribute_type_id' onChange='javascript:get_values(this)'>
+        <option></option>
+        {% for pat in pats %}
+        <option value='{{pat.id}}'{% ifequal pa.patient_attribute_type pat %} selected {% endifequal %}>{{pat.name}}</option>
+        {% endfor %}
+      </select>
+    </td>
+    <td>
+      <select name='value_coded' id='pa_select'>
+      </select>
+    </td>
+    <td>
+      <input type='button' value='add condition' onClick='javascript:add_gender_condition()'/>
+    </td>
+  </tr>
+</table>
+</form>
+
+
+<h4>Current Conditions:</h4>
+<table id='conditions'>
+  <tr>
+    <td>Code</td>
+    <td>Condition</td>
+    <td>Remove</td>
+  </tr>
+</table>
+ 
+<br/>
+<br/>
+<h4>Create logical formula</h4>
+<textarea name='formula' cols='70' rows='2'></textarea>
+<br/>
+<input type='button' name='apply_formula' value='Apply Formula' onclick='javascript:apply_formula()'/>
+
+<form id='' action='/caresmarts/cohort_builder method='post'>
+<table>
+  <tr><td>Cohort Name</td><td><input type='text' name='name'/></td><td>Description</td><td><textarea name='description'></textarea></td></tr>
+  <tr><td><input type='button' value='Save cohort' onclick='javascript:save_cohort()'/><td></td></tr>
+</table>
+
+
+{% endblock %}

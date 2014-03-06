@@ -1,0 +1,169 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+<script type="text/javascript">
+  
+function validate_form() {
+   var form = document.getElementById('message_orderset_form');
+   var errors = '';
+   if(form.name.value == '') { errors += 'Orderset name can not be blank \n'; }
+   if(form.description.value == '') { errors += 'Orderset description can not be blank \n'; }
+   if(errors == '') { form.submit(); }
+   else { alert(errors); }
+}
+
+</script>
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+  $('#current_messages').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#available_messages').dataTable( {
+  "bJQueryUI": true,
+  "sScrollX": "100%",
+  "sScrollXInner": "100%",
+  "bScrollCollapse": true
+  } );
+  
+  $('#decision_tree_logic').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  });
+
+</script>
+
+
+
+<div style="padding: 10px 20px 0px 20px;">
+{% if message_orderset_id %}
+<h2>Edit Message Stack</h2>
+{% else %}
+<h2>Create Message Stack</h2> 
+{% endif %}
+
+<form action="/caresmarts/message_orderset/" method="post" id='message_orderset_form'>
+{% if message_orderset_id %}
+<input type='hidden' name='message_orderset_id' value='{{ message_orderset_id }}'/>
+{% endif %}
+
+<table id='program_info'>
+<tr><td>Message Stack Name:</td><td><input type='text' name='name' value='{{ name }}'/></td></tr>
+<tr><td>Description:</td><td><textarea name='description' rows='3' cols='35'>{{ description }}</textarea></td>
+</table>
+
+<h3>Current Messages In Message Stack</h3>
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="current_messages"> 
+  <thead>
+    <tr>
+      <th>Order</th>
+      <!--th>id</th>      
+      <th>template_id</th>
+      <th>form_id</th>
+      <th>message_orderset_id</th-->
+      <th>Message</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for mt in mts_in_use %}
+    <tr class='gradeU'>
+      <td><input type="text" name="order_number_{{ mt.form_id }}" value="{{ mt.order_number }}" /></td>
+      <!--td> {{mt.id}}</td>
+      <td> {{mt.template_id}}</td>
+      <td> {{mt.form_id}}</td>
+      <td> {{mt.message_orderset.id}}</td-->
+      <td>{{ mt.message }}</td>
+      <!--td>+{{ mt.code }}</td-->
+      <td> <a href='/caresmarts/message_template?form_id={{ mt.form_id }}'a>Edit</a></td>
+      <td> <a href='/caresmarts/void_message_template?form_id={{ mt.form_id }}'>Remove</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<br />
+<a href="/caresmarts/message_template/">Create New Message</a>
+
+<br /><br />
+<h3>Available Messages</h3>
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="available_messages">
+  <thead>
+    <tr>
+      <th></th>
+      <!--th>Message Name</th-->
+      <th>Message</th>
+      <!--th>Message Code</th-->
+      <th>Tags</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for mt in mts_not_in_use %}
+    <tr class="GradeX">
+      <td><input type='checkbox' name='selected' value='{{mt.form_id}}'/></td>
+      <!--td> {{ mt.name }} </td-->
+      <td>{{ mt.message }}</td>
+      <!--td>+{{ mt.code }}</td-->
+      <td>
+      {% for tag in mt.tags %}
+      	{{ tag.name }}
+      {% endfor %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<!--br />
+<h3>Decision Tree Logic</h3>
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="decision_tree_logic">
+  <thead>
+    <tr>
+      <th>Patient Response</th>
+      <th>System Reply</th>
+      <th>When to Send</th>
+      <th>Generate Alert</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+      <tr>
+	<td></td>
+	<td></td>
+	<td></td>
+	<td></td>
+        <td><a href=''>Edit</a></td>
+        <td><a href=''>Remove</a></td>
+      </tr>
+  </tbody>
+</table-->
+<br />
+
+<h3>Import Messages From CSV</h3>
+<textarea id="csv" name="csv" rows="8" cols="60"></textarea>
+<br /><br />
+
+{% if message_orderset_id %}
+<input type="button" value="Modify Message Stack" onClick='javascript:validate_form()'/>
+{% else %}
+<input type="button" value="Create Message Stack" onClick='javascript:validate_form()'/>
+{% endif %}
+</form>
+<br><br>
+
+</div>
+
+
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+<div style="padding: 10px 20px 0px 20px;">
+	<h2>Enroll User in Domain: {{ domain.name }}</h2>
+	<br/>
+	<form name="enroll" action="/caresmarts/enroll_user" method="post">
+		<input type='hidden' name='patient_id' value='{{patient.id}}'/>
+		Select Module: 
+		<select name="module">
+		{% for mod in modules %}
+			<option value='{{mod.id}}'>{{mod.name}}</option>
+		{% endfor %}
+		</select>
+		<input type="submit" value="Enroll Patient" />
+	</form>
+</div>
+
+{% endblock %}

@@ -1,0 +1,91 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/jquery_patient_search.js"></script> 
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/DataTables-1.7.2/media/js/jquery.dataTables.js"></script>
+<style type="text/css" title="currentStyle"> 
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_page.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table_jui.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/examples/examples_support/themes/smoothness/jquery-ui-1.8.4.custom.css";
+</style>
+<script type="text/javascript">
+
+$(document).ready(function()
+{
+  $('#tags').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#messages').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+});
+
+</script>
+
+<div style="padding: 10px 20px 0px 20px;">
+<h2>Manage Tags</h2>
+
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="tags">
+  <thead>
+  <tr>
+    <th>Name</th>
+    <th>Description</th>
+    <!--td></td>
+    <td></td-->
+  </tr>
+  </thead>
+  <tbody>
+  {% for flt in flts %}
+  <tr>
+    <td><a href="/caresmarts/form_label_type?function=messages&form_label_type_id={{flt.id}}">{{ flt.name }}</a></td>
+    <td>{{ flt.description }}</td>
+    <!--td><a href='/caresmarts/form_label_type?function=edit&form_label_type_id={{flt.id}}'>Edit</a></td>
+    <td><a href='/caresmarts/form_label_type?function=void&form_label_type_id={{flt.id}}'>Void</a></td-->
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+<br /><br />
+
+{% if messages %}
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="messages">
+  <thead>
+  <tr>
+    <th>ID</th>
+    <th>Message</th>
+    <th>Voided</th>
+    <th>Date Created</th>
+    <th>Date Voided</th>
+    <th>Description</th>
+  </tr>
+  </thead>
+  <tbody>
+  {% for message in messages %}
+  <tr>
+    <td><a href="/caresmarts/message_template?message_id={{ message.id }}">{{ message.id }}</a></td>
+    <td><a href="/caresmarts/message_template?message_id={{ message.id }}">{{ message.name }}</a></td>
+    <td>{{ message.voided }}</td>
+    <td>{{ message.date_created }}</td>
+    <td>{{ message.date_voided }}</td>
+    <td>{{ message.message }}</td>
+  </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+      
+</div>
+
+{% endblock %}

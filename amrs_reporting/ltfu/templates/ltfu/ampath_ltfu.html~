@@ -1,0 +1,26 @@
+{% extends "ltfu/base.html" %}
+
+{% block content %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+  $('#report_tables').dataTable( {
+  "sScrollY": "250px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+</script>
+<h4>LTFU Links</h4>
+<ul>
+  <li><a href='/ltfu/ampath_ltfu'>AMPATH-wide LTFU statistics</a><br/><br/></li>
+  <li><a href='/ltfu/clinic_ltfu'>Individual Clinic LTFU statistics</a><br/><br/></li>
+  <li><a href='/ltfu/clinic_ltfu'>Patients about to be LTFU, by clinic</a><br/><br/><br/></li>
+</ul>
+
+{% endblock %}

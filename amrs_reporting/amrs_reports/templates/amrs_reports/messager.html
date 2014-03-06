@@ -1,0 +1,592 @@
+{% extends "Frontend/base.html" %}
+
+{% block content %}
+<style type="text/css">
+</style>
+<script type="text/javascript">
+
+
+function createRequestObject() {
+    var ro;
+    var browser = navigator.appName;
+    if(browser == "Microsoft Internet Explorer"){
+        ro = new ActiveXObject("Microsoft.XMLHTTP");
+    }else{
+        ro = new XMLHttpRequest();
+    }
+    return ro;
+}
+
+var http = createRequestObject();
+var http2 = createRequestObject();
+
+function trim(x) { return x = (x != null) ? x.replace(/^[\t\n\r\s]*|[\t\n\r\s]*$/g,"") : false ; }
+
+function getParams(elements) {
+    var params = '';
+    for(var x in elements) { params += elements[x].name + '=' + elements[x].value + '&'; }
+    return params;
+}
+
+
+function handleSendMessage() {
+    if(http2.readyState == 4){
+        window.location.reload();
+    }
+}
+
+function sendMessage(messager_id) {
+    var message_text = document.getElementById('message_send_text').value;
+    var params = "message=" + encodeURIComponent(message_text) + "&messager_id=" + messager_id;
+    var url = '/ajax/caresmarts/send_message';
+    http2.open('POST',url,true);
+    http2.onreadystatechange = handleSendMessage;
+    http2.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    http2.setRequestHeader("Content-length", 2);
+    http2.setRequestHeader("Connection", "close");
+    http2.send(params);
+}
+
+
+
+function handleSendForm() {
+    if(http2.readyState == 4){
+       var length = http2.responseText.length;
+       var responseText = http2.responseText.substring(1,length-1);
+       var params = responseText.split(";");
+       //window.location.reload();
+    }
+
+}
+
+function sendForm(form_id) {
+    var url = '/ajax/caresmarts/send_form';
+    http2.open('POST',url,true);
+    http2.onreadystatechange = handleSendForm;
+    http2.send("form_id=" + form_id);
+}
+
+
+function handleSendMessageFromMessager() {
+    if(http2.readyState == 4){
+	window.location.reload();
+    }
+}
+
+function sendMessageFromMessager(messager_id) {
+    var message_text = document.getElementById('messager_message_text').value;
+    var params = "message_text=" + encodeURIComponent(message_text) + "&messager_id=" + messager_id;
+    var url = '/caresmarts/ajax_send_message_from_messager';
+    http2.open('POST',url,true);
+    http2.onreadystatechange = handleSendMessageFromMessager;
+    http2.send(params);
+}
+
+
+function sendTestTreeFromMessager(messager_id) {
+    var message_text = document.getElementById('testing_tree_text').value;
+    var params = "message_text=" + encodeURIComponent(message_text) + "&messager_id=" + messager_id;
+    var url = '/ajax/decision-tree/testing_tree';
+    http2.open('POST',url,true);
+    http2.onreadystatechange = handleSendMessageFromMessager;
+    http2.send(params);
+}
+
+</script>
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/jquery_messager_search.js"></script>
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+
+  $("#messager_tabs").tabs({});
+
+
+  $('#scheduled_messages').dataTable( {
+  "sScrollY": "400px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false,
+  "aaSorting": [[5,'asc']],
+  "aoColumns": [null,null,null,null,null,{ "sType": 'date' }, null, null, null]} );
+
+  $('#message_log').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#alert_log').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+
+  $('#messager_attributes').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#process_metrics').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#module_history').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+ 
+  $('#metrics').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+  
+
+  $('#domains').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+  
+  } );
+
+</script>
+<script>
+
+$('document').ready(function() {
+    // For forward and back
+    $.address.change(function(event){
+      $("#messager_tabs").tabs( "select" , window.location.hash )
+    })
+
+    // when the tab is selected update the url with the hash
+    $("#messager_tabs").bind("tabsselect", function(event, ui) { 
+      window.location.hash = ui.tab.hash;
+    })
+});
+
+
+</script>
+
+<h2>&nbsp;&nbsp;&nbsp;Messager Dashboard: {{ messager.first_name }} {{ messager.last_name }} (<a href='/caresmarts/edit_messager?messager_id={{ messager.pk }}'>Edit</a>)</h2>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Identifier: <b>{{ messager.identifier }}</b><div style="float: right; padding-right:20px; text-align:right;">{{ messager.address }}<br /><br />{{ messager.city }}, {{ messager.state }} {{ messager.zip_code }}<br /><br /><b>Doctor: {{ primary_care_doctor }}</b><br /><br /><b>Endocrinologist: {{ endocrinologist }}</b><br/><br/><b>Next Appointment: {{next_appointment_date}}</b></div><br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cell Phone #: {{ messager.cell_phone_number }}<br /><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Home Phone #: ({{landline_phone_number|slice:':3'}}) {{landline_phone_number|slice:'3:6'}}-{{landline_phone_number|slice:'6:'}}<br /><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Work Phone #: ({{work_phone_number|slice:':3'}}) {{work_phone_number|slice:'3:6'}}-{{work_phone_number|slice:'6:'}}<br /><br />
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Birthdate: {{messager.birthdate|date:"m/d/y"}}<br/><br/>
+
+
+<br/>
+<br/>
+
+<div id='messager_tabs'>
+<ul>
+  <li><a href="#messaging">Messaging</a></li>
+  <li><a href="#scheduling">Scheduling</a></li>
+  <li><a href="#alerts">Alerts</a></li>
+  <li><a href="#enrollment">Enrollment</a></li>
+  <li><a href="#messager_info">Messager Information</a></li>
+  <li><a href="#reports">Reports</a></li>
+</ul>
+
+<div id="messaging">
+<h3 class='banner'>Last Few Messages</h3>
+<a href='/caresmarts/message_viewer?messager_id={{messager.id}}'>Review Complete Message History</a>{% if mls %} |
+<!-- a href='/caresmarts/message_log_analyzer?messager_id={{messager.id}}'>Analyze Messages</a> | --> 
+<a href='/caresmarts/message_log_analyzer_2?messager_id={{messager.id}}'>Analyze Messages</a>{% endif %}<br/>
+<br/>
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="message_log">
+  <thead>
+    <tr>
+      <th>Date</th>
+      <th>Messager</th>
+      <th>System</th>
+      <th>Category</th>
+      <th>Sent by</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for ml in mls %} 
+
+    {% ifequal ml.type "messager_message" %}
+    <tr class="gradeZ">
+    {% endifequal %}
+    {% ifequal ml.type "system_message" %}
+    <tr class="gradeZ">
+    {% endifequal %}
+
+      <td>{{ ml.datetime|date:"m/d/y H:i:s" }}</td>
+      {% ifequal ml.type 0 %}
+      <td>{{ ml.message }}</td>
+      <td></td>
+
+      {% endifequal %}
+
+      {% ifequal ml.type 1 %}
+      <td></td>
+      <td>{{ ml.message }}</td>
+      {% endifequal %}
+      <td>{{ ml.category }}</td>
+      <td>{{ ml.get_sender }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<br />
+<h3 class='banner'>Scheduled Messages</h3> 
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="scheduled_messages">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <!--th>template_id</th>
+      <th>form_id</th>
+      <th>Module ID</th>
+      <th>Message Orderset ID</th-->
+      <th>Domain</th>
+      <th>Module</th>
+      <th>Message Name</th>
+      <th>Message</th>
+      <th>Scheduled Date</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <!--th></th-->
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in message_schedule %}
+    <tr class="gradeZ">
+      <td style="font-size:12px;"> {{row.0.id}}</td>
+      <!--td style="font-size:12px;"> {{row.0.template_id}}</td>
+      <td style="font-size:12px;"> {{row.0.form_id}}</td>
+      <td style="font-size:12px;"> {{row.0.module_id}}</td>
+      <td style="font-size:12px;"> {{row.0.message_orderset.id}}</td-->
+      <td style="font-size:12px;"> {{row.0.get_domain_name}}</td>
+      <td style="font-size:12px;"> {{row.0.get_module_name}}</td>
+      <td style="font-size:12px;"> {{ row.0.name }} </td> 
+      <td style="font-size:12px;">{{ row.0.message }}</td>
+      <td style="font-size:12px;">{{ row.1|date:'m/d/Y g:i A' }}</td>  
+      <td style="font-size:12px;"> <a href='/caresmarts/message_template?form_id={{ row.0.form_id }}&messager_id={{ row.0.messager.pk }}'>Edit</a></td>
+      <td style="font-size:12px;"> <a href='/caresmarts/void_form?messager_id={{ row.0.messager.pk }}&form_id={{ row.0.form_id }}'>Void</a></td>
+      <td style="font-size:12px;"> <a href='/caresmarts/send_form_now?form_id={{row.0.form_id}}&messager_id={{messager.id}}'>Send Now</a></td>
+      <!--td> <a href='/alert/add_alert_trigger/{{ row.0.messager.pk }}/{{ row.0.form_id }}/'>Set Alert</a></td-->
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<!--ul>
+<li><a href='/caresmarts/form?messager_id={{ messager.pk }}'>Create a new message</a><br></li>
+<li><a href='/caresmarts/message_templates?messager_id={{messager.id}}'>Use existing message</a><br></li>
+<li><a href='/caresmarts/message_ordersets?messager_id={{messager.id}}'>Use existing orderset</a><br></li>
+</ul-->
+<br>
+<br>
+<table>
+  <tr>
+    <td>
+      <form action='/caresmarts/send_instant_message' method='POST' id='message_form'>
+	{% csrf_token %}
+	<b>Send message now to {{ messager.first_name }} {{messager.last_name}}:</b>
+	<textarea name='message' id='message_send_text' rows='5' cols='50'></textarea><br/>
+	<input type='hidden' name='receiver_id' value='{{messager.id}}'/>	
+	<input type='submit' value='Send Message'/>
+      </form>
+    </td>
+    <td>
+      <form action='/caresmarts/send_instant_message' method='POST' id='messager_message_form'>
+	{% csrf_token %}
+        <b>Send message now from {{ messager.first_name }} {{messager.last_name}}:</b>
+        <textarea name='message' id='messager_message_text'  rows='5' cols='50'></textarea><br/>
+	<input type='hidden' name='sender_id' value='{{messager.id}}'>
+        <!--input type='button' onclick='javascript:sendMessageFromMessager({{messager.id}})' value='Send Message'/-->
+	<input type='submit' value='Send Message'/>
+      </form>
+    </td>
+  </tr>
+</table>
+
+<!--
+<form action='' method='POST' id='testing_tree_form'>
+<b>Send testing message for tree now from {{ messager.first_name }} {{messager.last_name}}:</b>
+<textarea name='testing_tree_text' id='testing_tree_text'  rows='5' cols='50'></textarea><br/>
+<input type='button' onclick='javascript:sendTestTreeFromMessager({{messager.id}})' value='Send Test Tree Message'/>
+</form>
+-->
+</div>
+
+<div id="alerts">
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="alert_log"> 
+  <thead> 
+    <tr> 
+      <th>ID</th> 
+      <th>Urgency</th> 
+      <th>Provider</th>
+      <th>Messager</th> 
+      <th>Subject</th> 
+      <th>Sent Time</th> 
+      <th>Read</th> 
+      <th>Action Taken</th> 
+      <th></th> 
+    </tr> 
+  </thead> 
+  <tbody>
+    {% for log in logs%}
+    <tr {% if not log.is_read %} class="unread_alert" {% endif %}>
+      <td style="font-size:12px;">{{ log.id }}</td>
+      <td style="font-size:12px;">{{ log.urgency }}</td>
+      <td style="font-size:12px;">{{ log.provider.last_name}}, {{log.provider.first_name}}</td>
+      <td style="font-size:12px;">{% if provider.admin == 0 %} {{ log.messager.last_name }}, {{ log.messager.first_name }}{% else %}{{ log.messager.identifier }}{% endif %}</td>
+      <td style="font-size:12px;">{{ log.subject }}</td>
+      <td style="font-size:12px;">{{ log.sent_time }}</td>
+      {% if log.is_read %}<td style="font-size:12px;">Read</td>{%else%}<td style="font-size:12px;">Unread</td>{% endif %}
+      <td style="font-size:12px;">{{ log.action }}</td>
+      <td><a href="/alert/show_alert_log/{{log.id}}/" target="_blank">Show</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+<div id="scheduling">
+{% autoescape off %}
+{{ calendar_html }}
+{% endautoescape %}
+</div>
+
+<div id="reports">
+<form action='/caresmarts/report_summary' method='post'>
+<input type='hidden' name='messager_id' value='{{messager.id}}'/>
+
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="metrics">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Description</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for metric in metrics %}
+    <tr>
+      <td>{{metric.id}}</td>
+      <td><a href='/report_summary/run_metric?messager_id={{messager.id}}&metric_id={{metric.id}}'>{{metric.name}}</a></td>
+      <td>{{metric.description}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<b>Statistic: {{stat}} </b>
+<br/>
+<b>Set the following parameters to run a report for this messager:</b>
+<br/><br/>
+<table>
+  <tr>
+    <td align='left'>
+      Choose Report:
+      <select name='report_summary_id'>
+        {% for rs in report_summaries %}
+        <option value='{{rs.id}}'>{{rs.name}}</option>
+        {% endfor %}
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <table>
+        <tr>
+          <td><input type='radio' name='strat_type' value='by_time_period'/><b>By time period:</b></td>
+          <td></td>
+          </tr>
+        <tr>
+          <td>Time Period:</td>
+          <td>
+
+            <input type='text' name='time_period' size='2' value='1' />
+            <select name='time_unit'>
+              <option value='week'>week(s)</option>
+              <option value='day'>day(s)</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>Time Periods:</td>
+          <td><input type='text' name='num_time_periods' value='1' /></td>
+        </tr>
+      </table>
+    </td>
+    <td align='center'> <b>OR </b></td>
+    <td>
+      <table>
+        <tr>
+          <td><input type='radio' name='strat_type' value='by_messager_list'/><b>By messager list:</b></td>
+          <td></td>
+        </tr>
+        <tr>
+          <td>Messager List:</td>
+          <td>
+            <select name='messager_list'>
+              {% for list in messager_lists %}
+              <option value='{{list.id}}'>{{list.list_name}}</option>
+              {% endfor %}
+            </select>
+          </td>
+        </tr>
+        <tr><td></td><td></td></tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+
+
+
+
+
+
+<br />
+<input type='submit'/>
+</form>
+</div>
+
+<div id="enrollment">
+	<a href="/caresmarts/reset_all_message_stack_pointers/?id={{ messager.id }}">Reset All Message Stack Pointers</a><br /><br /><br />
+
+	<a href='/caresmarts/process_initial_enrollment?messager_id={{messager.id}}'>Click to enroll into all domains</a>
+	<br/><br/>	
+	<a href="/caresmarts/reset_module_history?messager_id={{ messager.id }}">Reset Module History</a><br /><br /><br />
+	<br/><br/>
+
+	
+	<b>Domains</b><br/><br/>
+	<table cellpadding="0" cellspacing="0" border="0" class="display" id="domains">
+	  <thead>
+	    <tr>
+	      <th>Domain</th>
+	      <th></th>
+	      <th></th>
+	      <th>Modules</th>
+	      <th></th>
+	    </tr>
+	  </thead>
+	  <tbody>
+	  {% for domain in domains %} 
+	    <tr>
+	      <form action="/caresmarts/enroll_into_domain" method="post">	    
+	      <td>{{domain.name}}</td>
+	      <td><a href='/caresmarts/test_enrollment?messager_id={{messager.id}}&domain_id={{domain.id}}'>Test Enrollment Conditions</a></td>
+	      <td><a href='/caresmarts/run_enrollment_algorithm?messager_id={{messager.id}}&domain_id={{domain.id}}'>Enroll by algorithm</a></td>
+	      <td>		
+		<input type='hidden' name='messager_id' value='{{messager.id}}'/>
+		<select name='module'>
+		  {% for module in modules %}
+		  {%ifequal module.domain_id domain.id|stringformat:"s" %}<option value='{{module.id}}'>{{module.name}}</option>{%endifequal%}
+		  {%endfor%}
+		</select>
+	      </td>	      
+	      <td><input type='submit' value='Enroll'/></td>
+	      </form>
+	    </tr>
+	  {%endfor%}
+	  </tbody>
+	</table>
+	<br /><br />
+	<b>Module History</b>
+	<br /><br />
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="module_history"> 
+  <thead> 
+    <tr> 
+      <th>Domain</th>
+      <th>Module</th> 
+      <th>Active</th>
+      <th>Start Date</th> 
+      <th>End Date</th>
+      <th>Num Remaining</th>
+      <th>Percent Complete</th>
+      <th></th>
+    </tr> 
+  </thead> 
+  <tbody>
+    {% for hist in module_history %}
+    <tr>
+      <td>{{ hist.get_domain_name }}</td>
+      <td>{{ hist.get_module_name }}</td>
+      <td>{{ hist.is_active }}</td>
+      <td>{{ hist.date_start }}</td>
+      <td>{% if hist.date_end %} {{ hist.date_end }} {%endif%}</td>      
+      <td>{{ hist.get_num_remaining }}</td>
+      <td>{{ hist.get_percent_completed }}</td>
+      <td>{% if hist.is_active %} <a href='/caresmarts/unenroll_from_domain?messager_id={{messager.id}}&messager_module_id={{hist.id}}'/>Unenroll</a>{%endif%}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</div>
+
+
+<div id='messager_info'>
+
+<form action="/caresmarts/edit_messager_attributes" method="post">
+<input type='hidden' name='messager_id' value='{{messager.id}}'/>
+<select name="pa_set_id">
+     <option value=''>Select...</option>
+     <option value='all'>All messager information</option>
+     {% for pa_set in pa_sets %}
+         <option value='{{pa_set.id}}'>{{pa_set.name}}</option>
+     {% endfor %}
+</select>
+
+<input type="submit" value="Display"/>
+</form>
+
+{% if pa_set %}
+<h3>{{pa_set.name}}</h3>
+
+<form action="/caresmarts/set_messager_attributes" method="post">
+<input type="hidden" name="messager_id" value="{{messager.id}}"/>
+<input type="hidden" name="messager_attribute_set_id" value="{{pa_set.id}}"/>
+{% autoescape off %}
+{{ html_table }}
+{% endautoescape %}
+<br><br>
+<input type="submit" value="Update"/>
+{% endif %}
+
+<br/>
+
+</div>
+
+</div>
+
+{% endblock %}

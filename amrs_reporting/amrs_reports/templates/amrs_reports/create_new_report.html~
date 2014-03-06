@@ -1,0 +1,22 @@
+{% extends "amrs_reports/base.html" %}
+
+{% block content %}
+
+{% if report_list %}
+    <ul>
+    {% for report in report_list %}
+        <li>
+	  <a href='/amrs_reports/report/{{ report.id }}'>{{ report.name }} </a>
+	  (<a href='/amrs_reports/edit_report?report_id={{ report.id }}'>Edit</a>)
+	</li> 
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No report currently exist.</p>
+{% endif %}
+
+<a href="/amrs_reports/edit_report/">Create new report</a> 
+<hr>
+<br/>
+
+{% endblock %}

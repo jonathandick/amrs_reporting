@@ -1,0 +1,131 @@
+{% extends "amrs_reports/base.html" %}
+{% load staticfiles %}
+{% block content %}
+
+<script>
+function add_parameter_row() {
+var table=document.getElementById("parameter_table");
+var row=table.insertRow(-1);
+var cell0=row.insertCell(0);
+var cell1=row.insertCell(1);
+var cell2=row.insertCell(2);
+var cell3=row.insertCell(3);
+var cell4=row.insertCell(4);
+var cell5=row.insertCell(5);
+cell0.innerHTML="<input type='hidden' name='parameter_index_'" + row.rowIndex + "' value='" + row.rowIndex + "'/>";
+cell1.innerHTML="Name:";
+cell2.innerHTML="<input type='text' name='parameter_name_'" + row.rowIndex + "'/>";
+cell3.innerHTML="Default Value:";
+cell4.innerHTML="<input type='text' name='parameter_default_value_" + row.rowIndex + "'/>";
+cell5.innerHTML="<input type='button' value='Remove' onclick='remove_parameter_row(this)'/>";
+}  
+
+function remove_parameter_row(element) {
+var row = element.parentNode.parentNode;
+row.parentNode.removeChild(row);
+}
+
+function edit_parameter_table() {
+var sql = document.getElementById('sql').value;
+
+var count = (sql.match(/%s/gi) || []).length;
+
+var table = document.getElementById('parameter_table');
+
+var num_rows = table.getElementsByTagName("tr").length-1;
+for(; num_rows < count; num_rows++) {
+   var row=table.insertRow(-1);
+   var cell0=row.insertCell(0);
+   var cell1=row.insertCell(1);
+   var cell2=row.insertCell(2);
+
+   cell0.innerHTML=(row.rowIndex-1) + "<input type='hidden' name='parameter_index_" + (row.rowIndex-1) + "' value='" + (row.rowIndex -1) + "'/>";
+   cell1.innerHTML="<input type='text' name='parameter_name_" + (row.rowIndex-1) + "'/>";
+   cell2.innerHTML="<input type='text' name='parameter_default_value_" + (row.rowIndex-1) + "'/>";
+}
+
+for(; count < num_rows; count++) {
+   table.deleteRow(-1);
+}
+}
+
+function submit_form() {
+var sql = document.getElementById('sql').value;
+var count = (sql.match(/%s/gi) || []).length;
+var table = document.getElementById('parameter_table');
+var form = document.getElementById('report_table_form');
+var is_valid = 1;
+
+
+for(var i=0; i<count; i++) {
+   if(form.elements['parameter_name_'+i].value == '' || form.elements['parameter_default_value_'+i].value == '') {
+      is_valid = 0;
+      break;
+   }		      
+}
+
+
+if(is_valid) {
+   form = document.getElementById('report_table_form');
+   form.submit();
+}
+else {
+   alert('Please ensure that all parameters have names and default values.');
+}
+
+}
+
+</script>
+
+<form action='/amrs_reports/create_report_table' method='post' id='report_table_form'>
+  {% csrf_token %}
+  {% if report_table %}
+  <input type="hidden" name="report_table_id" value="{{report_table.id}}"/>
+  {%endif%}
+
+  <table border='1'>
+    <tr>
+      <td>Report Table Name</td><td><input type='text' name='name' value="{{report_table.name}}"/></td>
+    </tr>
+    <tr>
+      <td>Description</td>
+      <td><textarea name='description' rows='5' cols='80'>{{report_table.description}}</textarea></td>
+    </tr>
+
+    <tr>
+      <td>SQL</td>
+      <td><textarea name='report_table_sql' rows='20' cols='80' id='sql' onblur='edit_parameter_table()'>{{report_table.report_table_sql}}</textarea></td>
+    </tr>
+  </table>  
+  <br/>
+  <b>Add parameters:</b><br/>
+  <table border='1' id='parameter_table'>
+    <tr>
+      <th></th>
+      <th>Name</th>
+      <th>Default Value</th>
+    </tr>
+    {% for p in parameters %}
+    <tr>
+      <td>{{p.index}}<input type='hidden' name='parameter_index_{{p.index}}' value='{{p.index}}'</td>
+      <td><input type='text' name='parameter_name_{{p.index}}' value='{{p.name}}'/></td>
+      <td><input type='text' name='parameter_default_value_{{p.index}}' value='{{p.default_value}}'/></td>
+    </tr>
+    {% endfor %}
+  <br/>
+  <br/>
+  <table>
+    <tr>
+      <td>
+	{% if report_table %}
+	<input type='button' value='Save Changes' onclick='submit_form()'/>
+	{% else %}
+	<input type='button' value='Create New Table' onclick='submit_form()'/>
+	{%endif%}
+      </td>
+      <td></td><td></td><td></td>
+    </tr>
+  </table>
+</form>
+
+{% endblock %}

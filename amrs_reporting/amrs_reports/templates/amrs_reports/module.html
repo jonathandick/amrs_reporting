@@ -1,0 +1,2570 @@
+{% extends "caresmarts/base.html" %}
+
+{% load setvar %}
+
+{% block content %}
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/jquery_patient_search.js"></script> 
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/DataTables-1.7.2/media/js/jquery.dataTables.js"></script>
+<style type="text/css" title="currentStyle"> 
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_page.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table_jui.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/examples/examples_support/themes/smoothness/jquery-ui-1.8.4.custom.css";
+</style> 
+<style>
+.unread_alert{
+    font-weight:bold;
+}
+</style>
+<script type="text/javascript" charset="utf-8"> 
+  $(document).ready(function() {
+
+  $('#alert_trigger').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#alert_trigger_2').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $("#provider_tabs").tabs();
+  $("#provider_tabs_2").tabs();
+});
+
+</script>
+
+<div style="padding: 10px 20px 0px 20px;">
+<form action="/caresmarts/module?id={{ module.id }}" method="post" id='module_form'>
+<h2>Edit Module's Message Stack Schedule: <input type="text" name="module_name" value="{{ module.name }}" /></h2>
+<p>
+<b>Enrollment Conditions:</b>
+<input type="text" name="enrollment_conditions" value="{{ module.enrollment_conditions }}" style="width:100%;" />
+<br /><br />
+<i>Enter boolean logic, referencing metrics as [short_name:weeks_back] (weeks_back is optional) and patient attributes as {short_name}.<br /><br />
+You can also use variables prev_module (the ID of the previous module the user was enrolled in within this domain), count (the total number of times a patient has been enrolled in the module), and count_consec (the total number of times consecutively patient has been enrolled in module starting from the previous module).
+</i>
+</p>
+<br />
+<fieldset>
+<legend>Week 1</legend>
+<div id='provider_tabs'>
+<ul>
+<li><a href="#tabs-1">Monday</a></li>
+<li><a href="#tabs-2">Tuesday</a></li>
+<li><a href="#tabs-3">Wednesday</a></li>
+<li><a href="#tabs-4">Thursday</a></li>
+<li><a href="#tabs-5">Friday</a></li>
+<li><a href="#tabs-6">Saturday</a></li>
+<li><a href="#tabs-7">Sunday</a></li>
+</ul>
+<div id='tabs-1' style="padding:0;">
+<table cellspacing="10" width="100%">
+<tr>
+<td>
+<fieldset>
+<legend>Timeslot 1</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts1_mon_wk1" name="ts1_mon_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 1 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri1_mon_wk1" name="pri1_mon_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 1 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 1 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 1 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 1 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 1 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>Timeslot 2</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts2_mon_wk1" name="ts2_mon_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 2 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri2_mon_wk1" name="pri2_mon_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 2 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 2 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 2 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 2 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 2 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>"General Time Of Day" Timeslot</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts3_mon_wk1" name="ts3_mon_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 3 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri3_mon_wk1" name="pri3_mon_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 3 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 3 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 3 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 3 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk1' and sch.timeslot == 3 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+</tr>
+</table>
+</div>
+<div id='tabs-2' style="padding:0;">
+<table cellspacing="10" width="100%">
+<tr>
+<td>
+<fieldset>
+<legend>Timeslot 1</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts1_tue_wk1" name="ts1_tue_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 1 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri1_tue_wk1" name="pri1_tue_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 1 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 1 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 1 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 1 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 1 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>Timeslot 2</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts2_tue_wk1" name="ts2_tue_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 2 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri2_tue_wk1" name="pri2_tue_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 2 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 2 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 2 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 2 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 2 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>"General Time Of Day" Timeslot</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts3_tue_wk1" name="ts3_tue_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 3 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri3_tue_wk1" name="pri3_tue_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 3 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 3 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 3 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 3 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk1' and sch.timeslot == 3 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+</tr>
+</table>
+</div>
+<div id='tabs-3' style="padding:0;">
+<table cellspacing="10" width="100%">
+<tr>
+<td>
+<fieldset>
+<legend>Timeslot 1</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts1_wed_wk1" name="ts1_wed_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 1 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri1_wed_wk1" name="pri1_wed_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 1 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 1 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 1 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 1 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 1 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>Timeslot 2</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts2_wed_wk1" name="ts2_wed_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 2 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri2_wed_wk1" name="pri2_wed_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 2 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 2 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 2 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 2 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 2 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>"General Time Of Day" Timeslot</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts3_wed_wk1" name="ts3_wed_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 3 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri3_wed_wk1" name="pri3_wed_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 3 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 3 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 3 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 3 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk1' and sch.timeslot == 3 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+</tr>
+</table>
+</div>
+<div id='tabs-4' style="padding:0;">
+<table cellspacing="10" width="100%">
+<tr>
+<td>
+<fieldset>
+<legend>Timeslot 1</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts1_thu_wk1" name="ts1_thu_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 1 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri1_thu_wk1" name="pri1_thu_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 1 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 1 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 1 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 1 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 1 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>Timeslot 2</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts2_thu_wk1" name="ts2_thu_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 2 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri2_thu_wk1" name="pri2_thu_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 2 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 2 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 2 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 2 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 2 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>"General Time Of Day" Timeslot</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts3_thu_wk1" name="ts3_thu_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 3 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri3_thu_wk1" name="pri3_thu_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 3 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 3 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 3 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 3 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk1' and sch.timeslot == 3 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+</tr>
+</table>
+</div>
+<div id='tabs-5' style="padding:0;">
+<table cellspacing="10" width="100%">
+<tr>
+<td>
+<fieldset>
+<legend>Timeslot 1</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts1_fri_wk1" name="ts1_fri_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 1 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri1_fri_wk1" name="pri1_fri_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 1 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 1 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 1 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 1 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 1 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>Timeslot 2</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts2_fri_wk1" name="ts2_fri_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 2 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri2_fri_wk1" name="pri2_fri_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 2 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 2 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 2 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 2 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 2 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>"General Time Of Day" Timeslot</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts3_fri_wk1" name="ts3_fri_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 3 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri3_fri_wk1" name="pri3_fri_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 3 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 3 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 3 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 3 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk1' and sch.timeslot == 3 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+</tr>
+</table>
+</div>
+<div id='tabs-6' style="padding:0;">
+<table cellspacing="10" width="100%">
+<tr>
+<td>
+<fieldset>
+<legend>Timeslot 1</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts1_sat_wk1" name="ts1_sat_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 1 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri1_sat_wk1" name="pri1_sat_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 1 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 1 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 1 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 1 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 1 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>Timeslot 2</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts2_sat_wk1" name="ts2_sat_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 2 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri2_sat_wk1" name="pri2_sat_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 2 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 2 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 2 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 2 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 2 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>"General Time Of Day" Timeslot</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts3_sat_wk1" name="ts3_sat_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 3 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri3_sat_wk1" name="pri3_sat_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 3 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 3 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 3 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 3 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk1' and sch.timeslot == 3 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+</tr>
+</table>
+</div>
+<div id='tabs-7' style="padding:0;">
+<table cellspacing="10" width="100%">
+<tr>
+<td>
+<fieldset>
+<legend>Timeslot 1</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts1_sun_wk1" name="ts1_sun_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 1 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri1_sun_wk1" name="pri1_sun_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 1 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 1 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 1 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 1 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 1 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>Timeslot 2</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts2_sun_wk1" name="ts2_sun_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 2 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri2_sun_wk1" name="pri2_sun_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 2 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 2 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 2 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 2 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 2 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>"General Time Of Day" Timeslot</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts3_sun_wk1" name="ts3_sun_wk1" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 3 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri3_sun_wk1" name="pri3_sun_wk1" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 3 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 3 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 3 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 3 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk1' and sch.timeslot == 3 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</fieldset>
+<br><br>
+<fieldset>
+<legend>Week 2</legend>
+<div id='provider_tabs_2'>
+<ul>
+<li><a href="#tabs-1b">Monday</a></li>
+<li><a href="#tabs-2b">Tuesday</a></li>
+<li><a href="#tabs-3b">Wednesday</a></li>
+<li><a href="#tabs-4b">Thursday</a></li>
+<li><a href="#tabs-5b">Friday</a></li>
+<li><a href="#tabs-6b">Saturday</a></li>
+<li><a href="#tabs-7b">Sunday</a></li>
+</ul>
+<div id='tabs-1b' style="padding:0;">
+<table cellspacing="10" width="100%">
+<tr>
+<td>
+<fieldset>
+<legend>Timeslot 1</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts1_mon_wk2" name="ts1_mon_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 1 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri1_mon_wk2" name="pri1_mon_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 1 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 1 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 1 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 1 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 1 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>Timeslot 2</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts2_mon_wk2" name="ts2_mon_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 2 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri2_mon_wk2" name="pri2_mon_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 2 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 2 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 2 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 2 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 2 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>"General Time Of Day" Timeslot</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts3_mon_wk2" name="ts3_mon_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 3 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri3_mon_wk2" name="pri3_mon_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 3 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 3 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 3 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 3 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'mon_wk2' and sch.timeslot == 3 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+</tr>
+</table>
+</div>
+<div id='tabs-2b' style="padding:0;">
+<table cellspacing="10" width="100%">
+<tr>
+<td>
+<fieldset>
+<legend>Timeslot 1</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts1_tue_wk2" name="ts1_tue_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 1 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri1_tue_wk2" name="pri1_tue_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 1 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 1 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 1 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 1 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 1 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>Timeslot 2</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts2_tue_wk2" name="ts2_tue_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 2 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri2_tue_wk2" name="pri2_tue_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 2 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 2 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 2 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 2 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 2 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>"General Time Of Day" Timeslot</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts3_tue_wk2" name="ts3_tue_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 3 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri3_tue_wk2" name="pri3_tue_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 3 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 3 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 3 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 3 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'tue_wk2' and sch.timeslot == 3 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+</tr>
+</table>
+</div>
+<div id='tabs-3b' style="padding:0;">
+<table cellspacing="10" width="100%">
+<tr>
+<td>
+<fieldset>
+<legend>Timeslot 1</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts1_wed_wk2" name="ts1_wed_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 1 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri1_wed_wk2" name="pri1_wed_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 1 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 1 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 1 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 1 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 1 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>Timeslot 2</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts2_wed_wk2" name="ts2_wed_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 2 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri2_wed_wk2" name="pri2_wed_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 2 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 2 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 2 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 2 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 2 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>"General Time Of Day" Timeslot</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts3_wed_wk2" name="ts3_wed_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 3 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri3_wed_wk2" name="pri3_wed_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 3 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 3 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 3 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 3 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'wed_wk2' and sch.timeslot == 3 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+</tr>
+</table>
+</div>
+<div id='tabs-4b' style="padding:0;">
+<table cellspacing="10" width="100%">
+<tr>
+<td>
+<fieldset>
+<legend>Timeslot 1</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts1_thu_wk2" name="ts1_thu_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 1 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri1_thu_wk2" name="pri1_thu_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 1 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 1 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 1 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 1 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 1 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>Timeslot 2</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts2_thu_wk2" name="ts2_thu_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 2 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri2_thu_wk2" name="pri2_thu_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 2 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 2 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 2 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 2 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 2 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>"General Time Of Day" Timeslot</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts3_thu_wk2" name="ts3_thu_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 3 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri3_thu_wk2" name="pri3_thu_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 3 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 3 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 3 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 3 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'thu_wk2' and sch.timeslot == 3 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+</tr>
+</table>
+</div>
+<div id='tabs-5b' style="padding:0;">
+<table cellspacing="10" width="100%">
+<tr>
+<td>
+<fieldset>
+<legend>Timeslot 1</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts1_fri_wk2" name="ts1_fri_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 1 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri1_fri_wk2" name="pri1_fri_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 1 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 1 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 1 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 1 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 1 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>Timeslot 2</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts2_fri_wk2" name="ts2_fri_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 2 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri2_fri_wk2" name="pri2_fri_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 2 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 2 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 2 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 2 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 2 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>"General Time Of Day" Timeslot</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts3_fri_wk2" name="ts3_fri_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 3 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri3_fri_wk2" name="pri3_fri_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 3 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 3 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 3 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 3 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'fri_wk2' and sch.timeslot == 3 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+</tr>
+</table>
+</div>
+<div id='tabs-6b' style="padding:0;">
+<table cellspacing="10" width="100%">
+<tr>
+<td>
+<fieldset>
+<legend>Timeslot 1</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts1_sat_wk2" name="ts1_sat_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 1 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri1_sat_wk2" name="pri1_sat_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 1 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 1 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 1 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 1 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 1 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>Timeslot 2</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts2_sat_wk2" name="ts2_sat_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 2 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri2_sat_wk2" name="pri2_sat_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 2 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 2 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 2 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 2 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 2 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>"General Time Of Day" Timeslot</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts3_sat_wk2" name="ts3_sat_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 3 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri3_sat_wk2" name="pri3_sat_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 3 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 3 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 3 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 3 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sat_wk2' and sch.timeslot == 3 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+</tr>
+</table>
+</div>
+<div id='tabs-7b' style="padding:0;">
+<table cellspacing="10" width="100%">
+<tr>
+<td>
+<fieldset>
+<legend>Timeslot 1</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts1_sun_wk2" name="ts1_sun_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 1 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri1_sun_wk2" name="pri1_sun_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 1 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 1 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 1 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 1 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 1 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>Timeslot 2</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts2_sun_wk2" name="ts2_sun_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 2 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri2_sun_wk2" name="pri2_sun_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 2 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 2 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 2 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 2 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 2 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+<td>
+<fieldset>
+<legend>"General Time Of Day" Timeslot</legend>
+<table>
+<tr><td>Message Stack:</td><td><select id="ts3_sun_wk2" name="ts3_sun_wk2" style="float: right;">
+	<option value="-1">None</option>
+	{% for mo in mos %}
+		{% setvar "0" as priority %}
+		<option value="{{ mo.id }}" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 3 and sch.orderset_id == mo.id %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>{{ mo.name }}</option>
+	{% endfor %}
+</select></td></tr>
+<tr><td>Priority:</td><td><select id="pri3_sun_wk2" name="pri3_sun_wk2" style="float: right;">
+		<option value="1" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 3 and sch.priority == 1 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>1</option>
+		<option value="2" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 3 and sch.priority == 2 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>2</option>
+		<option value="3" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 3 and sch.priority == 3 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>3</option>
+		<option value="4" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 3 and sch.priority == 4 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>4</option>
+		<option value="5" 
+		{% for sch in sched %}
+			{% if sch.day_string == 'sun_wk2' and sch.timeslot == 3 and sch.priority == 5 %}
+				selected="selected"
+			{% endif %}
+		{% endfor %}
+		>5</option>
+	</select></td></tr>
+</table>
+</fieldset>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</fieldset>
+<br><br>
+<input type="submit" value="Save Changes" />
+</form>
+</div>
+
+{% endblock %}

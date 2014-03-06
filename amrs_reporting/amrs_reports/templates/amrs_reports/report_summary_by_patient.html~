@@ -1,0 +1,127 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+
+<script type="text/javascript" charset="utf-8"> 
+  $(document).ready(function() {
+
+  $("#report_start_date").datepicker({dateFormat: 'mm/dd/y', changeMonth:true,changeYear:true});
+  $("#report_end_date").datepicker({dateFormat: 'mm/dd/y', changeMonth:true,changeYear:true});
+
+
+  $('#stat_sets_table').dataTable( {
+  "sScrollY": "500px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+});
+
+</script>
+<div style="padding: 20px;">
+<h3>{{report_summary.name}} : Results</h3>
+<br/>
+<table id='stat_sets_table' border="1" cellpadding="5">
+  <thead>
+    <th>Patient</th>
+    {% for column in columns %}
+    <th>{{column}}</th>    
+    {% endfor %}
+  </thead>
+  <tbody>
+  {% for patient,stats in stats_by_patient.items %}
+  <tr>
+    <td>{{patient.last_name}}, {{patient.first_name}}</td>
+    {% for stat in stats%}
+    <td>{{stat}}</td>
+    {%endfor%}
+  </tr>
+  {% endfor%}  
+  </tbody>
+  <tfoot>
+    <th><b>Total:</b></th>
+    {% for stat in summary_stats %}
+      <th><b>{{stat}}</b></th>
+    {%endfor%}
+  </tfoot>
+
+</table>
+<br/>
+
+</div>
+  
+<form action='/caresmarts/report_summary' method='post'>
+<input type='hidden' name='provider_id' value='{{ provider.id }}'/>
+<br />
+<b>Set the following parameters to run a report:</b>
+<br /><br />
+<table>
+  <tr>
+    <td>Choose Report:</td>
+    <td>
+      <select name='report_summary_id'>
+	{% for rs in report_summaries %}
+	<option value='{{rs.id}}'>{{rs.name}}</option>
+	{% endfor %}
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td>Patient List:</td>
+    <td>
+      <select name='patient_list'>
+        {% for list in patient_lists %}
+        <option value='{{list.id}}'>{{list.list_name}}</option>
+        {% endfor %}
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <table>
+      <tr>
+	<table>
+	  <tr>
+	    <td><input type='radio' checked name='strat_type' value='by_patient_list'/><b>Stratify by patient</b></td>
+	  </tr>
+	  <tr>
+	    <td>Start Date:<input id='report_start_date' type='text' name='start_date'/> or for <input type='text' size='3' name='days_back'/> days before end date</td>
+	  </tr>
+	  <tr>
+	    <td>End Date:<input id='report_end_date' type='text' name='end_date'/></td>
+	  </tr>
+
+	</table>
+      </tr>
+      <tr><td align='center'> <b>OR </b></td></tr>
+      
+      <tr>
+	<table>
+	  <tr>
+            <td><input type='radio' name='strat_type' value='by_time_period'/><b>By time period:</b></td>
+	  </tr>
+	  <tr>
+            <td>Time Period:</td>
+            <td>	  
+              <input type='text' name='time_period' size='2' value='1' />
+              <select name='time_unit'>
+		<option value='week'>week(s)</option>
+		<option value='day'>day(s)</option>
+              </select>
+            </td>
+            <td>Time Periods:</td>
+            <td><input type='text' name='num_time_periods' value='1' /></td>
+	  </tr>
+	</table>
+      </tr>
+    </table>
+  </tr>
+</table>
+<br />
+<input type='submit'/>
+</form>
+    
+
+{% endblock %}

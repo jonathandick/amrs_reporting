@@ -1,0 +1,65 @@
+{% extends "amrs_reports/base.html" %}
+
+{% block content %}
+
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+  $("#start_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true});
+  $("#end_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true});
+
+  } );
+
+</script>
+
+<form action='/amrs_reports/run_report' method="post">
+  {% csrf_token %}
+  <table>
+    <tr>
+      <td>Choose Report: </td>
+      <td>
+	<select name='report_id'>
+	  {% for report in reports %}
+	  <option value={{report.id}}>{{report.name}}</option>
+	  {% endfor %}
+	</select>
+      </td>
+    </tr>
+    <tr>
+      <td>Start Date:</td>
+      <td><input type="text" name="start_date" id="start_date"/></td>
+    </tr>
+
+    <tr>
+      <td>End Date:</td>
+      <td><input type="text" name="end_date" id="end_date"/></td>
+    </tr>
+    <tr>
+      <td>Choose Cohort: </td>
+      <td>
+	<select name='cohort_id'>
+	  {% for cohort in cohorts %}
+	  <option value={{cohort.id}}>{{cohort.name}}</option>
+	  {% endfor %}
+	</select>
+      </td>
+    </tr>
+    <tr>
+      <td>Choose Clinic</td>
+      <td>
+	<select name='clinic_id'>
+	  {% for clinic in clinics %}
+	  <option value={{clinic.id}}>{{clinic.name}}</option>
+	  {% endfor %}
+	</select>
+      </td>
+    </tr>
+    <tr>
+      <td><input type='submit'/></td>
+      <td></td>
+    </tr>
+  </table>
+</form>
+
+{% endblock %}

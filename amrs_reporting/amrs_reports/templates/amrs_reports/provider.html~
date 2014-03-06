@@ -1,0 +1,475 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+<script type="text/javascript">
+function show_alert_log(e){
+    //var log_id = $(e.target).val();
+    // get read element
+    var log_id= $(e.target).parent().prev().prev().prev().prev().prev().html();
+    Popup=window.open(
+        '/alert/show_alert_log/'+log_id+'/',
+        'Popup',
+        'toolbar=no,location=no,status=no,menubar=no,scrollbars=yes,resizable=yes,width=420,height=400,left=430,top=23'
+    ); 
+    var is_read = $(e.target).parent().prev().prev().prev().prev().html();
+    $(e.target).parent().prev().prev().prev().prev().html("");
+    $(e.target).parent().prev().prev().prev().prev().html("Read");
+    if (is_read !="Read"){
+        var unread = $("#number_of_unread").val();
+        unread -= 1;
+        if (unread <= 0){
+            $("#alert_tabs").html("My Alerts");
+            $("#number_of_unread").val(0);
+        }else{
+            //$("#alert_tabs").html("");
+            $("#number_of_unread").val(unread);
+            $("#alert_tabs").html("My Alerts("+unread+")");
+        }
+    }
+    $(e.target).parent().parent().removeClass('unread_alert');
+    return false;
+}
+function validate_form() {
+   var form = document.getElementById('non_roster_form');
+   var errors = "";
+   if(form.patient_id.value == "") {
+      alert("You must first select a patient to add to your roster.");
+   }
+   else { form.submit(); }
+}
+
+function get_form(){
+    var pid = document.getElementById("select_pat").value;
+    if (pid != ""){
+        $.get('/alert/get_patient_no_alert_form/',
+            {patient_id:pid},
+            function(res){
+                $("#select_form").html('');
+                $.each(res, function(key, value){
+                    $("#select_form").append($("<option></option>").
+                        attr("value",value['id']).text(value['name']));
+                });
+            },
+            'json'
+        );
+    }
+}
+
+function create_alert_form() {
+   var form = document.getElementById('create_alert');
+   var errors = "";
+   if(form.patient_id.value == "" || form.form_id.value == "") {
+      alert("You must first select a parent and form to careate alert.");
+   }
+   else {
+        form.submit(); 
+   }
+}
+</script> 
+
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/DataTables-1.7.2/media/js/jquery.dataTables.js"></script>
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/jquery.ui.datepicker.js"></script>
+<style type="text/css" title="currentStyle"> 
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_page.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table_jui.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/examples/examples_support/themes/smoothness/jquery-ui-1.8.4.custom.css";
+</style> 
+<style>
+.unread_alert{
+    font-weight:bold;
+}
+</style>
+<script type="text/javascript" charset="utf-8"> 
+  $(document).ready(function() {
+  $('#patients').dataTable( {
+  "sScrollY": "500px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false,
+  "aaSorting": [[2,'asc']],
+  "aoColumns": [null,null,null,null,null,null, null,null],
+  "fnDrawCallback": function ( oSettings ) {
+      if ( oSettings.bSorted || oSettings.bFiltered )
+      {
+          for ( var i=0, iLen=oSettings.aiDisplay.length ; i<iLen ; i++ )
+          {
+             $('td:eq(0)', oSettings.aoData[ oSettings.aiDisplay[i] ].nTr ).html( i+1 );
+          }
+      }
+							  
+   }
+ });
+
+
+  $('#alerts').dataTable( {
+  "sScrollY": "400px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false
+  } );
+
+  $('#alert_trigger').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#alert_report_form').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+
+  $('#alert_log').dataTable( {
+  "sScrollY": "400px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": true,
+  "aaSorting": [[5,'desc']],
+  "aoColumns": [null,null,null,null,null,{ "sType": 'date' },null,null,null],
+  "fnDrawCallback": function ( oSettings ) {
+      if ( oSettings.bSorted || oSettings.bFiltered )
+      {
+          for ( var i=0, iLen=oSettings.aiDisplay.length ; i<iLen ; i++ )
+          {
+             $('td:eq(0)', oSettings.aoData[ oSettings.aiDisplay[i] ].nTr ).html( i+1 );
+          }
+      }
+
+  }
+  } );
+
+  $("#report_start_date").datepicker({dateFormat: 'mm/dd/y', changeMonth:true,changeYear:true});
+  $("#report_end_date").datepicker({dateFormat: 'mm/dd/y', changeMonth:true,changeYear:true});
+
+
+  $("#provider_tabs").tabs({selected:{{ selected_tab }}});
+
+    var pid = document.getElementById("select_pat").value;
+    $.get('/alert/get_patient_no_alert_form/',
+        {patient_id:pid},
+        function(res){
+        $("#select_form").html('');
+        $.each(res, function(key, value){
+            $("#select_form").append($("<option></option>").
+            attr("value",value['id']).text(value['name']));
+        });
+        },
+        'json'
+    );
+    $("#show_alert_log").live('click', show_alert_log)
+});
+</script> 
+<script>
+
+$('document').ready(function() {
+    // For forward and back
+    $.address.change(function(event){
+      $("#provider_tabs").tabs( "select" , window.location.hash )
+    })
+
+    // when the tab is selected update the url with the hash
+    $("#provider_tabs").bind("tabsselect", function(event, ui) {
+      window.location.hash = ui.tab.hash;
+    })
+});
+
+
+</script>
+
+
+
+
+<form action='/caresmarts/roster_add' method='post' id="non_roster_form">
+  <input type='hidden' name='provider_id' value='{{provider.pk}}'/>
+  <input type='hidden' name='patient_id' value=''/>
+
+  <table width="100%">
+    <tr>
+      <td width="100%"><h2>&nbsp;&nbsp;&nbsp;&nbsp;Welcome, {{provider.first_name }} {{provider.last_name}}! {% if provider.admin == 1 %}(Admin){% endif %}</h2></td>
+      <!--td><b>Search&nbsp;Patients:</b></td>
+      <td><input type="text" name="PatientAjax" id="PatientAjax" value="" style="width: 150px;" /></td>
+      <td><input type="button" value="Add to Roster" onclick="validate_form();" /></td-->
+      <td>&nbsp;&nbsp;<!--a href='/caresmarts/add_patient'>Add&nbsp;Patient</a>&nbsp;|&nbsp;--><a href='/caresmarts/new_provider/?id={{ provider.id }}'>Edit&nbsp;Profile</a>&nbsp;|&nbsp;<a href='/caresmarts/edit_patient'>Enroll&nbsp;Patient</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+    </tr>
+  </table>
+</form>
+
+<div id='provider_tabs'>
+
+<div style="padding-right:18px; padding-left:18px;">
+<ul>
+<li><a href="#tabs-1">Patient Roster</a></li>
+<!-- <li><a href="#tabs-2">My Reports</a></li> -->
+{% if num_unread_alert %}
+<input type="hidden" id="number_of_unread" value="{{num_unread_alert}}"/>
+<li><a id="alert_tabs" href="#tabs-2">My Alerts ({{num_unread_alert}})</a></li>
+{% else %}
+<li><a id="alert_tabs" href="#tabs-2">My Alerts</a></li>
+{% endif %}
+<li><a href="#tabs-3">Reports</a></li>
+</ul>
+</div>
+
+<div id='tabs-1'>
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="patients"> 
+  <thead> 
+    <tr> 
+      <th></th>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Phone</th>
+      <th>Weeks Since Enrollment</th>
+      <th>Current Modules</th>
+      <th></th>
+      <th></th>
+    </tr> 
+  </thead> 
+  <tbody> 
+    {% for patient in roster %}
+    <tr {% if not patient.active %}style="color:#666666;"{% endif %}>
+      <td style="font-size:12px;"></td>
+      <td><a href='/caresmarts/patient/{{ patient.pk }}' {% if not patient.active %}style="color:#666666;"{% endif %}>{{patient.identifier}}</a></td>
+      <td>{% if provider.admin == 0 %}<a href='/caresmarts/patient/{{ patient.pk }}' {% if not patient.active %}style="color:#666666;"{% endif %}>{{ patient.last_name }}, {{ patient.first_name }}</a>{%endif%}</td>
+      <td style="font-size:12px;">{% if provider.admin == 0 %}({{patient.phone.area_code}}) {{patient.phone.prefix}}-{{patient.phone.suffix}}{% endif %}</td>
+      <td style="font-size:12px;" align='center'>{{patient.get_weeks_from_init_enrollment}}</td>
+      <td style="font-size:10px;">{%autoescape off%}{{patient.get_active_module_names}}{%endautoescape%} {% if not patient.active %}style="color:#666666;"{% endif %}</td>
+      <td style="font-size:10px;">
+      {% if patient.active %}
+      	  <a href='/caresmarts/edit_patient?patient_id={{ patient.pk }}'>Edit&nbsp;Contact</a><br />
+          <a href='/caresmarts/edit_patient?patient_id={{ patient.pk }}#step4'>Edit&nbsp;Timing</a><br />
+          <a href='/caresmarts/roster_remove?provider_id={{provider.id}}&patient_id={{patient.id}}'>Deactivate</a><br />
+          {% if provider.admin %}<a href='/caresmarts/delete_patient?patient_id={{ patient.pk }}'>Delete&nbsp;Patient</a><br />{%endif%}
+      {% else %}
+          <a href='/caresmarts/roster_remove?provider_id={{provider.id}}&patient_id={{patient.id}}' {% if not patient.active %}style="color:#666666;"{% endif %}>Activate</a><br />
+      {% endif %}
+      </td>
+      <td style="font-size:10px;">
+	{% if patient_list_id == -1 or patient_list_id == -2 %}
+		<form id="add_list_form" name="add_list_form" action="/caresmarts/provider/{{provider.pk}}" method="POST">
+		<input type="hidden" id="add_patient_id" name="add_patient_id" value="{{patient.id}}" />
+		<select id="patient_list" name="patient_list">
+			{% for plist in patient_lists %}
+				<option value="{{plist.id}}"
+				{% if patient_list_id == plist.id %}selected="selected"{% endif %}>{{plist.list_name}}</option>
+			{% endfor %}
+		</select>
+		<input type="submit" value="Add To List" />
+		</form>
+	{% else %}
+		<form id="remove_list_form" name="remove_list_form" action="/caresmarts/provider/{{provider.pk}}" method="POST">
+		<input type="hidden" id="patient_list" name="patient_list" value="{{patient_list_id}}" />
+		<input type="hidden" id="remove_patient_id" name="remove_patient_id" value="{{patient.id}}" />
+		<input type="submit" value="Remove" />
+		</form>
+	{% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table> 
+<br />
+<form id="list_form" name="list_form" action="/caresmarts/provider/{{provider.pk}}" method="POST" style="float:left;">
+<b>Patient List:</b>
+<select id="patient_list" name="patient_list">
+	<option value="-1" {% if patient_list_id == -1 %}selected="selected"{% endif %}>All Patients</option>
+	<option value="-2" {% if patient_list_id == -2 %}selected="selected"{% endif %}>All (With Deactivated)</option>
+	{% for plist in patient_lists %}
+		<option value="{{plist.id}}"
+		{% if patient_list_id == plist.id %}selected="selected"{% endif %}>{{plist.list_name}}</option>
+	{% endfor %}
+</select>
+<input type="submit" value="View List" />
+{% if patient_list_id != -1 or patient_list_id != -2 %}
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+<a href="/caresmarts/delete_patient_list?id={{ patient_list_id }}">Delete Active List</a>
+{% endif %}
+</form>
+<form id="create_list_form" name="create_list_form" action="/caresmarts/provider/{{provider.pk}}" method="POST" style="float:right;">
+<b>Create List:</b>
+<input type="text" id="create_list_name" name="create_list_name" />
+<input type="submit" value="Go" />
+</form>
+</div>
+
+<div id='tabs-2'>
+<fieldset>
+<legend>Alert Log</legend>
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="alert_log"> 
+  <thead> 
+    <tr> 
+      <th></th>
+      <th>ID</th> 
+      <th>Urgency</th> 
+      <th>Patient</th> 
+      <th>Subject</th> 
+      <th>Sent Time</th> 
+      <th>Read</th> 
+      <th>Action Taken</th> 
+      <th></th> 
+    </tr> 
+  </thead> 
+  <tbody>
+    {% for log in logs%}
+    <tr {% if not log.is_read %} class="unread_alert" {% endif %}>
+      <td>{{forloop.counter}}</td>
+      <td style="font-size:12px;">{{ log.id }}</td>
+      <td style="font-size:12px;">{{ log.urgency }}</td>
+      <td style="font-size:12px;">{% if provider.admin == 0 %} {{ log.patient.last_name }}, {{ log.patient.first_name }}{% else %}{{ log.patient.identifier }}{% endif %}</td>
+      <td style="font-size:12px;">{{ log.subject }}</td>
+      <td style="font-size:12px;">{{ log.sent_time|date:'m/d/Y g:i A'  }}</td>
+      {% if log.is_read %}<td style="font-size:12px;">Read</td>{%else%}<td style="font-size:12px;">Unread</td>{% endif %}
+      <td style="font-size:12px;">{{ log.action }}</td>
+      <td style="font-size:12px;"><a href="/alert/show_alert_log/{{log.id}}/" target="_blank">Show</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</fieldset>
+<br/> 
+<br/>
+{% if provider.admin == 0 %}
+<fieldset>
+<legend>Alert Triggers</legend>
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="alert_trigger"> 
+  <thead> 
+    <tr> 
+      <th>Patient Name</th> 
+      <th>Form Name</th> 
+      <th></th> 
+      <th></th> 
+    </tr> 
+  </thead> 
+  <tbody>
+    {% for trigger in alert_triggers %}
+    {% if trigger.patient %}
+    <tr>
+      <td><a href='/caresmarts/patient/{{ trigger.patient.pk }}'>{{ trigger.patient.first_name }} {{ trigger.patient.last_name }}</a></td>
+      <td><a href='/caresmarts/message_template?form_id={{ trigger.form.form_id }}'>{{ trigger.form.name }}</a></td>
+      <td><a href="/alert/add_alert_trigger/{{trigger.patient_id}}/{{trigger.form.form_id}}/">Edit</a></td>
+      <td><a href="/alert/delete_alert_trigger/{{trigger.patient_id}}/{{trigger.form_id}}/">Delete</a></td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+  </tbody>
+</table> 
+</fieldset>
+<br>
+<form id="create_alert" action="{% url alert.views.create_alert_trigger %}" method="post">
+    <!--{{ csrf_token }}-->
+    <input type='hidden' name='provider_id' value='{{provider.pk}}'/>
+    <fieldset>
+    <legend>Create Alert</legend>
+        <label>Parent Name:</label>
+        <select id="select_pat" name="patient_id" onChange="get_form();">
+            {% for patient in roster %}
+            <option value="{{ patient.pk }}">{{patient.alias}}</option>
+            {% endfor %}
+        </select>
+        <label>Form Name:</label>
+        <select id="select_form" name="form_id">
+        </select>
+        <input type="button" value="Create" onClick="create_alert_form();"/>
+    </fieldset>
+</form>
+</fieldset>
+{% endif %}
+</div>
+
+<div id='tabs-3'>
+<form action='/caresmarts/report_summary' method='post'>
+<input type='hidden' name='provider_id' value='{{ provider.id }}'/>
+<br />
+<b>Set the following parameters to run a report:</b>
+<br /><br />
+<table>
+  <tr>
+    <td>Choose Report:</td>
+    <td>
+      <select name='report_summary_id'>
+	{% for rs in report_summaries %}
+	<option value='{{rs.id}}'>{{rs.name}}</option>
+	{% endfor %}
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td>Patient List:</td>
+    <td>
+      <select name='patient_list'>
+        {% for list in patient_lists %}
+        <option value='{{list.id}}'>{{list.list_name}}</option>
+        {% endfor %}
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <table>
+      <tr>
+	<table>
+	  <tr>
+	    <td><input type='radio' name='strat_type' checked value='by_patient_list'/><b>Stratify by patient</b></td>
+	  </tr>
+	  <tr>
+	    <td>Start Date:<input id='report_start_date' type='text' name='start_date'/> or for <input type='text' size='3' name='days_back'/> days before end date</td>
+	  </tr>
+	  <tr>
+	    <td>End Date:<input id='report_end_date' type='text' name='end_date'/></td>
+	  </tr>
+
+	</table>
+      </tr>
+      <tr><td align='center'> <b>OR </b></td></tr>
+      
+      <tr>
+	<table>
+	  <tr>
+            <td><input type='radio' name='strat_type' value='by_time_period'/><b>By time period:</b></td>
+	  </tr>
+	  <tr>
+            <td>Time Period:</td>
+            <td>	  
+              <input type='text' name='time_period' size='2' value='1' />
+              <select name='time_unit'>
+		<option value='week'>week(s)</option>
+		<option value='day'>day(s)</option>
+              </select>
+            </td>
+            <td>Time Periods:</td>
+            <td><input type='text' name='num_time_periods' value='1' /></td>
+	  </tr>
+	</table>
+      </tr>
+    </table>
+  </tr>
+</table>
+<br />
+<input type='submit'/>
+</form>
+<br /><br />
+<i>To run a report for an individual patient, visit that patient's patient dashboard.</i>
+</div>
+
+</div>
+{% endblock %}
+

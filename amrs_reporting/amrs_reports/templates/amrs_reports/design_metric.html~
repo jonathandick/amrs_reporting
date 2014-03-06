@@ -1,0 +1,202 @@
+{% extends "powerup/base.html" %}
+
+{% block content %}
+
+{% if form_id %}
+<h2>Edit Metric</h2>
+{% else %}
+<h2>Create New Metric</h2>
+{% endif %}
+
+<h3>Quick Design Control Panel</h3>
+For a step-by-step explanation, please see below.<br/><br/>
+<form action="/powerup/design_metric/" method="post">
+
+  {% if metric_id %}
+  <input type='hidden' name='metric_id' value='{{ metric_id }}'/>
+  {% endif %}
+
+
+<table id="metric_design__design_metric">
+  <tr class='first_row'>
+    <th>General</th>
+    <th class='middle'>Content Level</th>
+    <th>Process Level</th>
+  </tr>    
+  <tr>
+    <td>
+      <table id='generic__design_metric'>
+	<tr><td>Metric Name</td><td><input type='text' name='name' value='{{ metric.name }}' size='38'/></td></tr>
+	<tr><td>Description</td><td><textarea name='description' rows='10' cols='30'>{{ metric.description}}</textarea></td></tr>
+      </table>
+    </td>
+    <td class='middle'>
+      <table id='content_col__design_metric'>
+	<tr>
+	  <td>value</td>
+	  <td>
+	    <select name='conditional_operator' size='1'>
+	      <option></option>
+	      <option value='='>equals</option>
+	      <option value='>'>greater than</option>
+	      <option value='<'>less than</option>
+	      <option value='!='>does not equal</option>
+	    </select>
+	  </td>
+	  <td class='last_row'>
+	    <input type='text' name='content_value' size='1'/>
+	  </td>
+	<tr>
+	  <td>value within range(s)</td>
+	  <td><input type='text' name='value_ranges'/></td>
+	  <td></td>
+	</tr>
+	<tr>
+	  <td>time range(s)</td>
+	  <td><input type='text' name='time_ranges'/></td>
+	  <td></td>
+	</tr>
+	<tr>
+	  <td>Function</td>
+	  <td>
+            <select name='process_function'>
+	      <option></option>
+              {% for desc,field in metric.FUNCTIONS.items %}
+              <option value='{{field}}'>{{desc}}</option>
+              {% endfor %}
+            </select>
+	  </td>
+	</tr>
+      </table>
+    </td>
+    <td>
+      <table id='process_col__design_metric'>	
+	<tr>
+	  <td>Function</td>
+	  <td>
+            <select name='process_function'>
+	      <option></option>
+              {% for desc,field in metric.FUNCTIONS.items %}
+              <option value='{{field}}'>{{desc}}</option>
+              {% endfor %}
+            </select>
+	  </td>
+	</tr>
+	<tr>
+	  <td class='first_col'>Which Messages</td>
+	  <td>
+	    <select name='message_sender'>
+	      <option></option>
+	      <option value='all'>all</option>
+	      <option value='sender'>patient = sender</option>
+	      <option value='receive'>patient = receiver</option>
+	    </select>
+	  </td>
+	</tr>
+	{% for set in metric.INTRINSIC_FILTERS %}
+	<tr>
+	  <td class='first_col'>{{set.label}}</td>
+	  <td>
+	    <select name='{{set.field}}'> 
+	      <option></option>
+	      <option value='True'>Yes</option>
+	      <option value='False'>No</option>
+	    </select>
+	  </td>
+	</tr>
+	{% endfor %}
+      </table>
+    </td>
+  </tr>
+  <tr class='last_row'>
+    <td colspan='3' align='center'>
+      {% if form_id %}
+      <input type="submit" value="Edit Metric" />
+      {% else %}
+      <input type="submit" value="Create Metric" />
+      {% endif %}
+    </td>
+  </tr>	
+</table>
+</form>
+
+<br/>
+<br/>
+
+  <hr>
+<form action="/powerup/design_metric/" method="post">
+
+<h3>What do you want to quantify and how do you want to quantify it?</h3>
+A metric is used to identify all the records that meet certain criteria and to perform a statistical operation on that <br/>
+set of records. <br/>
+First provide a name and a description of the metric you are creating:
+<table id='generic__design_metric'>
+  <tr><td>Metric Name</td><td><input type='text' name='name' value='{{ metric.name }}' size='60'/></td></tr>
+  <tr><td>Description</td><td><textarea name='description' rows='10' cols='50'>{{ metric.description}}</textarea></td></tr>
+</table>
+<br/>
+Now, you will need to select which operation shoud be used and the field it will be used on.<br/>
+For example, you could count the number of messages sent, or the average time to respond.<br/>
+Sometimes you may want to quantify on the message sent my the patient. If this is the case, select 'patient_response' as<br/>
+the field you want to apply the function to.
+<br/><br/>
+  <table id='functions__design_metric'>
+    <tr>
+      <td>Function</td>
+      <td>
+        <select name='aggregate_function'>
+	  <option></option>
+          {% for desc,field in metric.FUNCTIONS.items %}
+          <option value={{field}}>{{desc}}</option>
+          {% endfor %}
+        </select>
+      </td>
+    </tr>
+    <tr>
+      <td class='first_col'>Field on which to apply function</td>
+      <td>
+	<select name='aggregate_field'>
+	  <option></option>
+	  {% for desc,field in metric.FUNCTION_FIELDS.items %}
+          <option value={{field}}>{{desc}}</option>
+	  {% endfor %}
+	</select>
+      </td>
+    </tr>
+  </table>
+<br/><br/>
+<hr>
+<br/>
+  <h3>Process Measures</h3>
+  The following questions ask you to specify process level filters for your metric. Reports may be characterized as:    
+<br/><br/>
+  <table id='process_measures__design_metric'>
+    <tr class='first_row'>
+      <th >Process Measure</th><th>Selection</th><th>Description</th>
+    </tr>
+    {% for set in metric.INTRINSIC_FILTERS %}
+      <tr>
+      <td class='first_col'>{{set.label}}</td>
+      <td>
+	<select name='{{set.field}}'> 
+	  <option></option>
+	  <option value='True'>Yes</option>
+	  <option value='False'>No</option>
+	</select>
+      </td>
+      <td>{{set.desc}}</td>
+    </tr>
+     {% endfor %}
+  </table>
+
+
+
+  {% if form_id %}
+  <input type="submit" value="Edit Metric" />
+  {% else %}
+  <input type="submit" value="Create Metric" />
+  {% endif %}
+</form>
+
+
+{% endblock %}

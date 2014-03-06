@@ -1,0 +1,56 @@
+{% extends "amrs_reports/base.html" %}
+
+
+
+{% block content %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+{% for rm in report_members %}
+  $('#report_{{rm.rm.id}}').dataTable( {
+  "sScrollY": "auto",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+{% endfor %}
+  } );
+
+</script>
+<h3> Report: {{report.name}}</h3>
+<h4> Description: {{report.description}}</h4>
+
+{% for rm in report_members %}
+<h4>{{rm.rm.title}}</h4>
+
+<table id='report_{{rm.rm.id}}' class="display">
+  <thead>
+    <tr>
+      {% for col in rm.cols %}
+      <th>{{col.0}}</th>
+      {%endfor%}
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in rm.rows %}
+    <tr>
+      {% for cell in row %}
+      <td>
+	{{cell}}
+      </td>
+      {% endfor %}
+    </tr>
+ 
+   {%endfor%}
+    </tbody>
+</table>
+<hr/>
+{% endfor %}
+
+<a href='/amrs_reports/get_report_as_pdf?report_id={{report.id}}'>Download as pdf</a>
+
+{% endblock %}

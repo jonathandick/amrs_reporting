@@ -1,0 +1,19 @@
+{% extends "powerup/base.html" %}
+
+{% block content %}
+<table id='metrics__metrics'>
+  <tr><th>Metric</th><th>Description</th><th>Edit</th><th>Delete</th></tr>
+  {% for metric in metrics %}
+  <tr>
+    <td>{{metric.name}}</td>
+    <td class='internal'>{{metric.description}}</td>
+    <td class='internal'><a href='/powerup/design_metric?metric_id={{metric.id}}'>Edit</a></td>
+    <td><a href='/powerup/delete_metric?metric_id={{metric.id}}'>Delete</a></td>
+  </tr>
+  {% endfor %}
+</table>
+
+<br/>
+<br/>
+<a href='/powerup/design_metric'>Create new metric</a>
+{% endblock %}

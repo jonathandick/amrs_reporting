@@ -1,0 +1,22 @@
+<H2>Messaging Program Enrollment</H2>
+
+<form action='/powerup/message_program_enrollment/' method='POST'>
+<input type='hidden' name='patient_id' value='{{ patient.id }}'/>
+<b>Message:</b><br/>
+<textarea name='message'></textarea>
+
+Start Date: <input type='text' name='start_date'/><br/>
+End Date: <input type='text' name='end_date'/><br/>
+
+<table>
+  <tr><td>Monday</td><td><input type='text' name='monday'></input></td></tr>
+  <tr><td>Tuesday</td><td><input type='text' name='tuesday'></input></td></tr>
+  <tr><td>Wednesday</td><td><input type='text' name='wednesday'></input></td></tr>
+  <tr><td>Thursday</td><td><input type='text' name='thursday'></input></td></tr>
+  <tr><td>Friday</td><td><input type='text' name='friday'></input></td></tr>
+  <tr><td>Saturday</td><td><input type='text' name='saturday'></input></td></tr>
+  <tr><td>Sunday</td><td><input type='text' name='sunday'></input></td></tr>
+</table>
+<input type='submit' value='submit'/>
+
+</form>

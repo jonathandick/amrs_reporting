@@ -1,0 +1,27 @@
+{% extends "powerup/base.html" %}
+
+{% block content %}
+
+<h2>Choose the order of the columns for your report</h2>
+<form action='/powerup/design_report_summary' method='post'>
+<input type='hidden' name='step' value='3'/>
+<input type='hidden' name='report_summary_id' value='{{report_summary.id}}'/>
+<table id='layout__design_report_summary_3'>
+  {% for m in metrics %}
+  <tr>
+    <td>
+      <select name='{{m.name}}'>
+	<option></option>
+	{% for n in metrics %}
+	<option>{{forloop.counter}}</option>
+	{% endfor %}
+      </select>
+    </td>
+    <td>{{m.name}}</td>
+  </tr>
+  {% endfor %}
+</table>
+<input type='submit'/>
+</form>
+
+{% endblock %}

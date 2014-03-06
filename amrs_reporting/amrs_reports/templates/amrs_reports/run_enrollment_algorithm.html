@@ -1,0 +1,14 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+
+<div style="padding: 20px;">
+<a href="/caresmarts/patient/{{ patient.id }}">Return To Patient Dashboard</a>
+<br /><br />
+{% autoescape off %}
+{{ output }}
+{% endautoescape %}
+</div>
+
+
+{% endblock %}

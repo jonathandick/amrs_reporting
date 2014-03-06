@@ -1,0 +1,70 @@
+{% extends 'caresmarts/base.html' %}
+
+{% block content %}
+
+<div style="padding: 10px 10px 10px 20px;">
+
+{% if provider %}
+<h2>Edit Provider</h2>
+{% else %}
+<h2>Add Provider</h2>
+{% endif %}
+
+{% if errors %}
+    <ul>
+    {% for error in errors %}
+        <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+<p>Please try again.</p>
+{% endif %}
+
+
+<form action="/caresmarts/new_provider/" method="post">
+{% if provider %}
+<input type="hidden" name="provider_id" value="{{ provider.id }}" />
+{% endif %}
+
+<!--In order to create a new user, you must first have been given a special password.<br/>
+<br/>
+Please enter it here: <input type='password' name='special_password'/><br/>
+<br/>
+<hr-->
+<table>
+<tr><td>Username:</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td><input id="id_alias" type="text" name="username" value="{{ user.username }}" maxlength="20" /></td></tr>
+{% if not provider %}
+<tr><td>Password:</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td><input type="password" name="password1" maxlength="20" /></td></tr>
+<tr><td>Reenter Password:</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td><input type="password" name="password2" maxlength="20" /></td></tr>
+{% endif %}
+<tr><td>First Name:</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td><input type="text" name="first_name" value="{{provider.first_name}}" maxlength="30" /></td></tr>
+<tr><td>Last Name:</td><td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td><td><input type="text" name="last_name" value="{{provider.last_name}}" maxlength="30" /></td></tr>
+<tr>
+  <td>Timezone</td>
+  <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+  <td>
+    <select name='utc_offset'>
+      <option value='-8' {% if provider.utc_offset == -8 %}selected='selected'{% endif %}>PST</option>
+      <option value='-7' {% if provider.utc_offset == -7 %}selected='selected'{% endif %}>MST</option>
+      <option value='-6' {% if provider.utc_offset == -6 %}selected='selected'{% endif %}>CST</option>
+      <option value='-5' {% if provider.utc_offset == -5 %}selected='selected'{% endif %}>EST</option>
+    </select>
+  </td>
+<tr>
+<tr>
+  <td>Cell Phone Number:</td>
+  <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+  <td>
+    (<input type="text" name="area_code" value="{{phone.area_code}}" maxlength="3" size="3"/>)
+    <input type="text" name="prefix" value="{{phone.prefix}}" maxlength="3" size="3"/>-
+    <input type="text" name="suffix" value="{{phone.suffix}}" maxlength="4" size="4"/>
+  </td>
+</tr>
+</table>
+
+<br/>
+<input type="submit" value="Save New Provider" />
+</form>
+
+</div>
+
+{% endblock %}

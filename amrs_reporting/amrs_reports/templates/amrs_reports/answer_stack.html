@@ -1,0 +1,45 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+<script type="text/javascript">
+  
+function validate_form() {
+   var form = document.getElementById('answer_stack_form');
+   var errors = '';
+   if(form.name.value == '') { errors += 'Answer Stack name can not be blank \n'; }
+   if(form.answers.value == '') { errors += 'Answer list can not be blank \n'; }
+   if(errors == '') { form.submit(); }
+   else { alert(errors); }
+}
+
+</script>
+
+<div style="padding: 10px 20px 0px 20px;">
+{% if answer_stack_id %}
+<h2>Edit Answer Stack</h2>
+{% else %}
+<h2>Create Answer Stack</h2> 
+{% endif %}
+
+<form action="/caresmarts/answer_stack/" method="post" id='answer_stack_form'>
+{% if answer_stack_id %}
+<input type='hidden' name='answer_stack_id' value='{{ answer_stack_id }}'/>
+{% endif %}
+
+<table id='stack_info'>
+<tr><td>Answer Stack Name:</td><td><input type='text' name='name' value='{{ name }}'/></td></tr>
+<tr><td>Answer List (Comma Delimited):</td><td><textarea name='answers' rows='3' cols='35'>{{ answers }}</textarea></td>
+</table>
+
+{% if answer_stack_id %}
+<input type="button" value="Modify Answer Stack" onClick='javascript:validate_form()'/>
+{% else %}
+<input type="button" value="Create Answer Stack" onClick='javascript:validate_form()'/>
+{% endif %}
+</form>
+<br><br>
+
+</div>
+
+
+{% endblock %}

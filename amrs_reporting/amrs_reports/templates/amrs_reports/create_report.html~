@@ -1,0 +1,211 @@
+{% extends "amrs_reports/base.html" %}
+{% load staticfiles %}
+{% block content %}
+
+<script type="text/javascript">
+
+
+function createRequestObject() {
+    var ro;
+    var browser = navigator.appName;
+    if(browser == "Microsoft Internet Explorer"){
+        ro = new ActiveXObject("Microsoft.XMLHTTP");
+    }else{
+        ro = new XMLHttpRequest();
+    }
+    return ro;
+}
+
+function trim(x) { return x = (x != null) ? x.replace(/^[\t\n\r\s]*|[\t\n\r\s]*$/g,"") : false ; }
+
+function getParams(elements) {
+    var params = '';
+    for(var x in elements) { params += elements[x].name + '=' + encodeURIComponent(elements[x].value) + '&'; }
+    return params;
+}
+
+function handleCreateReport() {
+    if(http2.readyState == 4){
+         var pane = document.getElementById('add_table_pane');
+         pane.style.visibility='visible';        
+    }
+}
+
+function createReport() {
+    var form = document.getElementById('create_report_form');
+    var url = '/amrs_reports/create_report'
+    var params = getParams(form.elements);
+    var http2 = createRequestObject();
+    http2.open('POST',url,true);
+    http2.onreadystatechange = handleCreateReport;
+    http2.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    http2.setRequestHeader("Content-length", 2);
+    http2.setRequestHeader("Connection", "close");
+    http2.send(params); 
+}
+
+
+var all_parameters = { {% for rt in report_tables %} "{{rt.id}}":"{{rt.get_parameters_s}}" {%endfor%} };    
+function addParameters(sel) {
+    var report_id = sel.options[sel.selectedIndex].value;
+
+    if(report_id != '') {
+        var form = document.getElementById('add_table_div');
+        form.style.visibility='visible';
+     
+        table = document.getElementById('parameter_table');
+        while(table.hasChildNodes())
+        {
+           table.removeChild(table.firstChild);
+        }
+
+        var params = all_parameters[report_id];
+        params = params.split(';;;');
+        table.innerHTML = '<tr><td></td><td>name</td><td>value</td><td>default value</td></tr>';    
+        for(s in params) {
+            var row=table.insertRow(-1);
+            var cell0=row.insertCell(0);
+            var cell1=row.insertCell(1);
+            var cell2=row.insertCell(2);
+            var cell3=row.insertCell(3);
+            p = params[s];
+            split = p.split('===');
+            cell0.innerHTML=row.rowIndex;        
+            cell1.innerHTML=split[0];        
+            cell2.innerHTML="<input type='text' name='" + split[0] + "'/>";
+            cell3.innerHTML=split[1];
+        }
+     } else {
+         var form = document.getElementById('add_table_div');
+         form.style.visibility='hidden';
+     }
+
+}
+
+function addTable() {
+
+   var table = document.getElementById('report_table_table');
+   var form = document.getElementById('report_table_form');  
+   var report_table_id = form.elements['report_table_id'].value;
+   var row=table.insertRow(-1);
+
+
+   var s = "report_table_id===" + report_table_id + ";;;"
+           + "index===" + row.rowIndex + ";;;"
+           + "title===" + form.elements['title'].value + ";;;";
+
+
+   var params = all_parameters[report_table_id];
+   var params = params.split(';;;');
+   var values = '(';
+   for(x in params) {
+       p = params[x];
+       split = p.split('===');
+       if(form.elements[split[0]].value != '') {
+           values += "\'" + form.elements[split[0]].value + "\',";
+       } else { values += "\"" + split[1] + "\","; }
+   }
+   values = values.slice(0,-1) + ")";
+   alert(values);
+   s += "parameter_values===" + values;
+   var cell0=row.insertCell(0);
+   cell0.innerHTML="<input type='hidden' name='report_table_values_" + (row.rowIndex) + "' value='" + s + "'/>"
+                   + form.elements['title'].value;   
+
+   var cell1=row.insertCell(1);
+   cell1.innerHTML= values;
+
+   var cell2=row.insertCell(2);
+   cell2.innerHTML = "<input type='button' value='Edit' onclick='edit_report_table(" + (row.rowIndex) + ")'/>";
+}   
+
+$(document).ready(function() {
+
+  $('#report_table_table').dataTable( {
+  "sScrollY": "auto",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+
+  } );
+
+
+</script>
+
+<form action='' method='post' id='create_report_form'>
+  {% csrf_token %}
+  {% if report %}
+  <input type="hidden" name="report_id" value="{{report.id}}"/>
+  {%endif%}
+
+  <table border='1'>
+    <tr>
+      <td>Report Name</td><td><input type='text' name='report_name' value="{{report.name}}"/></td>
+    </tr>
+    <tr>
+      <td>Description</td>
+      <td><textarea name='description' rows='5' cols='80'>{{report.description}}</textarea></td>
+    </tr>
+    <tr>
+      <td>Template</td>
+      <td><input type='text' name='template' value='{{report.template}}'/></td>
+    </tr>
+    <tr>
+  </table>
+  <br/>
+  <b>Current tables in report:</b>
+
+  <table id='report_table_table'>
+    <thead>
+      <tr>
+	<th></th>
+	<th>Table Name</th>
+	<th>Parameters</th>
+	<th>Edit</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+<input type='submit' value='Create Report'/>
+</form>  
+
+<div id='add_table_pane' style='visibility:visible;'>
+  <form action='' method='' id='report_table_form'>
+    <table id='added_report_tables'>
+    </table>
+    <hr/>
+    <b>Add a table to your report:</b> <select name='report_table_id' onchange='addParameters(this)'>
+      <option></option>
+      {% for rt in report_tables %}
+      <option value={{rt.id}}>{{rt.name}}</option>
+      {% endfor %}
+    </select>
+    <div id='add_table_div'>
+      <table>
+	<tr>
+	  <td>Choose header to identify this table:</td><td><input type='text' name='title'/></td>
+	</tr>
+	<tr>
+	  <td>Choose the parameter values:</td>
+	  <td>
+	    <table id='parameter_table'>
+	    </table>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <input type='button' value='Add table to report' onclick='addTable()'/>
+	  </td>
+	  <td></td>
+	</tr>
+  </div>
+
+</div>    
+
+{% endblock %}

@@ -1,0 +1,143 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+
+<script type="text/javascript">
+
+
+function get_values(selectobj) {
+   if (window.XMLHttpRequest)
+   {// code for IE7+, Firefox, Chrome, Opera, Safari
+       xmlhttp=new XMLHttpRequest();
+   }
+   else
+   {// code for IE6, IE5
+       xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+   }
+   xmlhttp.onreadystatechange=function()
+   {
+      if (xmlhttp.readyState==4 && xmlhttp.status==200)
+      {
+         var response_obj = eval('(' + xmlhttp.responseText + ')');
+         var select = document.getElementById('pa_select')
+         var i;
+         for(i=select.options.length-1;i>=0;i--) { select.remove(i); }
+         for(var i in response_obj) {
+            var value = response_obj[i]; 
+            var option = document.createElement('option');
+            option.text = value;
+            option.value = value;
+            try {
+               select.add(option, null); // standards compliant; doesn't work in IE
+            }
+            catch(ex) {
+               select.add(option); // IE only
+            }
+         }
+      }
+   }
+   form = document.getElementById('pa_form');
+   form.date.value = '';
+   form.value.value = '';
+   chosen_option = selectobj.options[selectobj.selectedIndex]
+   xmlhttp.open("GET","/caresmarts/ajax_get_values?patient_attribute_type_id=" + chosen_option.value,true);
+   xmlhttp.send();      
+}
+
+
+function validate_form() {
+   var form = document.getElementById('pa_form');
+   var errors = '';
+   if(form.patient_attribute_type_id.value == '') { errors += 'You must first select a patient attribute. \n'; }
+   if(form.value_coded.value == '' && form.value.value == '') { errors += 'You must provide a value. \n'; }
+   if(form.date.value == '') { errors += 'You must provide the associated date. \n'; }
+
+   if(errors == '') { form.submit(); }
+   else { alert(errors); }
+}
+
+</script>
+
+<style type="text/css" title="currentStyle">
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_page.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table.css";
+</style>
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/DataTables-1.7.2/media/js/jquery.dataTables.js"></script>
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+  $('#patient_attributes').dataTable( {
+        }
+  );
+  } );
+</script>
+
+
+<h2>Manage Patient Attributes</h2>
+
+{% if messages %}
+    <ul>
+    {% for message in messages %}
+        <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+
+
+<hr class='panel'>
+<h3 class='banner'> Patient Attributes </h3>
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="patient_attributes">
+  <thead>
+    <tr>
+      <th>Attribute Name</th>
+      <th>Value</th>
+      <th>Date</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for pa in pas %}
+    <tr class="gradeU">
+      <td>{{ pa.patient_attribute_type.name }}</td>
+      <td>{{ pa.value }} </td>
+      <td>{{ pa.date }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<br>
+<br>
+<hr class='panel'>
+<h3 class='banner'>Add new attribute</h3>
+
+<form action='/caresmarts/patient_attribute' method='post' id='pa_form'>
+<input type='hidden' name='patient_id' value='{{patient.id}}'/>
+<table>
+  <tr><td>Attribute</td><td>Suggested Values</td><td>Write in values</td><td>Date</td></tr>
+  <tr>
+    <td>
+      <select name='patient_attribute_type_id' onChange='javascript:get_values(this)'>
+	<option></option>
+	{% for pat in pats %}
+	<option value='{{pat.id}}'{% ifequal pa.patient_attribute_type pat %} selected {% endifequal %}>{{pat.name}}</option>
+	{% endfor %}
+      </select>
+    </td>
+    <td>
+      <select name='value_coded' id='pa_select'>
+      </select>
+    </td>
+    <td><input type='text' name='value' value='{{pa.value}}'></td>
+    <td><input type='text' name='date' value='{{pa.date|date:'m/d/y'}}'/></td>
+  </tr>
+</table>
+<input type='button' value='Create Attribute' onClick="javascript:validate_form()"/>
+
+</form>
+
+
+      
+<br/>
+<br/>
+<a href='/caresmarts/patient/{{patient.id}}'>Return to patient dashboard</a>
+{% endblock %}

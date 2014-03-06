@@ -1,0 +1,66 @@
+{% extends "powerup/base.html" %}
+
+{% block content %}
+
+<script type="text/javascript">
+
+function validate_form() {
+   var form = document.getElementById('flt_form');
+   var errors = '';
+   if(form.name.value == '') { errors += 'Name can not be blank \n'; }
+   if(form.description.value == '') { errors += 'Description can not be blank \n'; }
+   if(errors == '') { form.submit(); }
+   else { alert(errors); }
+}
+
+</script>
+
+<h2>Manage Form Label Types</h2>
+
+{% if messages %}
+    <ul>
+    {% for message in messages %}
+        <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+
+<form action='/powerup/form_label_type' method='post' id='flt_form'>
+<input type='hidden' name='form_label_type_id' value='{{flt.id}}'/>
+<table>
+  <tr>
+    <td>Name</td>
+    <td><input type='text' name='name' value='{{flt.name}}'></td>
+  </tr>
+  <tr>
+    <td>Description</td>
+    <td><textarea name='description' cols='50' rows='5'>{{flt.description}}</textarea></td>
+  </tr>
+</table>
+<input type='button' value='Submit' onClick='javascript:validate_form()'/>
+<br/>
+<br/>
+<hr>
+<br/>
+<h3>Form Label Types</h3>
+<table>
+  <tr>
+    <td>Name</td>
+    <td>Description</td>
+    <td></td>
+    <td></td>
+  </tr>
+  {% for flt in flts %}
+  <tr>
+    <td>{{ flt.name }} </td>
+    <td>{{ flt.description }} </td>
+    <td><a href='/powerup/form_label_type?function=edit&form_label_type_id={{flt.id}}'>Edit</a></td>
+    <td><a href='/powerup/form_label_type?function=void&form_label_type_id={{flt.id}}'>Void</a></td>
+  </tr>
+  {% endfor %}
+</table>
+      
+
+
+{% endblock %}

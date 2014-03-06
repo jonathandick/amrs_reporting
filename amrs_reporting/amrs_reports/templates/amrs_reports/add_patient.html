@@ -1,0 +1,788 @@
+{% extends 'caresmarts/base.html' %}
+
+{% block content %}
+
+<script type="text/javascript">
+
+function validate_form1()
+{
+   var form = document.getElementById('patient_form');
+   var errors = "";
+   
+   if(form.username.value == '') { errors += 'Username cannot be blank.\n'; }
+   if(form.first_name.value == '') { errors += 'First name cannot be blank.\n'; }
+   if(form.last_name.value == '') { errors += 'Last name cannot be blank.\n'; }
+   if(form.birthdate.value == '') { errors += 'Birthdate cannot be blank.\n'; }
+   if(form.area_code.value == '') { errors += 'Phone number (area code) cannot be blank.\n'; }
+   if(form.prefix.value == '') { errors += 'Phone number (prefix) cannot be blank.\n'; }
+   if(form.suffix.value == '') { errors += 'Phone number (suffix) cannot be blank.\n'; }
+   if(form.address.value == '') { errors += 'Address cannot be blank.\n'; }
+   if(form.city.value == '') { errors += 'City cannot be blank.\n'; }
+   if(form.state.value == '') { errors += 'State cannot be blank.\n'; }
+   if(form.zip_code.value == '') { errors += 'Zip code cannot be blank.\n'; }
+   
+   if(errors != "")
+   {
+	alert(errors);
+   }
+   else
+   {
+	form.submit();
+   }
+}
+
+function validate_form2()
+{
+   var form = document.getElementById('patient_form');
+   var errors = "";
+   
+   if(errors != "")
+   {
+	alert(errors);
+   }
+   else
+   {
+	// form.submit();
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "block";
+	document.getElementById("page4").style.display = "none";
+	document.getElementById("page5").style.display = "none";
+   }
+}
+
+function validate_form3()
+{
+   var form = document.getElementById('patient_form');
+   var errors = "";
+   
+   if(errors != "")
+   {
+	alert(errors);
+   }
+   else
+   {
+	// form.submit();
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "none";
+	document.getElementById("page4").style.display = "block";
+	document.getElementById("page5").style.display = "none";
+   }
+}
+
+function validate_form4()
+{
+   var form = document.getElementById('patient_form');
+   var errors = "";
+   
+   if(form.weekday_prefs_morning.value == '') { errors += 'Preferred weekday morning message time cannot be blank.\n'; }
+   if(form.weekday_prefs_evening.value == '') { errors += 'Preferred weekday evening message time cannot be blank.\n'; }
+   if(form.weekend_prefs_morning.value == '') { errors += 'Preferred weekend morning message time cannot be blank.\n'; }
+   if(form.weekend_prefs_evening.value == '') { errors += 'Preferred weekend evening message time cannot be blank.\n'; }
+   if(form.num_messages.value == '') { errors += 'Preferred number of messages cannot be blank.\n'; }
+   
+   if(errors != "")
+   {
+	alert(errors);
+   }
+   else
+   {
+	// form.submit();
+	document.getElementById("message_3").value = "Message #3: Is your name " + form.first_name.value + " " + form.last_name.value + "? Respond 'yes' or 'no'.";
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "none";
+	document.getElementById("page4").style.display = "none";
+	document.getElementById("page5").style.display = "block";
+   }
+}
+
+function validate_form5()
+{
+   var form = document.getElementById('patient_form');
+   var errors = "";
+   
+   if(errors != "")
+   {
+	alert(errors);
+   }
+   else
+   {
+	form.submit();
+   }
+}
+
+function go_step1()
+{
+	document.getElementById("page1").style.display = "block";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "none";
+	document.getElementById("page4").style.display = "none";
+	document.getElementById("page5").style.display = "none";
+}
+
+function go_step2()
+{
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "block";
+	document.getElementById("page3").style.display = "none";
+	document.getElementById("page4").style.display = "none";
+	document.getElementById("page5").style.display = "none";
+}
+
+function go_step3()
+{
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "block";
+	document.getElementById("page4").style.display = "none";
+	document.getElementById("page5").style.display = "none";
+}
+
+function go_step4()
+{
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "none";
+	document.getElementById("page4").style.display = "block";
+	document.getElementById("page5").style.display = "none";
+}
+
+function go_step5()
+{
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "none";
+	document.getElementById("page4").style.display = "none";
+	document.getElementById("page5").style.display = "block";
+}
+
+$(document).ready(function(){
+    $("#birth_date").datepicker({dateFormat: 'mm/dd/yy', changeMonth:true,
+    changeYear:true,});
+    $("#birth_date").datepicker("option","yearRange",'1901:2011');
+    $("#next_appointment").datepicker({dateFormat: 'mm/dd/yy', changeMonth:true,
+    changeYear:true,});
+    $("#next_appointment").datepicker("option","yearRange",'1901:2011');
+{% if page %}
+	document.getElementById("page1").style.display = "none";
+	document.getElementById("page2").style.display = "none";
+	document.getElementById("page3").style.display = "none";
+	document.getElementById("page4").style.display = "block";
+	document.getElementById("page5").style.display = "none";
+{% endif %}
+});
+
+</script>
+
+{% if patient_id %} <h2>&nbsp;&nbsp;&nbsp;Edit Patient</h2> 
+{% else %} <h2>&nbsp;&nbsp;&nbsp;Add Patient</h2> 
+{% endif %}
+
+{% if errors %}
+    <ul>
+    {% for error in errors %}
+        <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+<p>Please try again.</p>
+{% endif %}
+<form action="/caresmarts/edit_patient/" method="post" id='patient_form'>
+{% if patient_id %}
+<input type='hidden' name='patient_id' value='{{ patient_id }}'/>
+{% endif %}
+
+<div id="page1" style="padding-left: 20px;"><!-- Screen 1 (Basic User Demographics) -->
+<h3>Basic User Demographics</h3>
+<table cellspacing="10">
+<tr><td>Username: *</td><td><input id="id_alias" type="text" name='username' value="{{ patient.alias }}" maxlength="20" /></td></tr>
+<tr><td>First Name: *</td><td><input id="id_first_name" type="text" name="first_name" value="{{patient.first_name}}" maxlength="30" /></td></tr>
+<tr><td>Last Name: *</td><td><input id="id_last_name" type="text" name="last_name" value="{{patient.last_name}}" maxlength="30" /></td></tr>
+<tr><td>Preferred Name (Nickname):</td><td><input id="id_preferred_name" type="text" name="preferred_name" value="{{patient.preferred_name}}" maxlength="30" /></td></tr>
+<tr>
+  <td>Mobile Phone Number: *</td>
+  <td>
+    (<input id="id_area_code" type="text" name="area_code" value="{{phone.area_code}}" maxlength="3" size="3"/>) 
+    <input id="id_prefix" type="text" name="prefix" value="{{phone.prefix}}" maxlength="3" size="3"/>-
+    <input id="id_suffix" type="text" name="suffix" value="{{phone.suffix}}" maxlength="4" size="4"/>
+  </td>
+</tr>
+<tr>
+  <td>Landline Phone Number:</td>
+  <td>
+    (<input id="id_landline_area_code" type="text" name="landline_area_code" value="{{patient.landline_area_code}}" maxlength="3" size="3"/>) 
+    <input id="id_landline_prefix" type="text" name="landline_prefix" value="{{patient.landline_prefix}}" maxlength="3" size="3"/>-
+    <input id="id_landline_suffix" type="text" name="landline_suffix" value="{{patient.landline_suffix}}" maxlength="4" size="4"/>
+  </td>
+</tr>
+<tr>
+  <td>Alternate Phone Number:</td>
+  <td>
+    (<input id="id_alternate_area_code" type="text" name="alternate_area_code" value="{{patient.alternate_area_code}}" maxlength="3" size="3"/>) 
+    <input id="id_alternate_prefix" type="text" name="alternate_prefix" value="{{patient.alternate_prefix}}" maxlength="3" size="3"/>-
+    <input id="id_alternate_suffix" type="text" name="alternate_suffix" value="{{patient.alternate_suffix}}" maxlength="4" size="4"/>
+  </td>
+</tr>
+<tr><td>Address *:</td><td><input id="id_address" type="text" name="address" value="{{patient.address}}" maxlength="30" /></td></tr>
+<tr><td>City *:</td><td><input id="id_city" type="text" name="city" value="{{patient.city}}" maxlength="30" /></td></tr>
+<tr><td>State *:</td><td><input id="id_state" type="text" name="state" value="{{patient.state}}" maxlength="30" /></td></tr>
+<tr><td>Zip Code *:</td><td><input id="id_zip_code" type="text" name="zip_code" value="{{patient.zip_code}}" maxlength="30" /></td></tr>
+<tr><td>Email Address:</td><td><input id="id_email" type="text" name="email" value="{{patient.email}}" maxlength="30" /></td></tr>
+<tr><td>Birthdate (MM/DD/YYYY): *</td><td><input type="text" id="birth_date" name="birthdate" maxlength="30" value='{{patient.birthdate|date:'m/d/Y'}}'/></td></tr>
+<tr><td>Ethnicity:</td><td><input id="id_ethnicity" type="text" name="ethnicity" value="{{patient.ethnicity}}" maxlength="30" /></td></tr>
+<tr>
+  <td>Gender:</td>
+  <td>
+    <select name='gender'>
+      <option value='0' {% ifequal patient.gender '0' %} selected {% endifequal %}>F</option>
+      <option value='1' {% ifequal patient.gender '1' %} selected {% endifequal %}>M</option>
+    </select>
+  </td>
+</tr>
+</table>
+<br/>
+<input type="button" value="Add Patient" onClick="javascript:validate_form1()"/>
+</div>
+
+<div id="page2" style="display:none; padding-left: 20px;"><!-- Screen 2 (Diabetes Information) -->
+<h3>Diabetes Information</h3>
+<table cellspacing="10">
+<tr><td>Years of Diabetes:</td><td><input id="id_years_of_diabetes" type="text" name="years_of_diabetes" value="{{patient.years_of_diabetes}}" maxlength="30" /></td></tr>
+<tr>
+  <td>Treatment Perscribed:</td>
+  <td>
+    <select name='medication'>
+      <option value='0' {% ifequal patient.medication '0' %} selected {% endifequal %}>I have not been perscribed either insuline or pills for my diabetes. (Diet alone)</option>
+      <option value='1' {% ifequal patient.medication '1' %} selected {% endifequal %}>Diabetes pills</option>
+      <option value='2' {% ifequal patient.medication '2' %} selected {% endifequal %}>An insulin shot 1 or 2 times per day</option>
+      <option value='3' {% ifequal patient.medication '3' %} selected {% endifequal %}>An insulin shot 3 or more times per day</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>Primary Care Doctor:</td>
+  <td>
+    <select name='primary_care_doctor'>
+      <option value='0' {% ifequal patient.id_primary_care_doctor '0' %} selected {% endifequal %}>Doctor 1</option>
+      <option value='1' {% ifequal patient.id_primary_care_doctor '1' %} selected {% endifequal %}>Doctor 2</option>
+      <option value='2' {% ifequal patient.id_primary_care_doctor '2' %} selected {% endifequal %}>Doctor 3</option>
+      <option value='3' {% ifequal patient.id_primary_care_doctor '3' %} selected {% endifequal %}>Doctor 4</option>
+      <option value='4' {% ifequal patient.id_primary_care_doctor '4' %} selected {% endifequal %}>Doctor 5</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>Endocrinologist:</td>
+  <td>
+    <select name='endocrinologist'>
+      <option value='0' {% ifequal patient.endocrinologist '0' %} selected {% endifequal %}>Endocrinologist 1</option>
+      <option value='1' {% ifequal patient.endocrinologist '1' %} selected {% endifequal %}>Endocrinologist 2</option>
+      <option value='2' {% ifequal patient.endocrinologist '2' %} selected {% endifequal %}>Endocrinologist 3</option>
+      <option value='3' {% ifequal patient.endocrinologist '3' %} selected {% endifequal %}>Endocrinologist 4</option>
+      <option value='4' {% ifequal patient.endocrinologist '4' %} selected {% endifequal %}>Endocrinologist 5</option>
+    </select>
+  </td>
+</tr>
+<tr><td>Next Doctor Appointment (MM/DD/YYYY):</td><td><input type="text" id="next_appointment" name="next_appointment" maxlength="30" value='{{patient.next_appointment|date:'m/d/Y'}}'/></td></tr>
+</table>
+<br/>
+<input type="button" value="Proceed to Step 3" onClick="javascript:validate_form2()"/>
+</div>
+
+<div id="page3" style="display:none; padding-left: 20px; line-height: 150%;"><!-- Screen 3 (Self-Management Behaviors) -->
+<h3>Self-Management Behaviors</h3>
+<table cellspacing="10">
+<tr>
+  <td><b>Diet</b></td>
+  <td></td>
+</tr>
+<tr>
+  <td>How many of the last SEVEN DAYS have you followed a healthful eating plan?</td>
+  <td>
+    <select name='healthful_eating'>
+      <option value='0' {% ifequal patient.healthful_eating '0' %} selected {% endifequal %}>0</option>
+      <option value='1' {% ifequal patient.healthful_eating '1' %} selected {% endifequal %}>1</option>
+      <option value='2' {% ifequal patient.healthful_eating '2' %} selected {% endifequal %}>2</option>
+      <option value='3' {% ifequal patient.healthful_eating '3' %} selected {% endifequal %}>3</option>
+      <option value='4' {% ifequal patient.healthful_eating '4' %} selected {% endifequal %}>4</option>
+      <option value='5' {% ifequal patient.healthful_eating '5' %} selected {% endifequal %}>5</option>
+      <option value='6' {% ifequal patient.healthful_eating '6' %} selected {% endifequal %}>6</option>
+      <option value='7' {% ifequal patient.healthful_eating '7' %} selected {% endifequal %}>7</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>On average, over the past month, how many DAYS PER WEEK have you followed your eating plan?</td>
+  <td>
+    <select name='eating_per_week'>
+      <option value='0' {% ifequal patient.eating_per_week '0' %} selected {% endifequal %}>0</option>
+      <option value='1' {% ifequal patient.eating_per_week '1' %} selected {% endifequal %}>1</option>
+      <option value='2' {% ifequal patient.eating_per_week '2' %} selected {% endifequal %}>2</option>
+      <option value='3' {% ifequal patient.eating_per_week '3' %} selected {% endifequal %}>3</option>
+      <option value='4' {% ifequal patient.eating_per_week '4' %} selected {% endifequal %}>4</option>
+      <option value='5' {% ifequal patient.eating_per_week '5' %} selected {% endifequal %}>5</option>
+      <option value='6' {% ifequal patient.eating_per_week '6' %} selected {% endifequal %}>6</option>
+      <option value='7' {% ifequal patient.eating_per_week '7' %} selected {% endifequal %}>7</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>On how many of the last SEVEN DAYS did you eat five or more servings of fruits and vegetables?</td>
+  <td>
+    <select name='fruits_and_vegetables'>
+      <option value='0' {% ifequal patient.fruits_and_vegetables '0' %} selected {% endifequal %}>0</option>
+      <option value='1' {% ifequal patient.fruits_and_vegetables '1' %} selected {% endifequal %}>1</option>
+      <option value='2' {% ifequal patient.fruits_and_vegetables '2' %} selected {% endifequal %}>2</option>
+      <option value='3' {% ifequal patient.fruits_and_vegetables '3' %} selected {% endifequal %}>3</option>
+      <option value='4' {% ifequal patient.fruits_and_vegetables '4' %} selected {% endifequal %}>4</option>
+      <option value='5' {% ifequal patient.fruits_and_vegetables '5' %} selected {% endifequal %}>5</option>
+      <option value='6' {% ifequal patient.fruits_and_vegetables '6' %} selected {% endifequal %}>6</option>
+      <option value='7' {% ifequal patient.fruits_and_vegetables '7' %} selected {% endifequal %}>7</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>On how many of the last SEVEN DAYS did you eat high fat foods such as read meat or full-fat dairy products?</td>
+  <td>
+    <select name='high_fat_foods'>
+      <option value='0' {% ifequal patient.high_fat_foods '0' %} selected {% endifequal %}>0</option>
+      <option value='1' {% ifequal patient.high_fat_foods '1' %} selected {% endifequal %}>1</option>
+      <option value='2' {% ifequal patient.high_fat_foods '2' %} selected {% endifequal %}>2</option>
+      <option value='3' {% ifequal patient.high_fat_foods '3' %} selected {% endifequal %}>3</option>
+      <option value='4' {% ifequal patient.high_fat_foods '4' %} selected {% endifequal %}>4</option>
+      <option value='5' {% ifequal patient.high_fat_foods '5' %} selected {% endifequal %}>5</option>
+      <option value='6' {% ifequal patient.high_fat_foods '6' %} selected {% endifequal %}>6</option>
+      <option value='7' {% ifequal patient.high_fat_foods '7' %} selected {% endifequal %}>7</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>When it comes to DIET which statement do you agree with most?</td>
+  <td>
+    <select name='readiness_diet'>
+      <option value='0' {% ifequal patient.readiness_diet '0' %} selected {% endifequal %}>I am intending to make changes in my eating habits/diet in the next 6 months.</option>
+      <option value='1' {% ifequal patient.readiness_diet '1' %} selected {% endifequal %}>I am intending to make changes in my eating habits/diet in the next month.</option>
+      <option value='2' {% ifequal patient.readiness_diet '2' %} selected {% endifequal %}>I have made changes in my eating habits/diet in the last 6 months.</option>
+      <option value='3' {% ifequal patient.readiness_diet '3' %} selected {% endifequal %}>My eating habits/diet has been excellent for the last 6 months.</option>
+      <option value='4' {% ifequal patient.readiness_diet '4' %} selected {% endifequal %}>I agree with none of these statements.</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>How confident do you feel that you can follow a diet that is healthy for someone with diabetes?</td>
+  <td>
+    <select name='diet_confidence'>
+      <option value='0' {% ifequal patient.diet_confidence '0' %} selected {% endifequal %}>Not confident at all</option>
+      <option value='1' {% ifequal patient.diet_confidence '1' %} selected {% endifequal %}>A little confident</option>
+      <option value='2' {% ifequal patient.diet_confidence '2' %} selected {% endifequal %}>Somewhat confident</option>
+      <option value='3' {% ifequal patient.diet_confidence '3' %} selected {% endifequal %}>Confident</option>
+      <option value='4' {% ifequal patient.diet_confidence '4' %} selected {% endifequal %}>Very confident</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td><br /><b>Exercise</b></td>
+  <td></td>
+</tr>
+<tr>
+  <td>On how many of the last SEVEN DAYS did you participate in at least 30 minutes of physical activity?</td>
+  <td>
+    <select name='physical_activity'>
+      <option value='0' {% ifequal patient.physical_activity '0' %} selected {% endifequal %}>0</option>
+      <option value='1' {% ifequal patient.physical_activity '1' %} selected {% endifequal %}>1</option>
+      <option value='2' {% ifequal patient.physical_activity '2' %} selected {% endifequal %}>2</option>
+      <option value='3' {% ifequal patient.physical_activity '3' %} selected {% endifequal %}>3</option>
+      <option value='4' {% ifequal patient.physical_activity '4' %} selected {% endifequal %}>4</option>
+      <option value='5' {% ifequal patient.physical_activity '5' %} selected {% endifequal %}>5</option>
+      <option value='6' {% ifequal patient.physical_activity '6' %} selected {% endifequal %}>6</option>
+      <option value='7' {% ifequal patient.physical_activity '7' %} selected {% endifequal %}>7</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>On how many of the last SEVEN DAYS did you participate in a specific exercise session (such as swimming, walking, or biking) other than what you do around the house or as part of your work?</td>
+  <td>
+    <select name='specific_physical_activity'>
+      <option value='0' {% ifequal patient.specific_physical_activity '0' %} selected {% endifequal %}>0</option>
+      <option value='1' {% ifequal patient.specific_physical_activity '1' %} selected {% endifequal %}>1</option>
+      <option value='2' {% ifequal patient.specific_physical_activity '2' %} selected {% endifequal %}>2</option>
+      <option value='3' {% ifequal patient.specific_physical_activity '3' %} selected {% endifequal %}>3</option>
+      <option value='4' {% ifequal patient.specific_physical_activity '4' %} selected {% endifequal %}>4</option>
+      <option value='5' {% ifequal patient.specific_physical_activity '5' %} selected {% endifequal %}>5</option>
+      <option value='6' {% ifequal patient.specific_physical_activity '6' %} selected {% endifequal %}>6</option>
+      <option value='7' {% ifequal patient.specific_physical_activity '7' %} selected {% endifequal %}>7</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>Readiness to Exercise:</td>
+  <td>
+    <select name='readiness_exercise'>
+      <option value='0' {% ifequal patient.readiness_exercise '0' %} selected {% endifequal %}>I am intending to make changes in my exercise regimen in the next 6 months.</option>
+      <option value='1' {% ifequal patient.readiness_exercise '1' %} selected {% endifequal %}>I am intending to make changes in my exercise regimen in the next month.</option>
+      <option value='2' {% ifequal patient.readiness_exercise '2' %} selected {% endifequal %}>I have made changes to my exercise regimen in the last 6 months.</option>
+      <option value='3' {% ifequal patient.readiness_exercise '3' %} selected {% endifequal %}>My exercise regimen has been excellent for the last 6 months.</option>
+      <option value='4' {% ifequal patient.readiness_exercise '4' %} selected {% endifequal %}>I agree with none of these statements.</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>What is your goal for physical activity or exercise per week?</td>
+  <td>
+    <select name='goal_physical_activity'>
+      <option value='0' {% ifequal patient.goal_physical_activity '0' %} selected {% endifequal %}>0-60 minutes per week</option>
+      <option value='1' {% ifequal patient.goal_physical_activity '1' %} selected {% endifequal %}>60-120 minutes per week</option>
+      <option value='2' {% ifequal patient.goal_physical_activity '2' %} selected {% endifequal %}>120-180 minutes per week</option>
+      <option value='3' {% ifequal patient.goal_physical_activity '3' %} selected {% endifequal %}>More than 180 minutes per week</option>
+      <option value='4' {% ifequal patient.goal_physical_activity '4' %} selected {% endifequal %}>0-1 time per week</option>
+      <option value='5' {% ifequal patient.goal_physical_activity '5' %} selected {% endifequal %}>1 time per week</option>
+      <option value='6' {% ifequal patient.goal_physical_activity '6' %} selected {% endifequal %}>2-3 times per week</option>
+      <option value='7' {% ifequal patient.goal_physical_activity '7' %} selected {% endifequal %}>4-5 times per week</option>
+      <option value='8' {% ifequal patient.goal_physical_activity '8' %} selected {% endifequal %}>Every day</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td><br /><b>Medications</b></td>
+  <td></td>
+</tr>
+<tr>
+  <td>On how many of the last SEVEN DAYS did you take your recommended diabetes medication?</td>
+  <td>
+    <select name='recommended_medication'>
+      <option value='0' {% ifequal patient.recommended_medication '0' %} selected {% endifequal %}>0</option>
+      <option value='1' {% ifequal patient.recommended_medication '1' %} selected {% endifequal %}>1</option>
+      <option value='2' {% ifequal patient.recommended_medication '2' %} selected {% endifequal %}>2</option>
+      <option value='3' {% ifequal patient.recommended_medication '3' %} selected {% endifequal %}>3</option>
+      <option value='4' {% ifequal patient.recommended_medication '4' %} selected {% endifequal %}>4</option>
+      <option value='5' {% ifequal patient.recommended_medication '5' %} selected {% endifequal %}>5</option>
+      <option value='6' {% ifequal patient.recommended_medication '6' %} selected {% endifequal %}>6</option>
+      <option value='7' {% ifequal patient.recommended_medication '7' %} selected {% endifequal %}>7</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td><br /><b>Blood Sugar Monitoring</b></td>
+  <td></td>
+</tr>
+<tr>
+  <td>On how many of the last SEVEN DAYS did you text your blood sugar?</td>
+  <td>
+    <select name='blood_sugar'>
+      <option value='0' {% ifequal patient.blood_sugar '0' %} selected {% endifequal %}>0</option>
+      <option value='1' {% ifequal patient.blood_sugar '1' %} selected {% endifequal %}>1</option>
+      <option value='2' {% ifequal patient.blood_sugar '2' %} selected {% endifequal %}>2</option>
+      <option value='3' {% ifequal patient.blood_sugar '3' %} selected {% endifequal %}>3</option>
+      <option value='4' {% ifequal patient.blood_sugar '4' %} selected {% endifequal %}>4</option>
+      <option value='5' {% ifequal patient.blood_sugar '5' %} selected {% endifequal %}>5</option>
+      <option value='6' {% ifequal patient.blood_sugar '6' %} selected {% endifequal %}>6</option>
+      <option value='7' {% ifequal patient.blood_sugar '7' %} selected {% endifequal %}>7</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>On how many of the last SEVEN DAYS did you text your blood sugar the number of times recommended by your health care provider?</td>
+  <td>
+    <select name='blood_sugar_2'>
+      <option value='0' {% ifequal patient.blood_sugar_2 '0' %} selected {% endifequal %}>0</option>
+      <option value='1' {% ifequal patient.blood_sugar_2 '1' %} selected {% endifequal %}>1</option>
+      <option value='2' {% ifequal patient.blood_sugar_2 '2' %} selected {% endifequal %}>2</option>
+      <option value='3' {% ifequal patient.blood_sugar_2 '3' %} selected {% endifequal %}>3</option>
+      <option value='4' {% ifequal patient.blood_sugar_2 '4' %} selected {% endifequal %}>4</option>
+      <option value='5' {% ifequal patient.blood_sugar_2 '5' %} selected {% endifequal %}>5</option>
+      <option value='6' {% ifequal patient.blood_sugar_2 '6' %} selected {% endifequal %}>6</option>
+      <option value='7' {% ifequal patient.blood_sugar_2 '7' %} selected {% endifequal %}>7</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>If treatment 1-3 above: How many times per week does your doctor/nurse recommend you check your blood sugar?</td>
+  <td>
+    <select name='blood_sugar_recommended_a'>
+      <option value='0' {% ifequal patient.blood_sugar_recommended_a '0' %} selected {% endifequal %}>More than one time per day</option>
+      <option value='1' {% ifequal patient.blood_sugar_recommended_a '1' %} selected {% endifequal %}>One time per day</option>
+      <option value='2' {% ifequal patient.blood_sugar_recommended_a '2' %} selected {% endifequal %}>A few times per week</option>
+      <option value='3' {% ifequal patient.blood_sugar_recommended_a '3' %} selected {% endifequal %}>I don't know</option>
+      <option value='4' {% ifequal patient.blood_sugar_recommended_a '4' %} selected {% endifequal %}>Other</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>If treatment 4 above: How many times per week does your doctor/nurse recommend you check your blood sugar?</td>
+  <td>
+    <select name='blood_sugar_recommended_b'>
+      <option value='0' {% ifequal patient.blood_sugar_recommended_b '0' %} selected {% endifequal %}>Four or more times per day</option>
+      <option value='1' {% ifequal patient.blood_sugar_recommended_b '1' %} selected {% endifequal %}>Three times per day</option>
+      <option value='2' {% ifequal patient.blood_sugar_recommended_b '2' %} selected {% endifequal %}>One to three times per day</option>
+      <option value='3' {% ifequal patient.blood_sugar_recommended_b '3' %} selected {% endifequal %}>I don't know</option>
+      <option value='4' {% ifequal patient.blood_sugar_recommended_b '4' %} selected {% endifequal %}>Other</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td><br /><b>Foot Care</b></td>
+  <td></td>
+</tr>
+<tr>
+  <td>On how many of the last SEVEN DAYS did you wash your feet?</td>
+  <td>
+    <select name='wash_feet'>
+      <option value='0' {% ifequal patient.wash_feet '0' %} selected {% endifequal %}>0</option>
+      <option value='1' {% ifequal patient.wash_feet '1' %} selected {% endifequal %}>1</option>
+      <option value='2' {% ifequal patient.wash_feet '2' %} selected {% endifequal %}>2</option>
+      <option value='3' {% ifequal patient.wash_feet '3' %} selected {% endifequal %}>3</option>
+      <option value='4' {% ifequal patient.wash_feet '4' %} selected {% endifequal %}>4</option>
+      <option value='5' {% ifequal patient.wash_feet '5' %} selected {% endifequal %}>5</option>
+      <option value='6' {% ifequal patient.wash_feet '6' %} selected {% endifequal %}>6</option>
+      <option value='7' {% ifequal patient.wash_feet '7' %} selected {% endifequal %}>7</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>On how many of the last SEVEN DAYS did you soak your feet?</td>
+  <td>
+    <select name='soak_feet'>
+      <option value='0' {% ifequal patient.soak_feet '0' %} selected {% endifequal %}>0</option>
+      <option value='1' {% ifequal patient.soak_feet '1' %} selected {% endifequal %}>1</option>
+      <option value='2' {% ifequal patient.soak_feet '2' %} selected {% endifequal %}>2</option>
+      <option value='3' {% ifequal patient.soak_feet '3' %} selected {% endifequal %}>3</option>
+      <option value='4' {% ifequal patient.soak_feet '4' %} selected {% endifequal %}>4</option>
+      <option value='5' {% ifequal patient.soak_feet '5' %} selected {% endifequal %}>5</option>
+      <option value='6' {% ifequal patient.soak_feet '6' %} selected {% endifequal %}>6</option>
+      <option value='7' {% ifequal patient.soak_feet '7' %} selected {% endifequal %}>7</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>On how many of the last SEVEN DAYS did you dry between your toes after washing?</td>
+  <td>
+    <select name='dry_feet'>
+      <option value='0' {% ifequal patient.dry_feet '0' %} selected {% endifequal %}>0</option>
+      <option value='1' {% ifequal patient.dry_feet '1' %} selected {% endifequal %}>1</option>
+      <option value='2' {% ifequal patient.dry_feet '2' %} selected {% endifequal %}>2</option>
+      <option value='3' {% ifequal patient.dry_feet '3' %} selected {% endifequal %}>3</option>
+      <option value='4' {% ifequal patient.dry_feet '4' %} selected {% endifequal %}>4</option>
+      <option value='5' {% ifequal patient.dry_feet '5' %} selected {% endifequal %}>5</option>
+      <option value='6' {% ifequal patient.dry_feet '6' %} selected {% endifequal %}>6</option>
+      <option value='7' {% ifequal patient.dry_feet '7' %} selected {% endifequal %}>7</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>How often do you check your feet for problems such as sores or signs of infection?</td>
+  <td>
+    <select name='foot_problems'>
+      <option value='0' {% ifequal patient.foot_problems '0' %} selected {% endifequal %}>Never</option>
+      <option value='1' {% ifequal patient.foot_problems '1' %} selected {% endifequal %}>When I feel pain or know there is a problem</option>
+      <option value='2' {% ifequal patient.foot_problems '2' %} selected {% endifequal %}>Every few months</option>
+      <option value='3' {% ifequal patient.foot_problems '3' %} selected {% endifequal %}>Once per month</option>
+      <option value='4' {% ifequal patient.foot_problems '4' %} selected {% endifequal %}>Once per week</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>On how many of the last SEVEN DAYS did you check your feet?</td>
+  <td>
+    <select name='check_feet'>
+      <option value='0' {% ifequal patient.check_feet '0' %} selected {% endifequal %}>0</option>
+      <option value='1' {% ifequal patient.check_feet '1' %} selected {% endifequal %}>1</option>
+      <option value='2' {% ifequal patient.check_feet '2' %} selected {% endifequal %}>2</option>
+      <option value='3' {% ifequal patient.check_feet '3' %} selected {% endifequal %}>3</option>
+      <option value='4' {% ifequal patient.check_feet '4' %} selected {% endifequal %}>4</option>
+      <option value='5' {% ifequal patient.check_feet '5' %} selected {% endifequal %}>5</option>
+      <option value='6' {% ifequal patient.check_feet '6' %} selected {% endifequal %}>6</option>
+      <option value='7' {% ifequal patient.check_feet '7' %} selected {% endifequal %}>7</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td><br /><b>Smoking</b></td>
+  <td></td>
+</tr>
+<tr>
+  <td>Have you smoked a cigarette (even one puff) during the past SEVEN DAYS?</td>
+  <td>
+    <select name='smoke_cigarette'>
+      <option value='0' {% ifequal patient.smoke_cigarette '0' %} selected {% endifequal %}>No</option>
+      <option value='1' {% ifequal patient.smoke_cigarette '1' %} selected {% endifequal %}>Yes</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>If yes, how many cigarettes did you smoke on an average day?</td>
+  <td>
+    <input id="id_num_cigarettes" type="text" name="num_cigarettes" value="{{patient.num_cigarettes}}" maxlength="5" />
+  </td>
+</tr>
+</table>
+<br/>
+<input type="button" value="Proceed to Step 4" onClick="javascript:validate_form3()"/>
+</div>
+
+<div id="page4" style="display:none; padding-left: 20px;"><!-- Screen 4 (Message Preferences) -->
+<h3>Message Preferences</h3>
+<table cellspacing="10">
+<tr>
+  <td>Timezone</td>
+  <td>
+    <select name='utc_offset'>
+      <option value='-8' {% ifequal patient.utc_offset -8 %} selected {% endifequal %}>PST</option>
+      <option value='-7' {% ifequal patient.utc_offset -7 %} selected {% endifequal %}>MST</option>
+      <option value='-6' {% ifequal patient.utc_offset -6 %} selected {% endifequal %}>CST</option>
+      <option value='-5' {% ifequal patient.utc_offset -5 %} selected {% endifequal %}>EST</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>Phone Type:</td>
+  <td>
+    <select name='phone_type'>
+      <option value='0' {% ifequal patient.phone_type '0' %} selected {% endifequal %}>Basic Phone</option>
+      <option value='1' {% ifequal patient.phone_type '1' %} selected {% endifequal %}>Smart Phone</option>
+    </select>
+  </td>
+</tr>
+<tr><td>Unlimited Text Messaging Plan:</td><td><select name='is_unlimited'><option>True</option><option>False</option></select></td></tr>
+<tr><td>Preferred Number of Messages: *</td><td><input id="id_num_messages" type="text" name="num_messages" value="{{patient.num_messages}}" maxlength="30" /></td></tr>
+<tr>
+  <td>Active:</td>
+  <td>
+    <input type="checkbox" name="active" value="{{patient.active}}" {% if patient.active or not patient %} checked=true {% endif %}/>
+  </td>
+</tr>
+<tr><td>Public:</td><td><select name='is_public'><option>True</option><option>False</option></select></td></tr>
+<tr>
+  <td>In general, on a WEEKDAY, what time in the morning is best to send you text messages? *</td>
+  <td><input id="id_weekday_prefs_morning" type="text" name="weekday_prefs_morning" value="{{patient.weekday_prefs_morning}}" maxlength="10" size="10"/></td>
+</tr>
+<tr>
+  <td>In general, on a WEEKDAY, what time in the afternoon/evening is best to send you text messages? *</td>
+  <td><input id="id_weekday_prefs_evening" type="text" name="weekday_prefs_evening" value="{{patient.weekday_prefs_evening}}" maxlength="10" size="10"/></td>
+</tr>
+<tr>
+  <td>In general, on a WEEKEND, what time in the morning is best to send you text messages? *</td>
+  <td><input id="id_weekend_prefs_morning" type="text" name="weekend_prefs_morning" value="{{patient.weekend_prefs_morning}}" maxlength="10" size="10"/></td>
+</tr>
+<tr>
+  <td>In general, on a WEEKEND, what time in the afternoon/evening is best to send you text messages? *</td>
+  <td><input id="id_weekend_prefs_evening" type="text" name="weekend_prefs_evening" value="{{patient.weekend_prefs_evening}}" maxlength="10" size="10"/></td>
+</tr>
+<tr>
+  <td>How many times per day do you take your medications?</td>
+  <td><input id="id_meds_1" type="text" name="meds_1" value="{{patient.meds_1}}" maxlength="10" size="10"/></td>
+</tr>
+<tr>
+  <td>In general, what time of day do you take your morning/first medications?</td>
+  <td><input id="id_meds_2" type="text" name="meds_2" value="{{patient.meds_2}}" maxlength="10" size="10"/></td>
+</tr>
+<tr>
+  <td>In general, what time of day do you take your afternoon/second medications?</td>
+  <td><input id="id_meds_3" type="text" name="meds_3" value="{{patient.meds_3}}" maxlength="10" size="10"/></td>
+</tr>
+<tr>
+  <td>In general, what time of day do you take your evening/third medications?</td>
+  <td><input id="id_meds_4" type="text" name="meds_4" value="{{patient.meds_4}}" maxlength="10" size="10"/></td>
+</tr>
+<tr>
+  <td>In general, what time of day do you take your bedtime/fourth medications?</td>
+  <td><input id="id_meds_5" type="text" name="meds_5" value="{{patient.meds_5}}" maxlength="10" size="10"/></td>
+</tr>
+<tr>
+  <td>In general, what day of the week do you buy groceries? *</td>
+  <td>
+    <select name='grocery_day'>
+      <option value='0' {% ifequal patient.grocery_day '0' %} selected {% endifequal %}>Sunday</option>
+      <option value='1' {% ifequal patient.grocery_day '1' %} selected {% endifequal %}>Monday</option>
+      <option value='2' {% ifequal patient.grocery_day '2' %} selected {% endifequal %}>Tuesday</option>
+      <option value='3' {% ifequal patient.grocery_day '3' %} selected {% endifequal %}>Wednesday</option>
+      <option value='4' {% ifequal patient.grocery_day '4' %} selected {% endifequal %}>Thursday</option>
+      <option value='5' {% ifequal patient.grocery_day '5' %} selected {% endifequal %}>Friday</option>
+      <option value='6' {% ifequal patient.grocery_day '6' %} selected {% endifequal %}>Saturday</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>In general, what time of day do you eat breakfast?</td>
+  <td>
+    <input id="id_breakfast_time" type="text" name="breakfast_time" value="{{patient.breakfast_time}}" maxlength="2" size="2"/>
+    <select name='breakfast_ampm'>
+      <option value='0' {% ifequal patient.breakfast_ampm '0' %} selected {% endifequal %}>AM</option>
+      <option value='1' {% ifequal patient.breakfast_ampm '1' %} selected {% endifequal %}>PM</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>In general, what time of day do you eat lunch?</td>
+  <td>
+    <input id="id_lunch_time" type="text" name="lunch_time" value="{{patient.lunch_time}}" maxlength="2" size="2"/>
+    <select name='lunch_ampm'>
+      <option value='0' {% ifequal patient.lunch_ampm '0' %} selected {% endifequal %}>AM</option>
+      <option value='1' {% ifequal patient.lunch_ampm '1' %} selected {% endifequal %}>PM</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>In general, what time of day do you eat dinner?</td>
+  <td>
+    <input id="id_dinner_time" type="text" name="dinner_time" value="{{patient.dinner_time}}" maxlength="2" size="2"/>
+    <select name='dinner_ampm'>
+      <option value='0' {% ifequal patient.dinner_ampm '0' %} selected {% endifequal %}>AM</option>
+      <option value='1' {% ifequal patient.dinner_ampm '1' %} selected {% endifequal %}>PM</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>In general, what days of the week do you try to be active or exercise? *</td>
+  <td>
+    <select name='exercise_day'>
+      <option value='0' {% ifequal patient.exercise_day '0' %} selected {% endifequal %}>Sunday</option>
+      <option value='1' {% ifequal patient.exercise_day '1' %} selected {% endifequal %}>Monday</option>
+      <option value='2' {% ifequal patient.exercise_day '2' %} selected {% endifequal %}>Tuesday</option>
+      <option value='3' {% ifequal patient.exercise_day '3' %} selected {% endifequal %}>Wednesday</option>
+      <option value='4' {% ifequal patient.exercise_day '4' %} selected {% endifequal %}>Thursday</option>
+      <option value='5' {% ifequal patient.exercise_day '5' %} selected {% endifequal %}>Friday</option>
+      <option value='6' {% ifequal patient.exercise_day '6' %} selected {% endifequal %}>Saturday</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>In general, what time of day during the WEEK do you try to be active or exercise?</td>
+  <td>
+    <input id="id_week_exercise_time" type="text" name="week_exercise_time" value="{{patient.week_exercise_time}}" maxlength="2" size="2"/>
+    <select name='week_exercise_ampm'>
+      <option value='0' {% ifequal patient.week_exercise_ampm '0' %} selected {% endifequal %}>AM</option>
+      <option value='1' {% ifequal patient.week_exercise_ampm '1' %} selected {% endifequal %}>PM</option>
+    </select>
+  </td>
+</tr>
+<tr>
+  <td>In general, what time of day during the WEEKEND do you try to be active or exercise?</td>
+  <td>
+    <input id="id_weekend_exercise_time" type="text" name="weekend_exercise_time" value="{{patient.weekend_exercise_time}}" maxlength="2" size="2"/>
+    <select name='weekend_exercise_ampm'>
+      <option value='0' {% ifequal patient.weekend_exercise_ampm '0' %} selected {% endifequal %}>AM</option>
+      <option value='1' {% ifequal patient.weekend_exercise_ampm '1' %} selected {% endifequal %}>PM</option>
+    </select>
+  </td>
+</tr>
+</table>
+<br/>
+<input type="button" value="Proceed to Step 5" onClick="javascript:validate_form4()"/>
+</div>
+
+<div id="page5" style="display:none; padding-left: 20px;"><!-- Screen 5 (Tutorial and Initiation) -->
+<h3>Tutorial and Initiation</h3>
+Now we're going to do some practice exercises to get you comfortable with the text messaging system. This is not a test, but we do want to make sure you know how to use the system and the system is working right. I will work with you to make sure that at the end of this phone call, you feel confident sending and receiving text messages.
+<br /><br />
+<input type="button" id="message_1" value="Message #1: Please say aloud: 'Hello World'."/><br /><br />
+<input type="button" id="message_2" value="Message #2: Text me your age."/><br /><br />
+<input type="button" id="message_3" value="Message #3: Is your name [name]? Respond 'yes' or 'no'."/><br /><br />
+<input type="button" id="message_4" value="Message #4: Is this a) hard, b) easy, or c) in the middle?"/><br />
+<br /><br />
+<input type="button" value="Save Parent" onClick="javascript:validate_form5()"/>
+</div>
+
+</form>
+
+{% endblock %}

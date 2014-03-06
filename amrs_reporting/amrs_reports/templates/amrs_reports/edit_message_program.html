@@ -1,0 +1,26 @@
+<h2>Create a Message Program</h2>
+
+<form action="/caresmarts/message_program_enrollment/" method="post">
+<input type='hidden' name='patient_id' value='{{ patient.id }}'/>
+<input type='hidden' name='sm_id' value='{{ sm.id }}'/>
+<table>
+<tr><td>Messaging program name:</td><td><input type='text' name='name' value='{{ sm.name }}'/></td></tr>
+<tr><td>Message:</td><td><textarea name='message'>{{ sm.message }}</textarea></td></tr>
+<tr><td>Start Date:</td><td><input type='text' name='start_date' value='{{sm.start_date}}'/></td</tr>
+<tr><td>End Date:</td><td><input type='text' name='end_date' value='{{sm.end_date}}'/></td</tr>
+<tr><td>&nbsp;</td><td></td></tr>
+<tr><th colspan='2'>Schedule (please enter times in 24 hour forma seperated by a ';'. E.g. 09:00;14:00</th></tr>
+<tr><td>Monday</td><td><input type='text' name='monday' value=''/></td></tr>
+<tr><td>Tuesday</td><td><input type='text' name='tuesday' value=''/></td></tr>
+<tr><td>Wednesday</td><td><input type='text' name='wednesday' value=''/></td></tr>
+<tr><td>Thursday</td><td><input type='text' name='thursday' value=''/></td></tr>
+<tr><td>Friday</td><td><input type='text' name='friday' value=''/></td></tr>
+<tr><td>Saturday</td><td><input type='text' name='saturday' value=''/></td></tr>
+<tr><td>Sunday</td><td><input type='text' name='sunday' value=''/></td></tr>
+</table>
+
+
+<input type="submit" value="Submit" />
+
+</form>
+

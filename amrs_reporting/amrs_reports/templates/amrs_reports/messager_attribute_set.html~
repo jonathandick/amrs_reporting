@@ -1,0 +1,190 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+
+<script type="text/javascript">
+
+function validate_form() {
+   var form = document.getElementById('pas_form');
+   var errors = '';
+   if(form.name.value == '') { errors += 'Name can not be blank \n'; }
+   if(form.description.value == '') { errors += 'Description can not be blank \n'; }
+   
+   var pat_ids = '';
+   var table = document.getElementById('set_attributes');
+   var inputs = table.getElementsByTagName("input");
+   if(errors == '') { form.submit(); }
+   else { alert(errors); }
+}
+
+function addToSet(obj) {   
+   var par=obj.parentNode; 
+   while(par.nodeName.toLowerCase()!='tr'){ 
+      par=par.parentNode; 
+   }
+   var set_attributes = $('#set_attributes').dataTable();
+   var attributes = $('#attributes').dataTable();
+   var cells = par.getElementsByTagName("td");
+   var button = '<input type="button" value="remove" onClick="removeFromSet(this)"/>';
+   set_attributes.fnAddData([button,cells[1].innerHTML,cells[2].innerHTML,cells[3].innerHTML,cells[4].innerHTML]);
+   attributes.fnDeleteRow(par);
+}
+
+function removeFromSet(obj) {   
+   var par=obj.parentNode; 
+   while(par.nodeName.toLowerCase()!='tr'){ 
+      par=par.parentNode; 
+   }
+   var set_attributes = $('#set_attributes').dataTable();
+   var attributes = $('#attributes').dataTable();
+   var cells = par.getElementsByTagName("td");
+   var button = '<input type="button" value="add" onClick="addToSet(this)"/>';  
+   attributes.fnAddData([button,cells[1].innerHTML,cells[2].innerHTML,cells[3].innerHTML,cells[4].innerHTML]);
+   set_attributes.fnDeleteRow(par);
+}
+
+
+
+
+</script>
+<style type="text/css" title="currentStyle">
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_page.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table.css";
+</style>
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/DataTables-1.7.2/media/js/jquery.dataTables.js"></script>
+
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+  $('#attributes').dataTable( {
+  "bPaginate": false,
+  "sScrollY": "400px",
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#set_attributes').dataTable( {
+  "bPaginate": false,
+  "sScrollY": "400px",
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  } );
+</script>
+
+
+<h2>Manage Attribute Set</h2>
+
+{% if messages %}
+    <ul>
+    {% for message in messages %}
+        <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+
+<form action='/pa/patient_attribute_set' method='post' id='pas_form'>
+<input type='hidden' name='patient_attribute_set_id' value='{{pas.id}}'/>
+<table>
+  <tr>
+    <td>Name</td>
+    <td><input type='text' name='name' value='{{pas.name}}'></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Short name</td>
+    <td><input type='text' name='short_name' value='{{pas.short_name}}'></td>
+    <td></td>
+  </tr>
+  <tr>
+    <td>Description</td>
+    <td><textarea name='description' cols='50' rows='5'>{{pas.description}}</textarea></td>
+    <td></td>
+  </tr>
+</table>
+
+<h3>Current attributes in set:</h3>
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="set_attributes">
+  <thead>
+    <tr>
+      <th>Remove</th>
+      <th>Name</th>
+      <th>Short Name</th>
+      <th>Description</th>
+      <th>Values</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for pa_member in pas_members %}
+    <tr class='gradeU'>
+      <td><input type='button' name='remove' value='remove' onclick='removeFromSet(this)'/></td>
+      <td> {{ pa_member.type_id.name }} <input type='hidden' name='pat_ids' value='{{pa_member.type_id.id}}'/></td>
+      <td> {{ pa_member.type_id.short_name }} </td>
+      <td>{{ pa_member.type_id.description }}</td>
+      <td>
+	<select>
+	{% for value in pa_member.type_id.patientattributevalue_set.all %}
+	<option>{{value.value}}</option>
+	{% endfor %}
+	</select>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<input type='button' value='Submit' onClick='javascript:validate_form()'/>
+</form>
+
+
+
+
+<br/>
+<br/>
+<div class='alt_bg_color'>
+<hr class='panel'>
+
+<h3>Available Patient Attributes</h3>
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="attributes">
+  <thead>
+    <tr>
+      <th>Add to set</th>
+      <th>Name</th>
+      <th>Short name</th>
+      <th>Description</th>
+      <th>Values</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for pat in pats %}
+    <tr class='gradeU'>
+      <td><input type='button' id={{pat.id}} value="Add" onclick='javascript:addToSet(this)'/></td>
+      <td> {{ pat.name }} <input type='hidden' name='pat_ids' value='{{pat.id}}'/></td>
+      <td> {{ pat.short_name }} </td>
+      <td>{{ pat.description }}</td>
+      <td>
+	<select>
+	{% for value in pat.patientattributevalue_set.all %}
+	{% if not value.voided %}
+	<option>{{value.value}}</option>
+        {% endif %} 
+	{% endfor %}
+	</select>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<br><br>
+
+<hr class='panel'>
+</div>
+
+      
+
+
+{% endblock %}

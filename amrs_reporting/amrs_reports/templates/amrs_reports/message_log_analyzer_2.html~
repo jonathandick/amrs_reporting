@@ -1,0 +1,372 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+<script type="text/javascript">
+</script>
+
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/jquery_patient_search.js"></script>
+<style type="text/css" title="currentStyle">
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_page.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table.css";
+</style>
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/DataTables-1.7.2/media/js/jquery.dataTables.js"></script>
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/jquery_patient_search.js"></script>
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+
+  $('#analyzed_messages').dataTable( {
+  "sScrollY": "400px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false,
+  "aaSorting": [[1,'asc'],[2,'asc']],
+  "aoColumns": [null,null,{ "sType": 'date' },null,null,null,null,null],
+  "fnDrawCallback": function ( oSettings ) {
+      if ( oSettings.bSorted || oSettings.bFiltered )
+      {
+          for ( var i=0, iLen=oSettings.aiDisplay.length ; i<iLen ; i++ )
+          {
+             $('td:eq(0)', oSettings.aoData[ oSettings.aiDisplay[i] ].nTr ).html( i+1 );
+          }
+      }
+
+  }
+ } );
+
+  $("#start_date").datepicker({dateFormat: 'mm/dd/y', changeMonth:true,changeYear:true});
+  $("#end_date").datepicker({dateFormat: 'mm/dd/y', changeMonth:true,changeYear:true});								  
+
+} );
+</script>
+<script>
+function reset_form(form) {
+frm_elements = form.elements;
+for (i = 0; i < frm_elements.length; i++)
+{
+    field_type = frm_elements[i].type.toLowerCase();
+    switch (field_type)
+    {
+    //case "hidden":
+    case "text":
+    case "password":
+    case "textarea":
+           frm_elements[i].value = "";
+        break;
+    case "radio":
+    case "checkbox":
+        if (frm_elements[i].checked)
+        {
+            frm_elements[i].checked = false;
+        }
+        break;
+    case "select-one":
+    case "select-multi":
+        frm_elements[i].selectedIndex = -1;
+        break;
+    default:
+        break;
+    }
+}
+
+}
+
+</script>
+
+<div style="padding-left: 20px; padding-right: 20px;">
+<h2>Message Analysis</h2>
+<br/>
+{% ifnotequal prev_choices.patient_id '' %}
+<a href='/caresmarts/patient/{{prev_choices.patient_id}}/'>Go to patient's dashboard</a>
+{% endifnotequal %}
+
+<br/>
+<br/>
+
+
+<form action='/caresmarts/message_log_analyzer_2' method='post' id='filter_form'>
+<input type='hidden' name="patient_id" value='{{patient.id}}'/>
+<b>Filters</b><br/>
+<table>
+  <tr>
+    <td>
+      <table>
+	<tr>
+	  <td>Patient:</td>
+	  <td>
+	    <select name='patient_id'>
+	      <option></option>
+	      {% for patient in patients %}
+	      <option value='{{patient.id}}' {% ifequal patient.id|stringformat:"s" prev_choices.patient_id %} selected {% endifequal %}>{{patient.last_name}}, {{patient.first_name}}</option>
+	      {% endfor %}
+	    </select>
+	  </td>
+	</tr>
+	
+	<tr>
+	  <td>Patient List:</td>
+	  <td>
+	    <select name='patient_list_id'>
+              <option></option>
+              {% for patient_list in patient_lists %}
+              <option value='{{patient_list.id}}' {% ifequal patient_list.id|stringformat:"s" prev_choices.patient_list_id %} selected {% endifequal %}>
+		{{patient_list.list_name}}
+	      </option>
+              {% endfor %}
+	    </select>
+	  </td>
+	</tr>
+	
+	<tr>
+	  <td>Start Date (MM/DD/YY):</td>
+	  <td><input type="text" id='start_date' name="start_date" value='{{prev_choices.start_date}}'/></td>
+	</tr>
+	<tr>
+	  <td>End Date (MM/DD/YY):</td>
+	  <td><input type="text" id='end_date' name="end_date" value='{{prev_choices.end_date}}'/></td>
+	</tr>
+      </table>
+    </td>
+    <td>
+      <table>
+	<tr>
+	  <td>Tags: </td>
+	</tr>
+	<tr>
+	  <td>
+	    <select name='tags' multiple='multiple' size='5' id='select_tags'>
+	      <option></option>
+              {% for tag in tags %}
+              <option value={{tag.id}} {% if tag.id in current_tags%} selected=True {% endif %}>{{tag.name}}</option>
+              {% endfor %}
+	    </select>
+	  </td>
+	</tr>
+      </table>
+    </td>
+    <td>
+      <table>
+	<tr>
+	  <td class='first_col'>
+	    Message Category:
+	  </td>
+	</tr>
+	<tr>
+          <td>
+            <select name='categories' multiple='multiple' size='5' id='select_categories'>
+	      <option></option>
+              {% for cat in categories %}
+            <option value={{cat}} {% if cat|stringformat:"s" in prev_choices.categories %} selected=True {% endif %}>{{cat}}</option>
+            {% endfor %}
+            </select>	    
+          </td>
+	</tr>
+	<tr>
+	  <td>
+	    Include: <input type='radio' value='include' name='include_categories' {% ifequal 'include' prev_choices.include_categories%} checked {%endifequal%}/>&nbsp;
+	    Exclude<input type='radio' value='exclude' name='include_categories' {% ifequal 'exclude' prev_choices.include_categories%} checked {%endifequal%}/>
+	  </td>
+	</tr>
+
+      </table>
+    </td>
+  </tr>
+  <tr>    
+    <td>
+      <table>
+	<tr>
+	  <td class='first_col'>Messages sent by:</td>
+          <td>
+            <select name='type'>
+              <option></option>
+              <option value=''>all</option>
+              <option value='patient_message' {% ifequal prev_choices.type 'patient_message'%} selected='True' {% endifequal %}>patient messages</option>
+              <option value='system_message' {% ifequal prev_choices.type 'system_message'%}  selected='True' {% endifequal %}>system_messages</option>
+            </select>
+          </td>
+	</tr>
+	<tr>
+          <td class='first_col'>Response Expected</td>
+          <td>
+            <select name='response_expected'>
+              <option></option>
+              <option value='True' {% ifequal prev_choices.response_expected 'True' %} selected='True' {% endifequal %} >Yes</option>
+              <option value='False' {% ifequal prev_choices.response_expected 'False'%} selected='True' {% endifequal %}>No</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td class='first_col'>Response Type</td>
+          <td>
+            <select name='response_type'>
+              <option></option>
+              <option value='1' {% ifequal prev_choices.response_type '1' %} selected='True' {% endifequal %}>Yes/No</option>
+              <option value='2' {% ifequal prev_choices.response_type '2' %} selected='True' {% endifequal %}>Number</option>
+              <option value='3' {% ifequal prev_choices.response_type '3'%} selected='True' {% endifequal %}>Anything</option>
+            </select>
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td>
+      <table>
+	<tr>
+          <td class='first_col'>Matched</td>
+          <td>
+            <select name='matched'>
+              <option></option>
+              <option value='True'{% ifequal prev_choices.matched 'True' %} selected='True' {% endifequal %} >Yes</option>
+              <option value='False'{% ifequal prev_choices.matched 'False' %} selected='True' {% endifequal %} >No</option>
+            </select>
+          </td>
+        </tr>
+
+        <tr>
+          <td class='first_col'>Has type mismatch:</td>
+          <td>
+            <select name='has_type_mismatch'>
+              <option></option>
+              <option value='True'{% ifequal prev_choices.has_type_mismatch 'True' %} selected='True' {% endifequal %} >Yes</option>
+              <option value='False'{% ifequal prev_choices.has_type_mismatch 'False' %} selected='True' {% endifequal %} >No</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td class='first_col'>Orphan</td>
+          <td>
+            <select name='orphan'>
+              <option></option>
+              <option value='True' {% ifequal prev_choices.orphan 'True' %} selected='True' {% endifequal %} >Yes</option>
+              <option value='False' {% ifequal prev_choices.orphan 'False' %} selected='True' {% endifequal %} >No</option>
+            </select>
+          </td>
+        </tr>
+      </table>
+    </td>
+    <td>
+      <table>
+	<tr>
+	  <td>Message Value</td>
+	  <td>
+	    <select name='content_operator'>
+	      <option></option>
+	      <option value='='{%ifequal '=' prev_choices.content_operator %} selected='True'{%endifequal%}>=</option>
+	      <option value='not'{%ifequal 'not' prev_choices.content_operator %} selected='True'{%endifequal%}>not =</option>
+	      <option value='__lte='{%ifequal '__lte=' prev_choices.content_operator %} selected='True'{%endifequal%}>&lt;</option>
+	      <option value='__gte='{%ifequal '__gte=' prev_choices.content_operator %} selected='True'{%endifequal%}>&gt;</option>
+	      <option value='in'{%ifequal 'in' prev_choices.content_operator %} selected='True'{%endifequal%}>in</option>
+	      <option value='not in'{%ifequal 'not in' prev_choices.content_operator %} selected='True'{%endifequal%}>not in</option>
+	    </select>
+	  </td>
+	  <td>
+	    <input type='text' name='content_value' value='{{prev_choices.content_value}}'/> or 
+	    <select name='answer_stack_id'>
+	      <option></option>
+	      {% for stack in answer_stacks %}
+	      <option value={{stack.id}} {%ifequal stack.id prev_choices.answer_stack_id %} selected='True'{%endifequal%}>{{stack.name}}</option>
+	      {%endfor%}
+	    </select>
+	  </td>
+	</tr>
+	<tr>
+          <td>Function</td>
+          <td>
+            <select name='function'>
+              <option value='Count' {% ifequal prev_choices.function 'count'%} selected='True' {% endifequal %}>Count</option>
+              <option value='Avg' {% ifequal prev_choices.function 'Avg'%} selected='True' {% endifequal %}>Average</option>
+              <option value='median' {% ifequal prev_choices.function 'median'%} selected='True' {% endifequal %}>Median</option>
+              <option value='Max' {% ifequal prev_choices.function 'Max'%} selected='True' {% endifequal %}>Max</option>
+              <option value='Min' {% ifequal prev_choices.function 'Min'%} selected='True' {% endifequal %}>Min</option>
+              <option value='Sum' {% ifequal prev_choices.function 'Sum'%} selected='True' {% endifequal %}>Sum</option>
+            </select>
+          </td>
+        </tr>
+        <tr>
+          <td>Use response time: </td>
+          <td>
+	    <input type="checkbox" name="time_to_respond" value="checked" {% if prev_choices.time_to_respond %} checked='True' {% endif %}/>
+	  </td>
+        </tr>	
+      </table>
+    </td>
+  </tr>
+	
+</table>
+<input type="Submit" value="Filter"/><br/><br/>
+<input type="button" value="Reset Form" onclick='reset_form(this.form);'>
+
+</form>
+
+<br/>
+<hr>
+<br/>
+Result statistic: {{stat}}<br/><br/>
+
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="analyzed_messages">
+  <thead>
+    <tr>
+      <th></th>
+      <th>Patient</th>
+      <th>Date</th>
+      <th>ID</th>
+      <th>Category</th>
+      <th>Message</th>
+      <th>Matched ID</th>      
+      <th>Time to Respond (min)</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for aml in amls %}
+    <tr>
+      <td style="font-size:12px;"></td>
+      <td style="font-size:12px;">{{aml.get_patient_name}}</td>
+      <td style="font-size:12px;">{{ aml.datetime|date:"m/d/y H:i:s"}}</td>
+      <td style="font-size:12px;">{{ aml.message_log_id}}</td>
+      <td style="font-size:12px;">{{ aml.category}}</td>
+      <td style="font-size:12px;">{{ aml.message}}</td>
+      <td style="font-size:12px;">{{ aml.matched_message_log_id}}</td>      
+      <td style="font-size:12px;">{{ aml.time_to_respond|floatformat:1}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<br><br><br>
+
+<!--
+<u><h3>Process Metrics</h3></u>
+<table id="process_stats">
+  <thead>
+    <tr>
+      <th>Time period</th>
+      <th># sent by parent</th>
+      <th># received by parent</th>
+      <th>% responded to, required</th>
+      <th>avg response time, required</th>
+      <th># responded, no prompt</th>
+      <th># no code responses</th>
+      <th># orphans</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for stats in process_stats %}  
+    <tr class='gradeZ'>
+      <td>{{stats.time_period}}</td>
+      <td>{{stats.num_sent}}</td>
+      <td>{{stats.num_received}}</td>
+      <td>{{stats.percent_responded_required}}%</td>
+      <td>{{stats.required_time_to_respond|floatformat}}</td>    
+      <td>{{stats.responded_no_prompt}}</td>
+      <td>{{stats.no_code_match}}</td>
+      <td>{{stats.orphan}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+-->
+</div>
+
+{% endblock %}

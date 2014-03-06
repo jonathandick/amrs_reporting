@@ -1,0 +1,40 @@
+{% extends "amrs_user_validation/base.html" %}
+
+
+{% block content %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+  $('#report_tables').dataTable( {
+  "sScrollY": "250px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#reports').dataTable( {
+  "sScrollY": "100px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  } );
+
+</script>
+
+<h2>Manage Users<h2>
+<ul>
+  <li><a href='/amrs_user_validation/create_amrs_user'>Create new user</a></li>
+  <li><a href='/amrs_user_validation/manage_amrs_users'>Manage users</a></li>
+</ul>
+
+
+{% endblock %}

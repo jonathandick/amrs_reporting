@@ -1,0 +1,78 @@
+{% extends 'Frontend/base.html' %}
+
+{% block content %}
+
+<script type="text/javascript" charset="utf-8">
+
+$(document).ready(function() {
+  $("#birthdate").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true,yearRange:"-99:+0"});
+});
+</script>
+
+<h2>Create New Messager</h2>
+
+{% if errors %}
+    <ul>
+    {% for error in errors %}
+        <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+<p>Please try again.</p>
+{% endif %}
+
+
+<form action="{% url 'apps.Frontend.views.create_messager' %}" method="post">
+{% csrf_token %}
+<table>
+<tr><td>Username:</td><td><input id="id_alias" type="text" name="username" value="{{ username }}" maxlength="30" size="30" /></td></tr>
+<tr><td>Password:</td><td><input type="password" name="password1" maxlength="30" size = "30"/></td></tr>
+<tr><td>Reenter password:</td><td><input type="password" name="password2" maxlength="30" size="30" /></td></tr>
+</table>
+<br/>
+<br/>
+<table>
+<tr><td>First name:</td><td><input type="text" name="first_name" value="{{first_name}}" maxlength="30" size='30' /></td></tr>
+<tr><td>Last name:</td><td><input type="text" name="last_name" value="{{last_name}}" maxlength="30" size="30"/></td></tr>
+<tr><td>Birthdate (YYYY-MM-DD):</td><td><input type="text" id='birthdate' name="birthdate" value="{{birthdate|date:'Y-m-d'}}" maxlength="30" size="30"/></td></tr>
+<tr>
+  <td>Gender:</td>
+  <td>
+    <select name='gender'>
+      <option value='0'>F</option>
+      <option value='1'>M</option>
+    </select>
+  </td>
+</tr>
+
+<tr>
+  <td>Timezone</td>
+  <td>
+    <select name='utc_offset'>
+      <option value='-7'>PST</option>
+      <option value='-6'>MST</option>
+      <option value='-5'>CST</option>
+      <option value='-4'>EST</option>
+    </select>
+  </td>
+<tr>
+<tr>
+  <td>Cell Phone Number:</td>
+  <td>
+    <input type="text" name="cell_phone_number" value="{{cell_phone_number}}" maxlength="11" size="11"/>
+  </td>
+</tr>
+<tr>
+  <td>Email Address:</td>
+  <td>
+    <input type="text" name="email" value="{{email}}" maxlength="100" size="100"/>
+  </td>
+</tr>
+
+
+</table>
+
+<br/>
+<input type="submit" value="Submit" />
+</form>
+
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends "amrs_user_validation/base.html" %}
+
+
+{% block content %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+  $('#report_tables').dataTable( {
+  "sScrollY": "250px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#reports').dataTable( {
+  "sScrollY": "100px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  } );
+
+</script>
+
+<form method='post' action='/amrs_user_validation/login'>
+  {%csrf_token%}
+  <table>
+    <tr>
+      <td>Login: </td><td><input type='text' name='username'/></td>
+    </tr>
+    <tr>
+      <td>Password: </td><td><input type='password' name='password'/></td>
+    </tr>
+    <tr>
+      <td><input type='submit' value='Login'/></td><td></td>
+    </tr>
+  </table>
+</form>
+
+
+{% endblock %}

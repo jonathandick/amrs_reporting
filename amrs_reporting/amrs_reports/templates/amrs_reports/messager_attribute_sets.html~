@@ -1,0 +1,112 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+
+<script type="text/javascript">
+
+function validate_form() {
+   var form = document.getElementById('pas_form');
+   var errors = '';
+   if(form.name.value == '') { errors += 'Name can not be blank \n'; }
+   if(form.description.value == '') { errors += 'Description can not be blank \n'; }
+   
+   var pat_ids = '';
+   var table = document.getElementById('set_attributes');
+   var inputs = table.getElementsByTagName("input");
+   if(errors == '') { form.submit(); }
+   else { alert(errors); }
+}
+
+function addToSet(obj) {   
+   var par=obj.parentNode; 
+   while(par.nodeName.toLowerCase()!='tr'){ 
+      par=par.parentNode; 
+   }
+   var set_attributes = $('#set_attributes').dataTable();
+   var attributes = $('#attributes').dataTable();
+   var cells = par.getElementsByTagName("td");
+   var button = '<input type="button" value="remove" onClick="removeFromSet(this)"/>';
+   set_attributes.fnAddData([button,cells[1].innerHTML,cells[2].innerHTML,cells[3].innerHTML,cells[4].innerHTML]);
+   attributes.fnDeleteRow(par);
+}
+
+function removeFromSet(obj) {   
+   var par=obj.parentNode; 
+   while(par.nodeName.toLowerCase()!='tr'){ 
+      par=par.parentNode; 
+   }
+   var set_attributes = $('#set_attributes').dataTable();
+   var attributes = $('#attributes').dataTable();
+   var cells = par.getElementsByTagName("td");
+   var button = '<input type="button" value="add" onClick="addToSet(this)"/>';  
+   attributes.fnAddData([button,cells[1].innerHTML,cells[2].innerHTML,cells[3].innerHTML,cells[4].innerHTML]);
+   set_attributes.fnDeleteRow(par);
+}
+
+
+
+
+</script>
+<style type="text/css" title="currentStyle">
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_page.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table.css";
+</style>
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/DataTables-1.7.2/media/js/jquery.dataTables.js"></script>
+
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+  $('#pa_sets').dataTable( {
+  "bPaginate": false,
+  "sScrollY": "200px",
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+  } );
+</script>
+
+
+<h2>Patient Attribute Sets</h2>
+
+{% if messages %}
+    <ul>
+    {% for message in messages %}
+        <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+<a href='/pa/patient_attribute_set'>Create new attribute set</a><br/><br/>
+<a href='/pa/patient_attribute_type'>Create new patient attribute</a><br/>
+
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="pa_sets">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Short name</th>
+      <th>Description</th>
+      <th>edit</th>
+      <th>void</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for pas in pa_sets %}
+    <tr class='gradeU'>
+      <td> {{ pas.id }} </td>
+      <td> {{ pas.name }} </td>
+      <td> {{ pas.short_name }} </td>
+      <td>{{ pas.description }}</td>
+      <td><a href='/pa/patient_attribute_set?patient_attribute_set_id={{pas.id}}'>Edit</a></td>
+      <td><a href='/pa/patient_attribute_sets?function=void&patient_attribute_set_id={{pas.id}}'>Void</a></td>      
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<br/>
+<br/>
+<hr class='panel'>
+
+{% endblock %}

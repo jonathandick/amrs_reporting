@@ -1,0 +1,118 @@
+{% extends "powerup/base.html" %}
+
+{% block content %}
+
+<script type="text/javascript">
+
+function add_summary_report_item() {
+    var tbl = document.getElementById('question_table__design_summary_report');
+    var tBody = tbl.getElementsByTagName('tbody')[0];
+    var lastRow = tbl.rows.length;
+
+    var label_name = "label_" + (lastRow - 1);
+    var patients_name = "patients_" + (lastRow - 1);
+    var form_label_name = "form_label_" + (lastRow - 1);
+    var conditional_operator_name = "conditional_operator_" + (lastRow - 1);
+    var content_value_name = "content_value_" + (lastRow - 1);
+    var value_range_operator_name = "value_range_operator_" + (lastRow - 1);
+    var value_ranges_name = "value_ranges_" + (lastRow - 1);
+    var time_ranges_name = "time_ranges_" + (lastRow - 1);
+    var function_name = "function_" + (lastRow - 1);
+
+    // if there's no header row in the table, then iteration = lastRow + 1
+    var row = tbl.insertRow(lastRow);
+    var newTR = document.createElement('tr');
+
+    var label_td = document.createElement('td');
+    var patients_td = document.createElement('td');
+    var form_label_td = document.createElement('td');
+    var values_td = document.createElement('td');
+    var time_ranges_td = document.createElement('td');
+    var function_td = document.createElement('td');
+
+
+    label_td.innerHTML = "<input type='text' name='" + label_name + "' id='" + label_name + "'/>";
+    patients_td.innerHTML = "<input type='text' name='" + patients_name + "' id='" + patients_name + "'/>";
+    form_label_td.innerHTML = "<input type='text' name='" + form_label_name + "' id='" + form_label_name + "'/>";
+    values_td.innerHTML = "<select name='" + conditional_operator_name + "' size='1'><option></option><option value='='>equals</option><option value='>'>greater than</option><option value='<'>less than</option><option value='!='>does not equal</option></select><input type='text' name='" + content_value_name + "'/><br/><center>or</center><br/><select name='" + value_range_operator_name + "'><option></option><option>within</option><option>not within</option></select><input type='text' name='" + value_ranges_name +"'/>"
+
+
+    time_ranges_td.innerHTML = "<input type='text' name='" + time_ranges_name + "' id='" + time_ranges_name + "'/>";
+    function_td.innerHTML = "<input type='text' name='" + function_name + "' id='" + function_name + "'/>";
+
+    newTR.appendChild(label_td)
+    newTR.appendChild(patients_td)
+    newTR.appendChild(form_label_td)
+    newTR.appendChild(values_td)
+    newTR.appendChild(time_ranges_td)
+    newTR.appendChild(function_td)
+
+    tBody.appendChild(newTR);
+}
+
+</script>
+
+<form action='/powerup/design_summary_report' method='post'>
+<table>
+  <tr>
+    <td>Create time period</td>
+    <td>
+      <input type='text' name='time_period_num' size='2'>
+      <select name='time_period_unit'>
+	<option></option>
+	<option value='day'>day(s)</option>
+	<option value='week'>week(s)</option>
+	<option value='month'>month(s)</option>
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td># of time periods</td>
+    <td><input type='text' name='num_time_periods'/></td>
+  </tr>
+</table>
+
+<table id='question_table__design_summary_report'>
+  <tr>
+    <th>Report Label</th>
+    <th>Patient Cohort</th>
+    <th>Question Labels</th>
+    <th>Value/Value Range(s)</th>
+    <th>Time Ranges</th>
+    <th>Function</th>
+  </tr>
+  <tr>
+    <td><input type='text' name='label_0'/></td>
+    <td><input type='text' name='patients_0'/></td>
+    <td><input type='text' name='form_label_0'/></td>
+    <td>
+      <select name='conditional_operator_0' size='1'>
+	<option></option>
+	<option value='='>equals</option>
+	<option value='>'>greater than</option>
+	<option value='<'>less than</option>
+	<option value='!='>does not equal</option>
+      </select>
+      <input type='text' name='content_value_0'/>
+      <br/>
+      <center>or</center><br/>
+      <select name='value_range_operator_0'>
+	<option></option>
+	<option>within</option>
+	<option>not within</option>
+      </select>
+      <input type='text' name='value_ranges_0'/>
+    </td>
+    <td><input type='text' name='time_ranges_0'/></td>
+    <td><input type='text' name='function_0'/></td>
+  </tr>
+</table>
+<table>
+  <tr><td><input type='submit'></td></tr>
+</table>
+<a href="javascript:add_summary_report_item()">Click to add another report item</a>
+<br/>
+
+</form>
+
+{% endblock %}

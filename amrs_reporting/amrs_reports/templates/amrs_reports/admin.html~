@@ -1,0 +1,561 @@
+{% extends "Frontend/base.html" %}
+
+{% block content %}
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/jquery_patient_search.js"></script> 
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/DataTables-1.7.2/media/js/jquery.dataTables.js"></script>
+<style type="text/css" title="currentStyle"> 
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_page.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table_jui.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/examples/examples_support/themes/smoothness/jquery-ui-1.8.4.custom.css";
+</style> 
+<style>
+.unread_alert{
+    font-weight:bold;
+}
+</style>
+<script type="text/javascript" charset="utf-8"> 
+  $(document).ready(function() {
+  $('#patients').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+  
+  $('#providers').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#reports').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#alerts').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#metrics').dataTable( {
+  "sScrollY": "500px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#alert_trigger').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#alert_report_form').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+
+  $('#alert_log').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+$('#example').dataTable( {
+  "bJQueryUI": true,
+  "sPaginationType": "full_numbers"
+  } );
+  $('#patients2').dataTable( {
+  "bJQueryUI": true,
+  "sPaginationType": "full_numbers"
+  });
+
+$('#answerstacktable').dataTable( {
+  "bJQueryUI": true,
+  "sPaginationType": "full_numbers"
+  } );
+  $('#patients2').dataTable( {
+  "bJQueryUI": true,
+  "sPaginationType": "full_numbers"
+  });
+
+  $( "#start_date" ).datepicker({dateFormat: 'yy-mm-dd'});
+  $( "#end_date" ).datepicker({dateFormat: 'yy-mm-dd'});
+
+
+
+
+  $("#admin_tabs").tabs({});
+
+    $.address.change(function(event){
+      $("#admin_tabs").tabs( "select" , window.location.hash )
+    })
+
+    // when the tab is selected update the url with the hash
+    $("#admin_tabs").bind("tabsselect", function(event, ui) {
+      window.location.hash = ui.tab.hash;
+    })
+
+
+  $("#messagers_tabs").tabs({});
+
+    $.address.change(function(event){
+      $("#messagers_tabs").tabs( "select" , window.location.hash )
+    })
+
+    // when the tab is selected update the url with the hash
+    $("#messagers_tabs").bind("tabsselect", function(event, ui) {
+      window.location.hash = ui.tab.hash;
+    })
+
+
+  $("#managers_tabs").tabs({});
+
+    $.address.change(function(event){
+      $("#managers_tabs").tabs( "select" , window.location.hash )
+    })
+
+    // when the tab is selected update the url with the hash
+    $("#managers_tabs").bind("tabsselect", function(event, ui) {
+      window.location.hash = ui.tab.hash;
+    })
+
+
+
+  $("#messaging_tabs").tabs({});
+
+    $.address.change(function(event){
+      $("#messaging_tabs").tabs( "select" , window.location.hash )
+    })
+
+    // when the tab is selected update the url with the hash
+    $("#messaging_tabs").bind("tabsselect", function(event, ui) {
+      window.location.hash = ui.tab.hash;
+    })
+
+
+  $("#programs_tabs").tabs({});
+
+    $.address.change(function(event){
+      $("#programs_tabs").tabs( "select" , window.location.hash )
+    })
+
+    // when the tab is selected update the url with the hash
+    $("#programs_tabs").bind("tabsselect", function(event, ui) {
+      window.location.hash = ui.tab.hash;
+    })
+
+  $("#reporting_tabs").tabs({});
+
+    $.address.change(function(event){
+      $("#reporting_tabs").tabs( "select" , window.location.hash )
+    })
+
+    // when the tab is selected update the url with the hash
+    $("#reporting_tabs").bind("tabsselect", function(event, ui) {
+      window.location.hash = ui.tab.hash;
+    })
+
+
+
+
+    var pid = document.getElementById("select_pat").value;
+    $.get('/alert/get_patient_no_alert_form/',
+        {patient_id:pid},
+        function(res){
+        $("#select_form").html('');
+        $.each(res, function(key, value){
+            $("#select_form").append($("<option></option>").
+            attr("value",value['id']).text(value['name']));
+        });
+        },
+        'json'
+    );
+    $("#show_alert_log").live('click', show_alert_log)
+});
+</script>
+
+<script>
+function validate_form()
+{
+	form = document.getElementById('form');
+	var errors = '';
+	if (form.start_date.value == '') { errors += 'Please specify a start date. \n'}
+	if (form.end_date.value == '') { errors += 'Please specify an end date. \n'}
+	if (errors == '') { form.submit(); }
+	else {alert(errors); }
+}
+
+function create_defined_metric()
+{
+   if (window.XMLHttpRequest)
+   {// code for IE7+, Firefox, Chrome, Opera, Safari
+       xmlhttp=new XMLHttpRequest();
+   }
+   else
+   {// code for IE6, IE5
+       xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+   }
+   xmlhttp.onreadystatechange=function()
+   {
+      if (xmlhttp.readyState==4 && xmlhttp.status==200)
+      {     
+         var response_obj = eval('(' + xmlhttp.responseText + ')');
+         var name = response_obj[0];
+         var id = response_obj[1];
+         add_metric("",name,id);
+      }
+   }
+   var params = get_params('defined_metric_form');
+   alert(params);
+   xmlhttp.open("POST","/caresmarts/create_defined_metric",true);
+   xmlhttp.send(params);
+}
+
+function add_metric(x,name,id)
+{
+	window.location.reload();
+}
+
+function get_params(form_id)
+{
+   var form = document.getElementById(form_id);
+   var elements = form.elements;
+   var length = elements.length;
+   var s = '';
+   var element = '';
+   for(var i=0; i< elements.length; i++) {
+       element = elements[i];
+       if(element.type == 'select-multiple') {
+            var options = element.options;
+            for(var j=0; j < options.length; j++) {
+               option = options[j];
+               if(option.selected) {
+                  s += '&' + element.name + '=' + options[j].value;
+               }
+            }
+       }
+       else if (element.value != '') {
+           s += '&' + element.name + '=' + encodeURIComponent(element.value);
+       }
+   }
+   return s;
+}   
+</script>
+
+
+
+
+<table width="100%">
+  <tr>
+    <td width="100%"><h2>&nbsp;&nbsp;&nbsp;&nbsp;Administration Panel</h2></td>
+  </tr>
+
+</table>
+
+<div id='admin_tabs'>
+
+<div style="padding-right:18px; padding-left:18px;">
+<ul>
+<li><a href="#messagers_tab">Messagers</a></li>
+<li><a href="#managers_tab">Managers</a></li>
+<li><a href="#messaging_tab">Messaging</a></li>
+<li><a href="#programs_tab">Programs</a></li>
+<li><a href="#reporting_tab">Reporting</a></li>
+</ul>
+</div>
+
+
+
+
+
+<div id='messagers_tab'>
+  <div id='messagers_tabs'>
+    <ul>
+      <li><a href="#messagers_table">Messagers</a></li>
+      <li><a href='{% url "apps.Frontend.views.manage_messager_attributes"%}'>Messager Attributes</a></li>
+    </ul>
+  </div>
+
+  <div id="messagers_table">
+    <table cellpadding="0" cellspacing="0" border="0" class="display" id="patients"> 
+      <thead> 
+	<tr> 
+	  <th>ID</th> 
+	  <th>Weeks Since Enrollment</th>
+	  <th>Current Modules</th>
+	  <!--th>Response Rate</th>
+	      <th>Self Reported Data</th>
+<th>Active Alert?</th-->
+	</tr> 
+      </thead> 
+      <tbody> 
+	{% for patient in roster %}
+	<tr>
+	  <td>{{patient.identifier}}</td>
+	  <td>{{patient.weeks}}</td>
+	  <td><a href="" onclick="alert('{{patient.current_modules}}')">{{patient.current_modules_short}}</a></td>
+	  <!--td>{{patient.response_rate}}</td>
+	    <td>{{patient.self_reported_data}}</td>
+            <td>{{patient.active_alert}}</td-->
+	</tr>
+	{% endfor %}
+      </tbody>
+    </table> 
+  </div>
+</div>
+
+
+<div id='managers_tab'>
+  <a href='/caresmarts/new_manager/' style="color:#33A7D2;">New Manager</a>
+  <br /><br />
+  <table cellpadding="0" cellspacing="0" border="0" class="display" id="providers"> 
+    <thead> 
+      <tr> 
+	<th>ID</th> 
+	<th>Name</th>
+	<th>Admin</th>
+	{% if manager.admin == 0 or manager.id == 1 %}<th></th>{% endif %}
+	<th></th>
+      </tr> 
+    </thead> 
+    <tbody> 
+      {% for manager in managers %}
+      <tr>
+	<td>{{manager.id}}</td>
+	<td><a href='{%url "apps.Frontend.views.new_manager"%}?manager_id={{manager.id}}'>{{manager.first_name}} {{manager.last_name}}</a></td>
+	<td>{% if manager.admin == 0 %}No{% else %}Yes{% endif %}</td>
+	<td><a href="/caresmarts/toggle_provider_admin/?id={{ manager.id }}">Toggle Admin</a></td>
+	<td><a href="/caresmarts/remove_provider/?id={{ manager.id }}">Deactivate</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table> 
+</div>
+
+
+<div id='messaging_tab'>
+  <div id='messaging_tabs'>
+    <ul>
+      <li><a href="{% url 'apps.Frontend.views.message_logs' as url%}">Message Log</a></li>
+      <li><a href="{% url 'apps.Frontend.views.message_templates' as url%}">Message Templates</a></li>
+      <li><a href="#message_stacks_tab">Message Stacks</a></li>
+      <li><a href="#answer_stacks_tab">Answer Stacks</a></li>
+      <li><a href="{% url 'apps.Frontend.views.message_template_tags' as url%}">Tags</a></li>
+    </ul>
+  </div>  
+
+
+
+  <div id='message_stacks_tab'>
+    <form action='/caresmarts/assign_ordersets/' method='post' id='form'>
+      <a href='/caresmarts/message_orderset/' style="color:#33A7D2;">New Message Stack</a>
+      <br /><br />
+      <table cellpadding="0" cellspacing="0" border="0" class="display" id="example"> 
+	<thead>
+	  <tr>
+	    <th></th>
+	    <th>Message Stack Name</th>
+	    <th>Domains</th>
+	    <th></th>
+	    <th></th>
+	  </tr>
+	</thead>
+	<tbody>
+	  {% for mo in mos %}
+	  <tr class="GradeX">
+	    <td><input type='checkbox' name='selected' value='{{mo.id}}'/></td>
+	    <td> {{ mo.name }} </td> 
+	    <td>{{ mo.domains }}</td>
+	    <td> <a href='/caresmarts/message_orderset?message_orderset_id={{ mo.id }}'>Edit</a></td>
+	    <td> <a href='/caresmarts/void_message_orderset?message_orderset_id={{ mo.id }}'>Void</a></td>
+	  </tr>
+	  {% endfor %}
+	</tbody>
+      </table>
+    </form>
+  </div>
+
+  
+  <div id='answer_stacks_tab'>
+    <a href='/caresmarts/answer_stack/' style="color:#33A7D2;">New Answer Stack</a>
+    <br /><br />
+    <table cellpadding="0" cellspacing="0" border="0" class="display" id="answerstacktable"> 
+      <thead>
+	<tr>
+	  <th>Name</th>
+	  <th>Answers</th>
+	  <th></th>
+	  <th></th>
+	</tr>
+      </thead>
+      <tbody>
+	{% for ans in answer_stacks %}
+	<tr class="GradeX">
+	  <td> {{ ans.name }} </td> 
+	  <td>{{ ans.answers }}</td>
+	  <td> <a href='/caresmarts/answer_stack?answer_stack_id={{ ans.id }}'>Edit</a></td>
+	  <td> <a href='/caresmarts/void_answer_stack?answer_stack_id={{ ans.id }}'>Void</a></td>
+	</tr>
+	{% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id='programs_tab'>  
+  
+</div>
+
+<div id='reporting_tab'>
+  <div id='reporting_tabs'>
+    <ul>
+      <li><a href="#reports_tab">Manage Reports</a></li>
+      <li><a href="#metrics_tab">Manage Metrics</a></li>
+    </ul>
+  </div>
+
+  <div id='reports_tab'>
+    <br />
+    <a href='/caresmarts/design_report_summary?provider_id={{provider.id}}'>Click to Design Report</a>
+    <br /><br /><br />
+    <table cellpadding="0" cellspacing="0" border="0" class="display" id="reports"> 
+      <thead> 
+	<tr> 
+	  <th>ID</th> 
+	  <th>Name</th>
+	  <th>Description</th>
+	  <th></th>
+	  <th></th>
+	</tr> 
+      </thead> 
+      <tbody>
+	{% for rep in reports %}
+	<tr>
+	  <td>{{ rep.id }}</td>
+	  <td style="font-size:12px;">{{ rep.name }}</td>
+	  <td style="font-size:12px;">{{ rep.description }}</td>
+	  <td><a href="/caresmarts/design_report_summary?report_summary_id={{ rep.id }}">Edit</a></td>
+	  <td><a href="/caresmarts/delete_report_summary?report_summary_id={{ rep.id }}">Delete</a></td>
+	</tr>
+	{% endfor %}
+      </tbody>
+    </table>
+    <br /><br />
+    <form action='/caresmarts/report_summary' method='post'>
+      <input type='hidden' name='provider_id' value='{{ provider.id }}'/>
+      <br />
+      <b>Set the following parameters to run a report:</b>
+      <br /><br />
+      <table>
+	<tr>
+	  <td>Choose Report:</td>
+	  <td>
+	    <select name='report_summary_id'>
+	      {% for rs in reports %}
+	      <option value='{{rs.id}}'>{{rs.name}}</option>
+	      {% endfor %}
+	    </select>
+	  </td>
+	</tr>
+	<tr>
+  	  <td>Patient List:</td>
+  	  <td>
+	    <select id="patient_list" name="patient_list">
+	      <option value="-1">All Patients</option>
+	      {% for plist in patient_lists %}
+	      <option value="{{plist.id}}"
+		      {% if patient_list_id == plist.id %}selected="selected"{% endif %}>{{plist.list_name}}</option>
+	      {% endfor %}
+	    </select>
+	  </td>
+	</tr>
+	<tr>
+	  <td>Time Period:</td>
+	  <td>
+	    <input type='text' name='time_period' size='2' value='1' />
+	    <select name='time_unit'>
+              <option value='week'>week(s)</option>
+              <option value='day'>day(s)</option>
+	    </select>
+	  </td>
+	</tr>
+	<tr>
+	  <td>Time Periods:</td>
+	  <td><input type='text' name='num_time_periods' value='1' /></td>
+	</tr>
+      </table>
+      <br />
+      <input type='submit'/>
+    </form>
+  </div>
+  
+  <div id='metrics_tab'>
+    <table cellpadding="0" cellspacing="0" border="0" class="display" id="metrics"> 
+      <thead> 
+	<tr> 
+	  <th>ID</th> 
+	  <th>Name</th>
+	  <th>Short Name</th>
+	  <th>Description</th>
+	  <th></th>
+	</tr> 
+      </thead> 
+      <tbody> 
+	{% for metric in metrics %}
+	<tr>
+	  <td>{{metric.id}}</td>
+	  <td><a href='/report_summary/edit_metric?id={{metric.id}}'>{{metric.name}}</a></td>
+	  <td>{{metric.short_name}}</td>
+	  <td>{{metric.description}}</td>
+	  <td><a href="/caresmarts/remove_metric?id={{metric.id}}">Delete Metric</a></td>
+	</tr>
+	{% endfor %}
+      </tbody>
+    </table>
+    <br><br>
+    <a href='/report_summary/edit_metric'>Create new metric...</a>
+    <BR><BR>
+    <hr>
+    <br><br>
+    <b>Reanalyze all messages:</b><br><br>
+    <form action='/caresmarts/reanalyze_data' method='post'>
+      <table>
+	<tr><td>Time Threshold (minutes):</td><td><input type='text' name='max_minutes' value='3000'/></td></tr>
+	<tr><td><input type='submit'/></td><td></td></tr>
+      </table>
+    </form>
+  </div>
+</div>
+
+
+{% endblock %}

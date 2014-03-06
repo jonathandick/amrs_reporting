@@ -1,0 +1,105 @@
+{% extends "ltfu/base.html" %}
+{% load staticfiles %}
+{% load mathfilters %}
+{% block content %}
+
+<script type="text/javascript" language="javascript" src="{% static 'js/flot/jquery.flot.js'%}"></script>
+<script type="text/javascript">
+  
+  $(document).ready(function() {
+
+  $('#report').dataTable( {
+  "width":"100%",
+  "sScrollY": "250px",
+  "aoColumnDefs": [{ "foo": "numeric", "aTargets": [ 0 ] }],
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth" : false
+   } );
+
+  $('#report_backup').dataTable( {
+  "width":"100%",
+  "sScrollY": "250px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false
+   } );
+
+  } );
+
+</script>
+
+<div id='datatable_wrapper'>
+<h3> Clinic: {{location.name}} </h3>
+
+{% for row in ltfu_stats %}
+{% if row.location_id = location.location_id%}
+<h4>Since 2013-01-01, {{location.name}} has seen a change of {{row.percent_change|mul:100|floatformat:0}}%, from {{row.ltfu_at_start_date}} to {{row.ltfu}}</h4>
+<h4>{{location.name}} is currently the {{row.rank}} best performer among all clinics.</h4>
+{%endif%}
+{%endfor%}
+
+
+<table id='report' class="displays">
+  <thead>
+    <tr>
+      <th class="gradeA">ID</th>
+      <th class="gradeA">on arvs</th>
+      <th class="gradeA">last enc date</th>
+      <th class="gradeA">encounter type</th>
+      <th class="gradeA">rtc date</th>
+      <th class="gradeA">days since rtc date</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in ltfu_clinic_table %}
+    <tr>
+      <td><a href='https://amrs.ampath.or.ke/amrs/patientDashboard.form?patientId={{row.person_id}}'>{{row.person_id}}</a></td>
+      <td>{{row.on_arvs}}</td>
+      <td>{{row.encounter_datetime}}</td>
+      <td>{{row.name}}</td>
+      <td>{{row.rtc_date}}</td>
+      <td>{{row.days_from_rtc_date}}</td>
+    </tr>
+    {%endfor%}
+    </tbody>
+</table>
+</div>
+
+
+<hr>
+<br/><br/>
+<form action='/amrs_reports/run_report_table' method='post'>
+  {% csrf_token %}
+  <input type='hidden' name='report_table_id' value='{{report_table.id}}'/>
+  <table>
+    <tr>
+      <th>Parameter Name</th>
+      <th>Value</th>
+      <th>Default Value</th>
+    </tr>
+    {% for param in parameters %}
+    <tr>
+      <td>{{param.name}}</td>
+      <td><input type='text' name='{{param.name}}'/></td>
+      <td>{{param.default_value}}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+      <td><input type='submit' value='Run Report Table'/></td>
+      <td></td>
+      <td></td>
+  </table>
+  
+</form>
+
+</div>
+
+{% endblock %}

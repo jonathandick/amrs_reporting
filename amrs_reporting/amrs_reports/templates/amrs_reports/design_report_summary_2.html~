@@ -1,0 +1,42 @@
+{% extends "powerup/base.html" %}
+
+{% block content %}
+<h2>Design metrics derived from the metrics you just designed.</h2>
+{% if errors %}
+    <ul>
+    {% for error in errors %}
+        <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+<p>Please try again.</p>
+{% endif %}
+
+<br/>
+<br/>
+You have the following metrics available:<br/>
+<ul>
+  {% for defined_metric in defined_metrics %}
+  <li>{{defined_metric.name}}</li>
+  {% endfor %}
+</ul>
+
+<br/>
+<br/>
+<form action='/powerup/design_report_summary' method='post'>
+  <input type='hidden' name='step' value='2'/>
+  <input type='hidden' name='report_summary_id' value='{{report_summary.id}}'/>
+  <table id='metric_design__design_report_summary_2'>
+    <tr>
+      <td>Name</td><td>Description</td><td>Metric</td>
+    </tr>
+    <tr>
+      <td><input type='text' name='derived_metric_name_1' size='15'></td>
+      <td><input type='text' name='derived_metric_description_1' size='15'></td>
+      <td><input type='text' name='derived_metric_calculation_1' size='50'/></td>
+    </tr>
+  </table>
+  <input type='submit'/>
+</form>	
+
+{% endblock %}
+

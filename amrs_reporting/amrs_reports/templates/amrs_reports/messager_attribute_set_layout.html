@@ -1,0 +1,109 @@
+{% extends "Frontend/base.html" %}
+
+{% block content %}
+
+<script type="text/javascript">
+
+function validate_form() {
+   var form = document.getElementById('pas_form');
+   var errors = '';
+
+   var textareas = form.getElementsByTagName("textarea");
+   var textarea = textareas[0];
+
+   var par = "";
+   var index = -1;
+   for(var i=0; i< textareas.length; i++) {
+       textarea = textareas[i];
+       par=textarea.parentNode;
+       while(par.nodeName.toLowerCase()!='tr'){
+           par=par.parentNode;
+       }
+       index = par.rowIndex;
+       textarea.name += "__" + index;
+   }
+   if(errors == '') { form.submit(); }
+   else { alert(errors); }
+
+}
+
+
+</script>
+
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+
+  $('#set_attributes').dataTable( {
+  "bPaginate": false,
+  "sScrollY": "400px",
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+
+    $(".up,.down").click(function(){
+        var row = $(this).parents("tr:first");
+        if ($(this).is(".up")) {
+            row.insertBefore(row.prev());
+        } else {
+            row.insertAfter(row.next());
+        }
+    });
+
+
+  } );
+</script>
+
+
+<h2>Manage Layout for {{messager_attribute_set.name}}</h2>
+
+{% if messages %}
+    <ul>
+    {% for message in messages %}
+        <li>{{ message }}</li>
+    {% endfor %}
+    </ul>
+{% endif %}
+
+
+<form action='{% url "apps.Frontend.views.messager_attribute_set_layout" %}' method='post' id='pas_form'>
+{% csrf_token %}
+<input type='hidden' name='messager_attribute_set_id' value='{{messager_attribute_set.id}}'/>
+
+<h3>Current attributes in set:</h3>
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="set_attributes">
+  <thead>
+    <tr>
+      <th>Move up</th>
+      <th>Move down</th>
+      <th>Name</th>
+      <th>Values</th>
+      <th>Layout text</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for member in messager_attribute_set_members %}
+    <tr class='gradeU'>
+      <td><a href="#" class="up">Up</a></td>
+      <td><a href="#" class="down">Down</a></td>
+      <td> {{ member.get_messager_attribute_type.name }} <input type='hidden' name='messager_attribute_type_ids' value='{{member.get_messager_attribute_type.id}}'/></td>
+      <td>
+        <select>
+        {% for value in member.get_messager_attribute_type.get_values %}
+        <option>{{value.value}}</option>
+        {% endfor %}
+        </select>
+      </td>
+      <td><textarea name='layout_text__{{member.id}}' cols='50' rows='5'>{{ member.layout_text }}</textarea></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<input type='button' value='Submit' onClick='javascript:validate_form()'/>
+</form>
+
+
+
+{% endblock %}

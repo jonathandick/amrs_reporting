@@ -1,0 +1,73 @@
+
+<script type="text/javascript" charset="utf-8">
+  $(document).ready(function() {
+
+
+  $('#message_templates').dataTable({
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  });
+
+function validate_form() {
+   var form = document.getElementById('message_templates');
+   var errors = '';
+   if(form.start_date.value == '') { errors += 'Start Date can not be empty \n'; }
+   if(form.end_date.value == '') { errors += 'End Date can not be empty \n'; }
+   if(errors == '') { form.submit(); }
+   else { alert(errors); }
+}
+</script>
+
+
+
+
+<div style="padding: 10px 20px 0px 20px;">
+<form action='{% url "apps.Frontend.views.message_template"%}' method='get'>
+  <input type='submit' value='Create New Message Template'/>
+</form>
+<br/><br/>
+
+<form id="message_templates" action='/caresmarts/assign_templates/' method='post'>
+
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="message_templates"> 
+  <thead>
+    <tr>
+      <th></th>
+      <th>Message Name</th>
+      <th>Id</th>
+      <th>Form_id</th>
+      <th>Template id</th>
+      <th>Message</th>
+      <th>Code</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for mt in mts %}
+    <tr class="GradeX">
+      <td><input type='checkbox' name='selected' value='{{mt.form_id}}'/></td>
+      <td> {{ mt.name }} </td> 
+      <td>{{mt.id}}</td>
+      <td>{{mt.form_id}}</td>
+      <td>{{mt.template_id}}</td>
+      <td>{{ mt.message }}</td>
+      <td>+{{ mt.code }}</td>  
+      <td> <a href='/caresmarts/message_template?form_id={{ mt.form_id }}'>Edit</a></td>
+      <td> <a href='/caresmarts/void_message_template?form_id={{ mt.form_id }}'>Void</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if messager %}
+<a href='/caresmarts/messager/{{messager.id}}/'>Return to Messager Dashboard</a>
+{% endif %}
+</form>
+</div>

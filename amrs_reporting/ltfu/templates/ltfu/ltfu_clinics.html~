@@ -1,0 +1,110 @@
+{% extends "ltfu/base.html" %}
+{% load staticfiles %}
+{% load mathfilters %}
+{% block content %}
+
+<script type="text/javascript" language="javascript" src="{% static 'js/flot/jquery.flot.js'%}"></script>
+<script type="text/javascript">
+  
+  $(document).ready(function() {
+
+  $('#report').dataTable( {
+  "width":"100%",
+  "sScrollY": "auto",
+  "aoColumnDefs": [{ "foo": "numeric", "aTargets": [ 0 ] }],
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth" : false
+   } );
+
+  $('#report_backup').dataTable( {
+  "width":"100%",
+  "sScrollY": "auto",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false
+   } );
+
+/*
+  $.plot($('#graph'),
+  [{label : "Foo", data:[{% for row in rows %}{% for cell in row %}{% if forloop.counter == 1 %}{{cell}}] {%endif%}{% if forloop.counter == 3 %}[{{cell}},{%endif%}{%endfor%}{%endfor%}]
+  });
+
+*/
+  } );
+
+</script>
+
+<div id='datatable_wrapper'>
+<table id='report' class="displays">
+  <thead>
+    <tr>
+      <th class="gradeA">Clinic</th>
+      <th class="gradeA">Total LTFU</th>
+      <th class="gradeA">On Arvs </th>
+      <th class="gradeA">HIV Clinic Visit</th>
+      <th class="gradeA">Adult Visit</th>
+      <th class="gradeA">Peds Visit</th>
+      <th class="gradeA">PMTCT Visit</th>
+      <th class="gradeA">Outreach Visit</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in ltfu_clinics_table %}
+    <tr>
+      <td><a href='/ltfu/ltfu_clinic?location_id={{row.location_id}}&ltfu_date=2014-01-01'>{{row.clinic}}</a></td>
+      <td>{{row.ltfu_total}}</td>
+      <td>{{row.ltfu_on_arvs|mul:100|div:row.ltfu_total}}% ({{row.ltfu_on_arvs}})</td>
+      <td>{{row.hiv_clinic_visit|div:row.ltfu_total|mul:100|floatformat:"0"}}% ({{row.hiv_clinic_visit}})</td>
+      <td>{{row.adult|div:row.ltfu_total|mul:100|floatformat:"0"}}% ({{row.adult}})</td>
+      <td>{{row.peds|div:row.ltfu_total|mul:100|floatformat:"0"}}% ({{row.peds}})</td>
+      <td>{{row.pmtct|div:row.ltfu_total|mul:100|floatformat:"0"}}% ({{row.pmtct}})</td>
+      <td>{{row.outreach_visit|div:row.ltfu_total|mul:100|floatformat:"0"}}% ({{row.outreach_visit}})</td>
+    </tr>
+    {%endfor%}
+    </tbody>
+</table>
+
+</div>
+
+
+<hr>
+<br/><br/>
+<form action='/amrs_reports/run_report_table' method='post'>
+  {% csrf_token %}
+  <input type='hidden' name='report_table_id' value='{{report_table.id}}'/>
+  <table>
+    <tr>
+      <th>Parameter Name</th>
+      <th>Value</th>
+      <th>Default Value</th>
+    </tr>
+    {% for param in parameters %}
+    <tr>
+      <td>{{param.name}}</td>
+      <td><input type='text' name='{{param.name}}'/></td>
+      <td>{{param.default_value}}</td>
+    </tr>
+    {% endfor %}
+    <tr>
+      <td><input type='submit' value='Run Report Table'/></td>
+      <td></td>
+      <td></td>
+  </table>
+  
+</form>
+
+<hr>
+
+<h3>Graph</h3>
+<div id='graph' style="width:600px;height:300px">
+</div>
+
+{% endblock %}

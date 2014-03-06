@@ -1,0 +1,150 @@
+{% extends "caresmarts/base.html" %}
+
+{% block content %}
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/jquery_patient_search.js"></script> 
+<script type="text/javascript" language="javascript" src="/static/caresmarts/javascript/DataTables-1.7.2/media/js/jquery.dataTables.js"></script>
+<style type="text/css" title="currentStyle"> 
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_page.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/media/css/demo_table_jui.css";
+  @import "/static/caresmarts/javascript/DataTables-1.7.2/examples/examples_support/themes/smoothness/jquery-ui-1.8.4.custom.css";
+</style> 
+<style>
+.unread_alert{
+    font-weight:bold;
+}
+</style>
+<script type="text/javascript" charset="utf-8"> 
+function validate_form() {
+   var form = document.getElementById('modules');
+   var errors = '';
+
+   var fields = form.getElementsByTagName("input");
+  
+   var par = "";
+   var index = -1;
+   for(var i=0; i< fields.length; i++) {
+       field = fields[i];
+       if (field.name.substr(0,6) == "layout")
+       {
+	  par=field.parentNode;
+          while(par.nodeName.toLowerCase()!='tr'){
+              par=par.parentNode;
+          }
+          index = par.rowIndex;
+          field.value = index;
+       }
+   }
+   if(errors == '') { form.submit(); }
+   else { alert(errors); }
+
+};
+
+
+  $(document).ready(function() {
+
+  $('#active_modules').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": false,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#voided_modules').dataTable( {
+  "bJQueryUI": true,
+  "bPaginate": true,
+  "bLengthChange": false,
+  "bFilter": false,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+
+    $(".up,.down").click(function(){
+        var row = $(this).parents("tr:first");
+        if ($(this).is(".up")) {
+            row.insertBefore(row.prev());
+        } else {
+            row.insertAfter(row.next());
+        }
+    });
+
+
+});
+
+
+</script>
+
+
+<div style="padding: 10px 20px 0px 20px;">
+<h2>Edit Modules For Domain: {{ domain.name }}</h2>
+<br />
+<fieldset>
+<legend>Active Modules</legend>
+<form action='/caresmarts/edit_module_order' method='post' id='modules'>
+<input type='hidden' name='domain_id' value='{{domain.id}}'/>
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="active_modules"> 
+  <thead> 
+    <tr> 
+      <th></th>
+      <th>Name</th>
+      <!-- th>ID</th> 
+      <th>Domain</th>
+      <th>Order Number</th>
+      <th>Texts Per Week</th-->
+      <th></th>
+      <th></th>
+    </tr> 
+  </thead> 
+  <tbody>
+    {% for module in modules %}
+    <tr>
+      <td><a href="#" class="up">Up</a>/<a href="#" class="down">Down</a><input type='hidden' name='layout__{{module.id}}'/></td>
+      <td style="font-size:12px;">{{ module.name }}</td>
+      <!--td>{{ module.id }}</td>
+      <td>{{ module.domain_id }}</td>
+      <td>{{ module.order_num }}</td>
+      <td>{{ module.texts_per_week }}</td-->
+      <td><a href="/caresmarts/module?id={{ module.id }}">Edit&nbsp;Module&nbsp;&amp;&nbsp;Message&nbsp;Stack&nbsp;Schedule</a></td>
+      <td><a href="/caresmarts/remove_module?id={{ module.id }}">Void&nbsp;Module</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table> 
+<input type='button' name='button' value='Edit Order' onClick='javascript:validate_form()'/>
+</form>
+</fieldset>
+<br /><br />
+
+<fieldset>
+<legend>Voided Modules</legend>
+<table cellpadding="0" cellspacing="0" border="0" class="display" id="voided_modules"> 
+  <thead> 
+    <tr> 
+      <th>ID</th> 
+      <th>Name</th>
+      <th></th>
+    </tr> 
+  </thead> 
+  <tbody>
+    {% for module in modules2 %}
+    <tr>
+      <td>{{ module.id }}</td>
+      <td style="font-size:12px;">{{ module.name }}</td>
+      <td><a href="/caresmarts/module?id={{ module.id }}">View&nbsp;Message&nbsp;Stack&nbsp;Schedule</a></td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table> 
+</fieldset>
+<br /><br />
+<form name="add_module" action="/caresmarts/add_module/" method="post">
+<input type="hidden" name="domain_id" value="{{ domain.id }}" />
+Add New Module To Domain: <input type="text" name="module_name" />
+<input type="submit" value="Add Module" />
+</form>
+</div>
+
+{% endblock %}

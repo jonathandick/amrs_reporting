@@ -240,7 +240,7 @@ def get_system_time(request):
                     'time': strftime("%a, %d %b %Y %H:%M %Z%z", localtime())})
         ret = simplejson.dumps(ret)
         return HttpResponse(ret,mimetype='application/javascript')
-                   
+                           
 
 
 # Utility Functions ********************************************************************************
@@ -262,3 +262,5 @@ def my_fetcher(url):
         return dict(string=contents)
     else:
         return default_url_fetcher(url)
+
+

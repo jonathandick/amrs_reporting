@@ -26,7 +26,8 @@ urlpatterns = patterns('',
                        url(r'^ltfu/ltfu_ampath/?$',ltfu_views.ltfu_ampath),
                        url(r'^ltfu/ltfu_clinics/?$',ltfu_views.ltfu_clinics),
                        url(r'^ltfu/ltfu_clinic/?$',ltfu_views.ltfu_clinic),
-                       url(r'^ltfu/ltfu_by_range/?$',ltfu_views.ltfu_by_range),                       
+                       url(r'^ltfu/ltfu_by_range/?$',ltfu_views.ltfu_by_range),
+                       url(r'^ltfu/ltfu_get_defaulter_list/?$',ltfu_views.ltfu_get_defaulter_list),                       
                        ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + amrs_user_validation_urls.urlpatterns                       
 
 

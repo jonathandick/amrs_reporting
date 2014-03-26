@@ -1,10 +1,28 @@
+from django.shortcuts import get_object_or_404
+from django.shortcuts import render
+from django.template.loader import get_template
+from django.template import Context, loader, RequestContext
+from django.http import HttpResponseRedirect, HttpResponse
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from report.models import *
 from utilities import *
 from ltfu.models import *
+from amrs_user_validation.models import Authorize
+from xlrd import open_workbook
+from xlwt import Workbook, easyxf,Formula
+from xlutils.copy import copy
+import pytz
+from datetime import datetime
+
 # Create your views here.
 
 
+@login_required
 def index(request):
+    if not Authorize.authorize(request.user,['admin']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
     locations = Location().get_locations()    
     rt = ReportTable.objects.filter(name='ltfu_stats')[0]
     result = rt.run_report_table(as_dict=True)
@@ -17,7 +35,11 @@ def index(request):
                    })
 
 
+@login_required
 def ltfu_ampath(request):
+    if not Authorize.authorize(request.user,['admin']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
     rt = ReportTable.objects.filter(name='ltfu_ampath')[0]
     result = rt.run_report_table(as_dict=True)
     rows = result['rows']
@@ -37,7 +59,11 @@ def ltfu_ampath(request):
                    })
 
 
+@login_required
 def ltfu_clinics(request):
+    if not Authorize.authorize(request.user,['admin']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
     rt = ReportTable.objects.filter(name='ltfu_clinics')[0]
     ltfu_clinics_table = rt.run_report_table(as_dict=True)['rows']
     parameters = ReportTableParameter.objects.filter(report_table_id=rt.id)
@@ -49,7 +75,11 @@ def ltfu_clinics(request):
 
     
                   
+@login_required
 def ltfu_clinic(request):
+    if not Authorize.authorize(request.user,['admin']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
     location_id = get_var_from_request(request,'location_id')
     locations = Location().get_locations()
     location = Location().get_location(location_id)
@@ -73,7 +103,11 @@ def ltfu_clinic(request):
                       )
     
                        
+@login_required
 def ltfu_by_range(request):
+    if not Authorize.authorize(request.user,['admin']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
     location_id = get_var_from_request(request,'location_id')
     start_range = get_var_from_request(request,'start_range')
     end_range = get_var_from_request(request,'end_range')
@@ -96,7 +130,11 @@ def ltfu_by_range(request):
                        
 
 
+@login_required
 def run_report_table(request):
+    if not Authorize.authorize(request.user,['admin']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
     report_table_id = get_var_from_request(request,'report_table_id')
     if report_table_id :
         rt = ReportTable.objects.get(id=report_table_id)
@@ -118,3 +156,64 @@ def run_report_table(request):
                       {'report_tables':report_tables,
                        })
 
+
+@login_required
+def ltfu_get_defaulter_list(request):
+    if not Authorize.authorize(request.user,['admin']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
+    location_id = get_var_from_request(request,'location_id')
+
+
+    if location_id :
+        rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
+        parameter_values = (30,90,location_id)
+        table = rt.run_report_table(parameter_values=parameter_values,as_dict=True)['rows']
+        
+        location = Location().get_location(location_id)['name']
+        date = datetime.today()        
+        template_dir = '/home/jdick/dev/amrs_reporting/ltfu/'
+        template_file = 'outreach_registers.xls'
+        new_file = location + '_defaulters_list_' + date.strftime('%Y_%m_%d') + '.xls'
+
+        template = open_workbook(template_dir + template_file,formatting_info=True)
+        
+        book = copy(template)
+        sheet = book.get_sheet(2)
+
+        cur_row = 2
+        risk_categories = {'1':'high','2':'medium','3':'low'}
+
+
+        row_style = easyxf('font : height 400;')        
+        cell_style = easyxf('borders: left thin, right thin, top thin, bottom thin;'
+                            'alignment: wrap 1;')
+        
+        sheet.row(0).set_style(row_style)
+        sheet.write(0,0,'General Defaulters List v1.0 : ' + location,easyxf('font : height 350, bold true;' 
+                                                                            'borders: left thin, right thin, top thin, bottom thin;'))
+        sheet.write(0,7,date.strftime('DATE CREATED:\n%d/%m/%Y'),
+                    easyxf('font : height 175, bold true;'
+                           'alignment: horizontal left, wrap 1;'
+                           'borders: left thin, right thin, top thin, bottom thin;'))
+
+        for row in table :
+            sheet.row(cur_row).set_style(row_style)
+            sheet.write(cur_row,0,cur_row-1,cell_style)
+            sheet.write(cur_row,1,str(row['encounter_datetime']) + ' /\n' + str(row['rtc_date']) + ' (' + str(row['days_from_rtc_date']) + ')'
+                        ,cell_style)
+            sheet.write(cur_row,2,risk_categories[str(row['risk_category'])],cell_style)
+            sheet.write(cur_row,3,'',cell_style)
+            sheet.write(cur_row,4,'',cell_style)
+            sheet.write(cur_row,5,'',cell_style)
+            sheet.write(cur_row,6,'',cell_style)
+            sheet.write(cur_row,7,'',cell_style)
+
+            cur_row += 1
+
+        response = HttpResponse(mimetype="application/ms-excel")
+        response['Content-Disposition'] = 'attachment; filename=%s' % new_file
+            
+        book.save(response)
+        
+        return response

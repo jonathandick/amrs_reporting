@@ -2,6 +2,7 @@ from django.db import models
 import MySQLdb as mdb
 import sys
 import ast
+import settings
 
 
 # BEGIN Report *****************************************************************************
@@ -16,10 +17,11 @@ class Report(models.Model):
     voided = models.BooleanField(default=False)
     date_voided = models.DateTimeField(blank=True,null=True)
 
-    HOST = 'localhost'
-    USER = 'reporting'
-    PASSWORD = 'reporting'
-    DATABASE = 'reporting'
+
+    HOST = settings.HOST
+    USER = settings.USER
+    PASSWORD = settings.PASSWORD
+    DATABASE = settings.DATABASE
 
 
     def create(name=name,description=None):
@@ -93,10 +95,10 @@ class ReportTable(models.Model):
     description = models.CharField(max_length=1000,null=True,blank=True)
     report_table_sql = models.TextField()
 
-    HOST = 'localhost'
-    USER = 'reporting'
-    PASSWORD = 'reporting'
-    DATABASE = 'reporting'
+    HOST = settings.HOST
+    USER = settings.USER
+    PASSWORD = settings.PASSWORD
+    DATABASE = settings.DATABASE
 
 
     def get_sql(self) :

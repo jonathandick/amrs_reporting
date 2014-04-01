@@ -25,7 +25,9 @@ def index(request):
 
     locations = Location().get_locations()    
     rt = ReportTable.objects.filter(name='ltfu_stats')[0]
-    result = rt.run_report_table(as_dict=True)
+    date = datetime.today()
+    parameter_values = ('2014-01-01',date.strftime('%Y-%m-%d'))
+    result = rt.run_report_table(parameter_values=parameter_values,as_dict=True)
     ltfu_stats = result['rows']
     parameters = ReportTableParameter.objects.filter(report_table_id=rt.id)
     return render(request,'ltfu/index.html',

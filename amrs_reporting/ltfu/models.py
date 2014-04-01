@@ -4,14 +4,14 @@ from django.db import models
 
 from django.db import models
 import MySQLdb as mdb
-
+import report.settings as settings
 
 class Location(models.Model):
 
-    HOST = 'localhost'
-    USER = 'reporting'
-    PASSWORD = 'reporting'
-    DATABASE = 'reporting'
+    HOST = settings.HOST
+    USER = settings.USER
+    PASSWORD = settings.PASSWORD
+    DATABASE = settings.DATABASE
     
     def get_locations(self):
         locations = {}

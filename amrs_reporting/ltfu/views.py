@@ -200,12 +200,12 @@ def ltfu_get_defaulter_list(request):
         for row in table :
             sheet.row(cur_row).set_style(row_style)
             sheet.write(cur_row,0,cur_row-1,cell_style)
-            sheet.write(cur_row,1,str(row['encounter_datetime']) + ' /\n' + str(row['rtc_date']) + ' (' + str(row['days_from_rtc_date']) + ')'
+            sheet.write(cur_row,1,str(row['encounter_datetime']) + ' (' + row['name'] + ') /\n' + str(row['rtc_date']) + ' (' + str(row['days_from_rtc_date']) + ')'
                         ,cell_style)
             sheet.write(cur_row,2,risk_categories[str(row['risk_category'])],cell_style)
-            sheet.write(cur_row,3,'',cell_style)
-            sheet.write(cur_row,4,'',cell_style)
-            sheet.write(cur_row,5,'',cell_style)
+            sheet.write(cur_row,3,row['person_name'],cell_style)
+            sheet.write(cur_row,4,row['identifier'],cell_style)
+            sheet.write(cur_row,5,row['phone_number'],cell_style)
             sheet.write(cur_row,6,'',cell_style)
             sheet.write(cur_row,7,'',cell_style)
 

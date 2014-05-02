@@ -36,15 +36,31 @@
 </script>
 
 
-<a href='ltfu_get_defaulter_list?location_id={{location.location_id}}'>Download Defaulter List</a>
+
+
+      
 
 <div id='datatable_wrapper'>
 <h3> Clinic: {{location.name}} </h3>
+<a href='ltfu_get_defaulter_list?location_id={{location.location_id}}&start_range={{start_range}}&end_range={{end_range}}&start_range_high_risk={{start_range_high_risk}}'>Download Defaulter List</a>
+<br/><br/>
+<table border='1'>
+  <tr><td><b>Total</b></td><td>{{counts.total}}</td></tr>
+  <tr><td><b>Being Traced</b></td><td>{{counts.tracing}}</td></tr>
+  <tr><td><b>High Risk</b></td><td>{{counts.high}}</td></tr>
+  <tr><td><b>Medium Risk</b></td><td>{{counts.medium}}</td></tr>
+  <tr><td><b>Low Risk</b></td><td>{{counts.low}}</td></tr>
+  <tr><td><b>LTFU</b></td><td>{{counts.LTFU}}</td></tr>
+</table>
+<hr/>
+
 <table id='report' class="displays">
   <thead>
     <tr>
+      <th class="gradeA"></th>
       <th class="gradeA">ID</th>
-      <th class="gradeA">arv line</th>
+      <th class="gradeA">AMRS ID</th>
+      <th class="gradeA">Risk Category</th>
       <th class="gradeA">last enc date</th>
       <th class="gradeA">encounter type</th>
       <th class="gradeA">rtc date</th>
@@ -54,8 +70,10 @@
   <tbody>
     {% for row in ltfu_by_range %}
     <tr>
+      <td>{{forloop.counter}}</td>
       <td><a href='https://amrs.ampath.or.ke/amrs/patientDashboard.form?patientId={{row.person_id}}'>{{row.person_id}}</a></td>
-      <td>{{row.arv_regimen}}</td>
+      <td>{{row.identifier}}</td>
+      <td>{{row.risk_category}}</td>
       <td>{{row.encounter_datetime}}</td>
       <td>{{row.name}}</td>
       <td>{{row.rtc_date}}</td>

@@ -3,6 +3,18 @@
 {% block content %}
 
 <script type="text/javascript">
+  function download_defaulter_list() {
+      var form = document.getElementById('defaulter_list_form');
+      form.action = '/ltfu/ltfu_get_defaulter_list';
+      form.submit();
+  }
+
+  function view_defaulter_list() {
+      var form = document.getElementById('defaulter_list_form');
+      form.action = '/ltfu/ltfu_by_range';
+      form.submit();
+  }
+
   $(document).ready(function() {
 
   var oTable = $('#ltfu_stats').dataTable( {
@@ -17,75 +29,103 @@
   "bInfo": false,
   "bAutoWidth": false } );
 
+  $('#outreach_needs').dataTable( {
+  "sScrollY": "150px",
+  "aaSorting" : [[0,"asc"]],
+  "aaColumns" : [null,null,null,null,null,null],
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+
+
   $("#ltfu_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
 
   });
 
 
 </script>
-<h4>Lost to Follow-up (LTFU)</h4>
-<table id='ltfu_stats'>
+
+<table id='outreach_needs'>
   <thead>
     <tr>
       <td>Clinic</td>
-      <td>LTFU at 2014/01/01</td>
-      <td>Current LTFU: </td>
-      <td>% change</td>
-      <td>Absolute change</td>
-      <td>Rank</td>
+      <td>Total</td>      
+      <td>Being Traced</td>
+      <td>High Risk</td>
+      <td>Medium Risk</td>
+      <td>Low Risk</td>
+      <td>Total pre-LTFU</td>
+      <td>LTFU</td>
+      <td>Untraceable</td>
     </tr>
   </thead>
   <tbody>
-    {% for row in ltfu_stats %}
+    {% for row in outreach_needs %}
     <tr>
-      <td>{{row.name}}</td>
-      <td>{{row.ltfu_at_start_date}}</td>
-      <td>{{row.ltfu}}</td>
-      <td>{{row.percent_change}}</td>
-      <td>{{row.abs_change}}</td>
-      <td>{{row.rank}}</td>
+      <td><a href='ltfu_by_range?location_id={{row.location_id}}'>{{row.name}}</a></td>
+      <td>{{row.total}}</td>
+      <td>{{row.num_being_traced}}</td>
+      <td>{{row.num_high_risk}}</td>
+      <td>{{row.num_medium_risk}}</td>
+      <td>{{row.num_low_risk}}</td>
+      <td>{{row.num_pre_ltfu}}</td>
+      <td>{{row.num_ltfu}}</td>
+      <td>{{row.num_untraceable}}</td>
     </tr>
     {% endfor %}
     </tbody>
   </table>
+
 <ul>
-  <li><a href='/ltfu/ltfu_ampath'>AMPATH-wide LTFU statistics by year</a><br/><br/></li>
-  <li><a href='/ltfu/ltfu_clinics'>LTFU statistics across all clinics</a><br/><br/></li>
-  <li> <b>List all LTFU patients at a specific clinic:</b>
-    <form action='/ltfu/ltfu_clinic' method='post'> {% csrf_token %}
+  <li> <b>Identify patients who require outreach follow-up</b>
+    <form action='/ltfu/ltfu_by_range' method='post' id='defaulter_list_form'> {% csrf_token %}
     <table>
       <tr>
-	<td>Clinic: 
+	<td>Clinic:</td>
+	<td>
 	  <select name='location_id'>
 	    {% for location in locations %}
 	    <option value='{{location.location_id}}'>{{location.name}}</option>
 	    {% endfor %}
 	  </select>
 	</td>
-	<td>LTFU Date : <input id='ltfu_date' type='text' name='ltfu_date' value='2014-01-01'/></td>
-	<td><input type='submit'/></td>
+	 <td>start range high risk:</td>
+	 <td><input type='text' name='start_range_high_risk' value='8' size='1'/></td>
+	<td>start range:</td>
+	<td><input type='text' name='start_range' value='30' size='1'/></td>
+	<td>end range:</td>
+	<td><input type='text' name='end_range' value='90' size='1'/></td>
+	<td><input type='button' onClick='download_defaulter_list()' value='Download List'/></td>
+	<td><input type='button' onClick='view_defaulter_list()'  value='View'/></td>
       </tr>	  
     </table>
     </form>
   </li>
-  <li> <b>Identify patients about to be designated LTFU</b>
-    <form action='/ltfu/ltfu_by_range' method='post'> {% csrf_token %}
+  <li> <b>View Outreach Worker Performance</b>
+    <form action='/ltfu/view_outreach_worker_performance' method='post'>
       <table>
-      <tr>
-	<td>Clinic: 
-	  <select name='location_id'>
-	    {% for location in locations %}
-	    <option value='{{location.location_id}}'>{{location.name}}</option>
-	    {% endfor %}
-	  </select>
-	</td>
-	<td>start range:<input type='text' name='start_range' value='30'></td>
-	<td>end range:<input type='text' name='end_range' value='90'></td>
-	<td><input type='submit'/></td>
-      </tr>	  
-    </table>
+	<tr>
+	  <td>Outreach Worker</td>
+	  <td>
+	    <select name='provider_id'>
+	      {% for provider in providers%}
+	      <option value='{{provider.provider_id}}'>{{provider.given_name}} {{provider.family_name}}</option>
+	      {% endfor %}
+	    </select>
+	  </td>
+	  <td>
+	    <input type='submit'/>
+	  </td>
+	</tr>
+      </table>
     </form>
   </li>
+    
     
 </ul>
 

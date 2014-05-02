@@ -15,3 +15,8 @@ def my_fetcher(url):
         return dict(string=contents)
     else:
         return default_url_fetcher(url)
+
+
+def get_val_from_row(row,col_name) :
+    if row[col_name] is None : return ''
+    else : return row[col_name]

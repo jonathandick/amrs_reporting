@@ -24,12 +24,15 @@ def index(request):
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
     locations = Location().get_locations()
-    rt = ReportTable.objects.filter(name='ltfu_by_risk_and_clinic')[0]    
-    #outreach_needs = rt.run_report_table(as_dict=True)['rows']
-    outreach_needs = {}
+    rt = ReportTable.objects.filter(name='retention_key_indicators')[0]    
+    key_indicators = rt.run_report_table(as_dict=True)['rows']
+    #outreach_needs = {}
+    providers = Provider().get_outreach_providers()
+    
     return render(request,'ltfu/index.html',
                   {'locations':locations,
-                   'outreach_needs':outreach_needs,
+                   'key_indicators':key_indicators,
+                   'providers':providers,
                    })
 
 
@@ -112,23 +115,23 @@ def ltfu_by_range(request):
     start_range = get_var_from_request(request,'start_range')
     if not start_range : start_range = 30
     end_range = get_var_from_request(request,'end_range')
-    if not end_range : end_range = 90
+    if not end_range : end_range = 89
 
     locations = Location().get_locations()
     location = Location().get_location(location_id)
 
-    risk_categories = {0:'Being Traced',1:'high',2:'medium',3:'low',4:'LTFU'}    
+    risk_categories = {0:'Being Traced',1:'high',2:'medium',3:'low',4:'LTFU',5:'no_rtc_date',6:'untraceable'}    
 
     if location_id :
         rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
         parameter_values = (start_range_high_risk,start_range,end_range,location_id)
         table = rt.run_report_table(parameter_values=parameter_values,as_dict=True)['rows']
         
-        counts = {'tracing':0,'high':0,'medium':0,'low':0,'LTFU':0,'total':0}
+        counts = {'tracing':0,'high':0,'medium':0,'low':0,'LTFU':0,'total':0,'no_rtc_date':0,'untraceable':0}
         total = 0
         for row in table:
             if row['risk_category'] == 0 : counts['tracing'] += 1
-            else : counts[risk_categories[row['risk_category']]] +=1
+            else : counts[risk_categories[row['risk_category']]] +=1            
             counts['total'] +=1
 
             
@@ -204,7 +207,7 @@ def ltfu_get_defaulter_list(request):
         sheet = book.get_sheet(2)
 
         cur_row = 2
-        risk_categories = {'0':'Being Traced','1':'high','2':'medium','3':'low','4':'LTFU'}
+        risk_categories = {'0':'Being Traced','1':'high','2':'medium','3':'low','4':'LTFU','5':'no rtc date'}
 
 
         row_style = easyxf('font : height 400;')        
@@ -226,7 +229,7 @@ def ltfu_get_defaulter_list(request):
             s = str(get_val_from_row(row,'encounter_datetime')) 
             s += ' (' + str(get_val_from_row(row,'name')) + ') /\n' 
             s += str(get_val_from_row(row,'rtc_date')) + ' (' 
-            s += str(get_val_from_row(row,'days_from_rtc_date')) + ')'
+            s += str(get_val_from_row(row,'days_since_rtc')) + ')'
 
             sheet.write(cur_row,1,s,cell_style)
 
@@ -247,3 +250,11 @@ def ltfu_get_defaulter_list(request):
         book.save(response)
         
         return response
+
+
+def view_outreach_worker_performance(request):
+    if not Authorize.authorize(request.user,['admin']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
+    provider_id = get_var_from_request(request,'provider_id')
+    

@@ -47,23 +47,25 @@
       <td>Username: </td><td><input type='text' name='username'/></td>
     </tr>
     <tr>
-      <td>Role: </td>
+      <td>Roles</td>
       <td>
-	<select name='role'>
-	  <option value='admin'>admin</option>
-	  <option value='clinician'>clinician<option>
+	<select name='role_type_id'>
+	  {% for role_type in role_types %}
+	  <option value='{{role_type.id}}'>{{role_type.name}}</option>
+	  {% endfor %}
 	</select>
-    </tr>
+	</td>
+    </tr>    
     <tr>
       <td>Password: </td><td><input type='password' name='password'/></td>
     </tr>
     <tr>
       <td>Retype Password: </td><td><input type='password' name='password2'/></td>
     </tr>
-
     <tr>
       <td><input type='submit' value='Create user'/></td><td></td>
     </tr>
+
   </table>
 </form>
 

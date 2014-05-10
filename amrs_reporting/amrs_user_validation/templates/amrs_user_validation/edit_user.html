@@ -49,9 +49,11 @@
     <tr>
       <td>Role: </td>
       <td>
-	<select name='role'>
-	  <option value='admin' {%if amrs_user.role == 'admin'%}selected{%endif%}>admin</option>
-	  <option value='clinician' {%if amrs_user.role == 'clinician'%}selected{%endif%}>clinician<option>
+	<select name='role_type_id'>
+	  <option></option>
+	  {% for role_type in role_types %}
+	  <option value='{{role_type.id}}' {%if role_type_id == role_type.id%}selected{%endif%}>{{role_type.name}}</option>
+	  {% endfor %}
 	</select>
     </tr>
     <tr>

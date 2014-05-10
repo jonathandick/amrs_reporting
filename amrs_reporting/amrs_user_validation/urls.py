@@ -16,4 +16,8 @@ urlpatterns = patterns('',
                        url(r'^amrs_user_validation/manage_amrs_users/?$',views.manage_amrs_users),
                        url(r'^amrs_user_validation/delete_amrs_user/?$',views.delete_amrs_user),
                        url(r'^amrs_user_validation/edit_amrs_user/?$',views.edit_amrs_user),
+                       url(r'^amrs_user_validation/manage_role_types/?$',views.manage_role_types),
+                       url(r'^amrs_user_validation/edit_role_type/?$',views.edit_role_type),
+                       url(r'^amrs_user_validation/delete_role_type/?$',views.delete_role_type),
+                       url(r'^amrs_user_validation/manage_location_groups/?$',views.manage_location_groups),
                        )

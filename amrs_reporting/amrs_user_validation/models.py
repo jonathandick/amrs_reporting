@@ -2,23 +2,54 @@ from django.db import models
 from django.contrib.auth.models import User                                                                                                             
 from datetime import date, time, datetime, timedelta                                                                                                    
 from django.db.models import Avg,Min,Max,Count,Q,Sum                                                                                                     
-
+from utilities import *
 # Create your models here.
 
 
 class Authorize(models.Model):
     
     @staticmethod
-    def authorize(user,permitted_roles):
-        print 'authorizing : ' + user.username
+    def authorize(user,permitted_roles,permitted_locations=None):
         a = AMRSUser.objects.get(username=user.username)
-        print a.role
-        return a.role in permitted_roles
+        if a.has_role([RoleType.SUPERUSER_ROLE_TYPE_ID]): return True
+        has_location_privilege = a.has_location_privilege(permitted_locations)
+        role_type_ids = RoleType.objects.filter(name__in=role_type_names).values_list('id',flat=True)
+        has_role = a.has_role(role_type_ids)
+        return (has_role and has_location_privilege) or a.has_role(['superuser'])
 
+
+    @staticmethod
+    def get_role_type_ids(role_type_names):
+        return RoleType.objects.filter(name__in=role_type_names).values_list('id',flat=True)
+        
+    
+
+class RoleType(models.Model):
+    SUPERUSER_ROLE_TYPE_ID=1    
+    name = models.CharField(max_length=200)
+    description = models.CharField(max_length=1000)
+    
+    def init(self):
+        rt = RoleType(name='superuser',description='Has access to all functions')
+        rt.save()
+
+        
 class Role(models.Model) :    
     user_id = models.IntegerField()
-    role = models.CharField(max_length=300)
+    role_type_id = models.IntegerField()
 
+
+    def init(self):
+        u = AMRSUser.objects.get(username='amrs_reporting')
+        r = Role(user_id=u.id,role_type_id=RoleType.SUPERUSER_ROLE_TYPE_ID)
+        r.save()
+
+
+class LocationPrivilege(models.Model):
+    user_id = models.IntegerField()
+    location_id = models.IntegerField()
+
+    
 
 class AMRSUser(models.Model):
     
@@ -27,7 +58,6 @@ class AMRSUser(models.Model):
     username = models.CharField(max_length=30)
     email = models.CharField(max_length=100,null=True,blank=True)
     cell_phone_number = models.CharField(max_length=20)
-    role = models.CharField(max_length=160)
     requires_password_change = models.BooleanField(default=False)
 
     date_created = models.DateTimeField(auto_now_add=True)
@@ -42,7 +72,7 @@ class AMRSUser(models.Model):
 
 
     def init(self):        
-        a = AMRSUser(first_name='Jonathan',last_name='Dick',email='jonathan.j.dick@gmail.com',username='jdick',cell_phone_number='+254724679898')
+        a = AMRSUser(first_name='Jonathan',last_name='Dick',email='jonathan.j.dick@gmail.com',username='amrs_reporting',cell_phone_number='+254724679898')
         a.save()
         
 
@@ -54,7 +84,6 @@ class AMRSUser(models.Model):
 
     def set_self(self,args) :
         new_user = False
-        max_allowed_users = 1
         messages = []
         if self.id is None : 
             new_user = True
@@ -65,13 +94,13 @@ class AMRSUser(models.Model):
         if 'username' in args and args['username'] != '' :
             username = args['username']
             num_users = User.objects.filter(username=username).count()
-            if num_users > max_allowed_users :
+            if num_users > 1 :
                 messages.append('Username is taken. Please choose another username.')
                 return messages
 
         error_free = True
         try : 
-            for key,value in args.iteritems() : 
+            for key,value in args.iteritems() :
                 if hasattr(self,key) : setattr(self,key,value)
         except Exception, e:
             print e
@@ -95,6 +124,12 @@ class AMRSUser(models.Model):
                     user = User.objects.get(username=prev_username)
                     user.username = args['username']
                     user.save()
+            
+            role_type_id = get_var(args,'role_type_id')
+            if role_type_id :
+                Role.objects.filter(user_id=self.id).delete()
+                r = Role(user_id=self.id,role_type_id=role_type_id)
+                r.save()
 
         return messages
 
@@ -114,3 +149,21 @@ class AMRSUser(models.Model):
             u.save()
             self.voided = True
             self.save()
+
+
+    def has_role(self,role_type_ids):
+        
+        if role_type_ids is None : return True
+        roles = Role.objects.filter(user_id=self.id,role_type_id__in=role_type_ids)
+        return len(roles) > 0
+
+
+    def has_location_privilege(self,location_ids):
+        if location_ids is None : return True
+
+        location_privileges = LocationPrivilege.objects.filter(user_id=self.id,location_id__in=location_ids)
+        return len(location_privileges) > 0
+    
+
+
+                   

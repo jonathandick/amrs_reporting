@@ -29,7 +29,7 @@
   "bInfo": false,
   "bAutoWidth": false } );
 
-  $('#outreach_needs').dataTable( {
+  $('#key_indicators').dataTable( {
   "sScrollY": "150px",
   "aaSorting" : [[0,"asc"]],
   "aaColumns" : [null,null,null,null,null,null],
@@ -44,35 +44,29 @@
 
 
   $("#ltfu_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
+  $("#system_performance_start_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
+  $("#system_performance_end_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
 
   });
 
 
 </script>
 
-<table id='outreach_needs'>
+<table id='key_indicators'>
   <thead>
     <tr>
       <td>Clinic</td>
       <td>Total</td>      
-      <td>Being Traced</td>
-      <td>High Risk</td>
-      <td>Medium Risk</td>
-      <td>Low Risk</td>
       <td>Total pre-LTFU</td>
       <td>LTFU</td>
       <td>Untraceable</td>
     </tr>
   </thead>
   <tbody>
-    {% for row in outreach_needs %}
+    {% for row in key_indicators %}
     <tr>
       <td><a href='ltfu_by_range?location_id={{row.location_id}}'>{{row.name}}</a></td>
       <td>{{row.total}}</td>
-      <td>{{row.num_being_traced}}</td>
-      <td>{{row.num_high_risk}}</td>
-      <td>{{row.num_medium_risk}}</td>
-      <td>{{row.num_low_risk}}</td>
       <td>{{row.num_pre_ltfu}}</td>
       <td>{{row.num_ltfu}}</td>
       <td>{{row.num_untraceable}}</td>
@@ -82,7 +76,7 @@
   </table>
 
 <ul>
-  <li> <b>Identify patients who require outreach follow-up</b>
+  <li> <b>Identify patients who missed their last appointment</b>
     <form action='/ltfu/ltfu_by_range' method='post' id='defaulter_list_form'> {% csrf_token %}
     <table>
       <tr>
@@ -99,12 +93,42 @@
 	<td>start range:</td>
 	<td><input type='text' name='start_range' value='30' size='1'/></td>
 	<td>end range:</td>
-	<td><input type='text' name='end_range' value='90' size='1'/></td>
+	<td><input type='text' name='end_range' value='89' size='1'/></td>
 	<td><input type='button' onClick='download_defaulter_list()' value='Download List'/></td>
 	<td><input type='button' onClick='view_defaulter_list()'  value='View'/></td>
       </tr>	  
     </table>
     </form>
+  </li>
+  <li><b>View System Performance</b>
+    <form action='/ltfu/view_system_performance method='post'> {% csrf_token %}
+    <table>
+      <tr>
+	<td>Start Date:</td>
+	<td><input type='text' name='start_date' id='system_performance_start_date'/></td>
+	<td>End Date:</td>
+	<td><input type='text' name='end_date' id='system_performance_end_date'/></td>
+      </tr>	  
+    </table>
+    </form>
+
+  </li>
+  <li><b>View Monthly Clinic Performance</b>
+    <form action='/ltfu/view_clinic_indicators' method='post'> {% csrf_token %}
+    <table>
+      <tr>
+	<td>Clinic:</td>
+	<td>
+	  <select name='location_id'>
+	    {% for location in locations %}
+	    <option value='{{location.location_id}}'>{{location.name}}</option>
+	    {% endfor %}
+	  </select>
+	</td>
+      </tr>	  
+    </table>
+    </form>
+
   </li>
   <li> <b>View Outreach Worker Performance</b>
     <form action='/ltfu/view_outreach_worker_performance' method='post'>
@@ -114,7 +138,7 @@
 	  <td>
 	    <select name='provider_id'>
 	      {% for provider in providers%}
-	      <option value='{{provider.provider_id}}'>{{provider.given_name}} {{provider.family_name}}</option>
+	      <option value='{{provider.provider_id}}'>{{provider.family_name}}, {{provider.given_name}}</option>
 	      {% endfor %}
 	    </select>
 	  </td>

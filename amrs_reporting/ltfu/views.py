@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from report.models import *
 from utilities import *
-from ltfu.models import *
+from amrs_interface.models import *
 from amrs_user_validation.models import Authorize
 from xlrd import open_workbook
 from xlwt import Workbook, easyxf,Formula

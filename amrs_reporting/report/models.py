@@ -184,18 +184,11 @@ class ReportTableParameter(models.Model):
     default_value = models.CharField(max_length=300)
     index = models.IntegerField()
 
+    PARAMETER_TYPES = ['string/int','list']
+
     date_created = models.DateTimeField(auto_now_add=True)
 
-
-    def get_parameter_value_old(self,parameters) :
-        if parameters and self.name in parameters and parameters[self.name] != '' :
-            value = parameters[self.name]
-        else :
-            value = self.default_value
-
-        return value
-
-
+    # NOTE: if a value starts with a '(', it will be assumed to be a list and converted to one
     def get_parameter_value(self,parameters,report_member_id=None) :
         if report_member_id : name = str(report_member_id) + self.name
         else : name = self.name
@@ -204,6 +197,9 @@ class ReportTableParameter(models.Model):
             value = parameters[name]
         else :
             value = self.default_value
+
+        if value[0:1] == '(' :
+            value = value[1:-1].split(',')
 
         return value
 

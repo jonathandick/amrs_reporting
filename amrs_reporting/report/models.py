@@ -159,6 +159,7 @@ class ReportTable(models.Model):
             if parameter_values is None :
                 parameter_values = self.get_parameter_values(parameters)
 
+            print parameter_values
             cur.execute(self.report_table_sql,parameter_values)
 
             #assume that the last query in the string is the query intended to produce the data table
@@ -167,6 +168,7 @@ class ReportTable(models.Model):
 
         except Exception, e:            
             print e
+            print cur._executed
                 
         finally:                
             if con:    

@@ -2,7 +2,10 @@ from django.conf.urls import patterns, include, url
 import amrs_reports.views as views
 import ltfu.views as ltfu_views
 import amrs_user_validation.urls as amrs_user_validation_urls
+import amrs_interface.urls as amrs_interface_urls
+import ltfu.urls as ltfu_urls
 import amrs_user_validation.views as amrs_user_validation_views
+
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -22,13 +25,10 @@ urlpatterns = patterns('',
                        url(r'^amrs_reports/delete_report/?$',views.delete_report),                       
                        url(r'^amrs_reports/run_report/?$',views.run_report),
                        url(r'^amrs_reports/get_report_as_pdf/?$',views.get_report_as_pdf),
-                       url(r'^ltfu/index/?$',ltfu_views.index),
-                       url(r'^ltfu/ltfu_ampath/?$',ltfu_views.ltfu_ampath),
-                       url(r'^ltfu/ltfu_clinics/?$',ltfu_views.ltfu_clinics),
-                       url(r'^ltfu/ltfu_clinic/?$',ltfu_views.ltfu_clinic),
-                       url(r'^ltfu/ltfu_by_range/?$',ltfu_views.ltfu_by_range),
-                       url(r'^ltfu/ltfu_get_defaulter_list/?$',ltfu_views.ltfu_get_defaulter_list),                       
-                       ) + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + amrs_user_validation_urls.urlpatterns                       
-
+                       ) 
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) 
+urlpatterns += amrs_user_validation_urls.urlpatterns 
+urlpatterns += amrs_interface_urls.urlpatterns
+urlpatterns += ltfu_urls.urlpatterns
 
 

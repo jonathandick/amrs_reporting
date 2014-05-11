@@ -23,7 +23,9 @@ def index(request):
     if not Authorize.authorize(request.user,['admin']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
-    locations = Location().get_locations()
+    locations = Location.get_locations()
+    location_groups = DerivedGroup.objects.filter(base_class='Location').order_by('name')
+
     rt = ReportTable.objects.filter(name='retention_key_indicators')[0]    
     key_indicators = rt.run_report_table(as_dict=True)['rows']
     #outreach_needs = {}
@@ -31,6 +33,7 @@ def index(request):
     
     return render(request,'ltfu/index.html',
                   {'locations':locations,
+                   'location_groups':location_groups,
                    'key_indicators':key_indicators,
                    'providers':providers,
                    })
@@ -52,7 +55,7 @@ def ltfu_ampath(request):
                 totals[key] = int(totals[key]) + int(value)
             except Exception, e :
                 print str(e) + ' in exception'
-    print totals
+
     return render(request,"ltfu/ltfu_ampath.html",
                   {'report_table':rt,
                    'ltfu_ampath_table':rows,
@@ -110,6 +113,8 @@ def ltfu_by_range(request):
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
     location_id = get_var_from_request(request,'location_id')
+    location_group_id = get_var_from_request(request,'location_group_id')
+
     start_range_high_risk = get_var_from_request(request,'start_range_high_risk')
     if not start_range_high_risk : start_range_high_risk = 8
     start_range = get_var_from_request(request,'start_range')
@@ -117,14 +122,20 @@ def ltfu_by_range(request):
     end_range = get_var_from_request(request,'end_range')
     if not end_range : end_range = 89
 
-    locations = Location().get_locations()
-    location = Location().get_location(location_id)
+    locations = Location.get_locations()
+    location = Location.get_location(location_id)
 
     risk_categories = {0:'Being Traced',1:'high',2:'medium',3:'low',4:'LTFU',5:'no_rtc_date',6:'untraceable'}    
 
-    if location_id :
+    if location_id or location_group_id:
+
+        if location_group_id :
+            g = DerivedGroup.objects.get(id=location_group_id)
+            location_ids = tuple(g.get_member_ids())
+        else : location_ids = (location_id,)
+
         rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
-        parameter_values = (start_range_high_risk,start_range,end_range,location_id)
+        parameter_values = (start_range_high_risk,start_range,end_range,location_ids)
         table = rt.run_report_table(parameter_values=parameter_values,as_dict=True)['rows']
         
         counts = {'tracing':0,'high':0,'medium':0,'low':0,'LTFU':0,'total':0,'no_rtc_date':0,'untraceable':0}
@@ -257,4 +268,26 @@ def view_outreach_worker_performance(request):
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
     provider_id = get_var_from_request(request,'provider_id')
+
+
+
+def view_indicators_by_clinic(request):
+    if not Authorize.authorize(request.user,['superuser']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
+    start_date = get_var_from_request(request,'start_date')
+    end_date = get_var_from_request(request,'end_date')
+
+    
+    rt = ReportTable.objects.get(name='outreach_indicators_by_clinic')
+    parameter_values = (start_date,end_date)
+    table = rt.run_report_table(parameter_values=parameter_values,as_dict=True)['rows']
+        
+    return render(request,'ltfu/indicators_by_clinic.html',
+                  {'indicators':table,
+                   }
+                  )
+    
+
+
     

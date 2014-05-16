@@ -21,7 +21,7 @@ from amrs_user_validation.models import Authorize
 
 @login_required
 def index(request):
-    if not Authorize.authorize(request.user,'admin') :
+    if not Authorize.authorize(request.user) :
         return HttpResponseRedirect('amrs_user_validation/access_denied')
 
     return render(request, "amrs_reports/index.html",
@@ -40,7 +40,7 @@ def manage_report_tables(request):
 
 @login_required
 def manage_reports(request):
-    if not Authorize.authorize(request.user,['admin']) :        
+    if not Authorize.authorize(request.user,['superuser']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
     reports = Report.objects.all()
     return render(request, "amrs_reports/manage_reports.html",
@@ -50,7 +50,7 @@ def manage_reports(request):
 # ReportTable Views *************************************************************************
 
 def create_report_table(request):
-    if not Authorize.authorize(request.user,['admin']) :        
+    if not Authorize.authorize(request.user,['superuser']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
     if request.method == "POST" :
@@ -86,7 +86,7 @@ def create_report_table(request):
 
 
 def delete_report_table(request):
-    if not Authorize.authorize(request.user,['admin']) :        
+    if not Authorize.authorize(request.user,['superuser']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
     if 'report_table_id' in request.GET:
         rt = ReportTable.objects.get(id=request.GET['report_table_id'])
@@ -95,7 +95,7 @@ def delete_report_table(request):
 
 
 def run_report_table(request):
-    if not Authorize.authorize(request.user,['admin']) :        
+    if not Authorize.authorize(request.user,['superuser']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
 
@@ -124,7 +124,7 @@ def run_report_table(request):
 
 # Report Views *******************************************************************************
 def create_report(request):
-    if not Authorize.authorize(request.user,['admin']) :        
+    if not Authorize.authorize(request.user,['superuser']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
     if request.method == "POST" :
@@ -169,7 +169,7 @@ def create_report(request):
             
 
 def delete_report(request):
-    if not Authorize.authorize(request.user,['admin']) :        
+    if not Authorize.authorize(request.user,['superuser']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
     if 'report_id' in request.GET:
@@ -181,7 +181,7 @@ def delete_report(request):
 
 
 def run_report(request):
-    if not Authorize.authorize(request.user,['admin']) :        
+    if not Authorize.authorize(request.user,['superuser']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
     report_id = get_var_from_request(request,'report_id')
@@ -212,7 +212,7 @@ def run_report(request):
 
 
 def get_report_as_pdf(request):
-    if not Authorize.authorize(request.user,['admin']) :        
+    if not Authorize.authorize(request.user,['superuser']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
     
@@ -241,6 +241,10 @@ def get_system_time(request):
         ret = simplejson.dumps(ret)
         return HttpResponse(ret,mimetype='application/javascript')
                            
+
+
+def update_datasets(request):
+    pass
 
 
 # Utility Functions ********************************************************************************

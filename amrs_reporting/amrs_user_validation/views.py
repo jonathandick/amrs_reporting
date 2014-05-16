@@ -4,6 +4,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, HttpResponse
 from amrs_user_validation.models import *
+from amrs_interface.models import *
 from utilities import *
 
 def access_denied(request) :
@@ -26,10 +27,10 @@ def my_login(request):
         if user is not None:
             if user.is_active: 
                 login(request,user)
+                request.session.set_expiry(900)
                 return HttpResponseRedirect('../')
             else : error = 'User is not active.'
         else : error = 'Username and password do not match'
-
         return render(request,'amrs_user_validation/login.html',
                       {'error' : error}
                       )
@@ -59,7 +60,12 @@ def create_amrs_user(request):
             return HttpResponseRedirect('/amrs_user_validation/manage_amrs_users')
     else : 
         rts = RoleType.objects.all()
-        return render(request,'amrs_user_validation/create_user.html',{'role_types':rts})
+        locations = Location.get_all()
+
+        return render(request,'amrs_user_validation/create_user.html',
+                      {'role_types':rts,
+                       'locations':locations,
+                       })
         
 
             
@@ -83,13 +89,18 @@ def edit_amrs_user(request):
         a = AMRSUser.objects.get(id=amrs_user_id)
         role_type_id=-1
         roles = Role.objects.filter(user_id=a.id)
+        locations = Location.get_all()
+        location_privilege_ids = a.get_location_privilege_ids()
+
         if len(roles) > 0 : role_type_id = roles[0].role_type_id
-        print str(role_type_id) + ' ************************'
+
         rts = RoleType.objects.all()
         return render(request,'amrs_user_validation/edit_user.html',
                       {'amrs_user':a,
                        'role_type_id':role_type_id,
                        'role_types':rts,
+                       'locations':locations,
+                       'location_privilege_ids':location_privilege_ids
                        }
                       )            
             
@@ -114,7 +125,10 @@ def manage_amrs_users(request):
     if not Authorize.authorize(request.user,['admin']) :
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
     amrs_users = AMRSUser.objects.all()
-    return render(request,'amrs_user_validation/manage_users.html',{'amrs_users':amrs_users})
+    return render(request,'amrs_user_validation/manage_users.html',
+                  {'amrs_users':amrs_users,
+                   })
+
                       
 
 

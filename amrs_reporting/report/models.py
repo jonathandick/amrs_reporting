@@ -147,7 +147,7 @@ class ReportTable(models.Model):
     # returns a tuple of (cols,rows)
     # parameters is a dictionary generally obtained from a request object
     # parameter values is a tuple that can be supplied directly for purposes of running the query               
-    def run_report_table(self,parameters=None,parameter_values=None,as_dict=False) :
+    def run_report_table(self,parameters=None,parameter_values=None,as_dict=False,limit=None) :
         cols = None
         rows = None
         try:
@@ -160,7 +160,9 @@ class ReportTable(models.Model):
                 parameter_values = self.get_parameter_values(parameters)
 
             print parameter_values
-            cur.execute(self.report_table_sql,parameter_values)
+            sql = self.report_table_sql
+            if limit : sql += ' limit 0,' + str(limit)
+            cur.execute(sql,parameter_values)
 
             #assume that the last query in the string is the query intended to produce the data table
             rows = cur.fetchall()

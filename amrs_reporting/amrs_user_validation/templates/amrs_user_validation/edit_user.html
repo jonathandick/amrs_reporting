@@ -47,6 +47,12 @@
       <td>Username: </td><td><input type='text' name='username' value='{{amrs_user.username}}'/></td>
     </tr>
     <tr>
+      <td>Password: </td><td><input type='password' name='password'/></td>
+    </tr>
+    <tr>
+      <td>Retype Password: </td><td><input type='password' name='password2'/></td>
+    </tr>
+    <tr>
       <td>Role: </td>
       <td>
 	<select name='role_type_id'>
@@ -57,12 +63,14 @@
 	</select>
     </tr>
     <tr>
-      <td>Password: </td><td><input type='password' name='password'/></td>
-    </tr>
-    <tr>
-      <td>Retype Password: </td><td><input type='password' name='password2'/></td>
-    </tr>
-
+      <td>Location Privileges</td>
+      <td>
+	<select name='location_privilege_ids' multiple>
+	  <option value='-1' {%if -1 in location_privilege_ids%}selected{%endif%}>All Locations</option>
+	  {%for location in locations %}
+	  <option value='{{location.location_id}}' {%if location.location_id in location_privilege_ids%}selected{%endif%}>{{location.name}}</option>
+	  {%endfor%}
+	</select>
     <tr>
       <td><input type='submit' value='Edit user'/></td><td></td>
     </tr>

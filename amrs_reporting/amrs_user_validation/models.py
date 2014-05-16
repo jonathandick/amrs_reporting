@@ -2,20 +2,25 @@ from django.db import models
 from django.contrib.auth.models import User                                                                                                             
 from datetime import date, time, datetime, timedelta                                                                                                    
 from django.db.models import Avg,Min,Max,Count,Q,Sum                                                                                                     
+from amrs_interface.models import *
 from utilities import *
-# Create your models here.
 
 
 class Authorize(models.Model):
     
     @staticmethod
-    def authorize(user,permitted_roles,permitted_locations=None):
+    def authorize(user,permitted_roles=None,permitted_locations=None):        
         a = AMRSUser.objects.get(username=user.username)
-        if a.has_role([RoleType.SUPERUSER_ROLE_TYPE_ID]): return True
-        has_location_privilege = a.has_location_privilege(permitted_locations)
-        role_type_ids = RoleType.objects.filter(name__in=role_type_names).values_list('id',flat=True)
-        has_role = a.has_role(role_type_ids)
-        return (has_role and has_location_privilege) or a.has_role(['superuser'])
+        
+
+        if permitted_roles is None : return True
+        elif a.has_role([RoleType.SUPERUSER_ROLE_TYPE_ID]): return True
+        else :
+            has_location_privilege = a.has_location_privilege(permitted_locations)
+            role_type_ids = RoleType.objects.filter(name__in=permitted_roles).values_list('id',flat=True)
+        
+            has_role = a.has_role(role_type_ids)
+            return (has_role and has_location_privilege)
 
 
     @staticmethod
@@ -46,6 +51,7 @@ class Role(models.Model) :
 
 
 class LocationPrivilege(models.Model):
+    ALL_LOCATIONS = -1
     user_id = models.IntegerField()
     location_id = models.IntegerField()
 
@@ -131,6 +137,13 @@ class AMRSUser(models.Model):
                 r = Role(user_id=self.id,role_type_id=role_type_id)
                 r.save()
 
+
+            location_privilege_ids = args.getlist('location_privilege_ids')
+            LocationPrivilege.objects.filter(user_id=self.id).delete()
+            for location_id in location_privilege_ids:
+                LocationPrivilege(user_id=self.id,location_id=location_id).save()
+
+
         return messages
 
 
@@ -154,16 +167,27 @@ class AMRSUser(models.Model):
     def has_role(self,role_type_ids):
         
         if role_type_ids is None : return True
-        roles = Role.objects.filter(user_id=self.id,role_type_id__in=role_type_ids)
-        return len(roles) > 0
+        print role_type_ids
+        return Role.objects.filter(user_id=self.id,role_type_id__in=role_type_ids).exists()
+
+    def get_role_type_names(self):
+        role_type_ids = Role.objects.filter(user_id=self.id).values_list('role_type_id',flat=True)
+        return ', '.join(RoleType.objects.filter(id__in=role_type_ids).values_list('name',flat=True))
+
 
 
     def has_location_privilege(self,location_ids):
         if location_ids is None : return True
-
-        location_privileges = LocationPrivilege.objects.filter(user_id=self.id,location_id__in=location_ids)
-        return len(location_privileges) > 0
+        has_all = LocationPrivilege.objects.filter(user_id=self.id,location_id=-1).exists()
+        if has_all : return True
+        else : return LocationPrivilege.objects.filter(user_id=self.id,location_id__in=location_ids).exists()
     
 
 
+    def get_location_privileges(self):
+        return LocationPrivilege.objects.filter(user_id=self.id)
+
+    def get_location_privilege_ids(self):
+        return LocationPrivilege.objects.filter(user_id=self.id).values_list('location_id',flat=True)
+        
                    

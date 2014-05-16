@@ -34,7 +34,7 @@
     <tr>
       <td>{{user.username}}</td>
       <td>{{user.last_name}}, {{user.first_name}}</td>
-      <td>{{user.role}}</td>
+      <td>{{user.get_role_type_names}}</td>
       <td>
 	<a href='/amrs_user_validation/edit_amrs_user?amrs_user_id={{user.id}}'>Edit</a> | 
 	<a href='/amrs_user_validation/delete_amrs_user?amrs_user_id={{user.id}}'>Delete</a>

@@ -47,21 +47,30 @@
       <td>Username: </td><td><input type='text' name='username'/></td>
     </tr>
     <tr>
-      <td>Roles</td>
-      <td>
-	<select name='role_type_id'>
-	  {% for role_type in role_types %}
-	  <option value='{{role_type.id}}'>{{role_type.name}}</option>
-	  {% endfor %}
-	</select>
-	</td>
-    </tr>    
-    <tr>
       <td>Password: </td><td><input type='password' name='password'/></td>
     </tr>
     <tr>
       <td>Retype Password: </td><td><input type='password' name='password2'/></td>
     </tr>
+    <tr>
+      <td>Role: </td>
+      <td>
+	<select name='role_type_id'>
+	  <option></option>
+	  {% for role_type in role_types %}
+	  <option value='{{role_type.id}}' {%if role_type_id == role_type.id%}selected{%endif%}>{{role_type.name}}</option>
+	  {% endfor %}
+	</select>
+    </tr>
+    <tr>
+      <td>Location Privileges</td>
+      <td>
+	<select name='location_privilege_ids' multiple>
+	  <option value='-1' {%if -1 in location_privilege_ids%}selected{%endif%}>All Locations</option>
+	  {%for location in locations %}
+	  <option value='{{location.location_id}}'>{{location.name}}</option>
+	  {%endfor%}
+	</select>
     <tr>
       <td><input type='submit' value='Create user'/></td><td></td>
     </tr>

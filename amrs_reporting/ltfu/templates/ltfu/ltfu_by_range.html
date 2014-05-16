@@ -4,13 +4,25 @@
 
 <script type="text/javascript" language="javascript" src="{% static 'js/flot/jquery.flot.js'%}"></script>
 <script type="text/javascript">
+
+  function download_defaulter_list() {
+      var form = document.getElementById('defaulter_list_form');
+      form.action = '/ltfu/ltfu_get_defaulter_list';
+      form.submit();
+  }
+
+  function view_defaulter_list() {
+      var form = document.getElementById('defaulter_list_form');
+      form.action = '/ltfu/ltfu_by_range';
+      form.submit();
+  }
+
   
   $(document).ready(function() {
 
   $('#report').dataTable( {
   "width":"100%",
   "sScrollY": "auto",
-  "aoColumnDefs": [{ "foo": "numeric", "aTargets": [ 0 ] }],
   "bJQueryUI": true,
   "bPaginate": false,
   "bLengthChange": false,
@@ -40,8 +52,9 @@
 
       
 
+<br/>
 <div id='datatable_wrapper'>
-<h3> Clinic: {{location.name}} </h3>
+<h3> {% if location_group%}Clinic Group: {{location_group.name}}{%else%}Clinic: {{location.name}}{%endif%} </h3>
 <a href='ltfu_get_defaulter_list?location_id={{location.location_id}}&start_range={{start_range}}&end_range={{end_range}}&start_range_high_risk={{start_range_high_risk}}'>Download Defaulter List</a>
 <br/><br/>
 <table border='1'>
@@ -52,8 +65,42 @@
   <tr><td><b>Low Risk</b></td><td>{{counts.low}}</td></tr>
   <tr><td><b>No RTC Date</b></td><td>{{counts.no_rtc_date}}</td></tr>
   <tr><td><b>LTFU</b></td><td>{{counts.LTFU}}</td></tr>
-
+  <tr><td><b>On List > 2 wks</b></td><td>{{counts.on_list_two_weeks}}</td></tr>
+  
 </table>
+    <form action='/ltfu/ltfu_by_range' method='post' id='defaulter_list_form'> {% csrf_token %}
+    <table>
+      <tr>
+	<td>Clinic:</td>
+	<td>
+	  <select name='location_id'>
+	    <option></option>
+	    {% for l in locations %}
+	    <option value='{{l.location_id}}' {%if l.location_id == location.location_id%}selected{%endif%}>{{l.name}}</option>
+	    {% endfor %}
+	  </select>
+	  <br/>or<br/>
+	  <select name='location_group_id'>
+	    <option></option>
+	    {% for g in location_groups %}
+	    <option value='{{g.id}}' {%if g.id == location_group.id%}selected{%endif%}>{{g.name}}</option>
+	    {%endfor%}
+	  </select>
+	</td>
+	 <td>start range high risk:</td>
+	 <td><input type='text' name='start_range_high_risk' value='{{start_range_high_risk}}' size='1'/></td>
+	<td>start range:</td>
+	<td><input type='text' name='start_range' value='{{start_range}}' size='1'/></td>
+	<td>end range:</td>
+	<td><input type='text' name='end_range' value='{{end_range}}' size='1'/></td>
+	<td>Limit to:</td>
+	<td><input type='text' name='limit' size='1' value='{%if limit%}{{limit}}{%endif%}'/></td>
+	<td><input type='button' onClick='download_defaulter_list()' value='Download List'/></td>
+	<td><input type='button' onClick='view_defaulter_list()'  value='View'/></td>
+      </tr>	  
+    </table>
+    </form>
+
 <hr/>
 
 <table id='report' class="displays">
@@ -73,13 +120,13 @@
     {% for row in ltfu_by_range %}
     <tr>
       <td>{{forloop.counter}}</td>
-      <td><a href='https://amrs.ampath.or.ke/amrs/patientDashboard.form?patientId={{row.person_id}}'>{{row.person_id}}</a></td>
+      <td><a href='https://amrs.ampath.or.ke/amrs/patientDashboard.form?patientId={{row.person_id}}' target='_newtab'>{{row.person_id}}</a></td>
       <td>{{row.identifier}}</td>
       <td>{{row.risk_category}}</td>
       <td>{{row.encounter_datetime}}</td>
       <td>{{row.name}}</td>
       <td>{{row.rtc_date}}</td>
-      <td>{{row.days_from_rtc_date}}</td>
+      <td>{{row.days_since_rtc}}</td>
     </tr>
     {%endfor%}
     </tbody>

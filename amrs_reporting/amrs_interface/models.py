@@ -18,7 +18,7 @@ class Location(models.Model):
         locations = {}
         con = None        
         try :
-            sql = 'select location_id, name from amrs.location where retired=' + str(voided)
+            sql = 'select location_id, name from amrs.location where retired=' + str(retired) + ' order by name'
             con = mdb.connect(Location.HOST,Location.USER,Location.PASSWORD,Location.DATABASE)
             cur = con.cursor(mdb.cursors.DictCursor)
             cur.execute(sql)
@@ -33,11 +33,11 @@ class Location(models.Model):
 
 
     @staticmethod
-    def get_names(voided=0,subset=None):
+    def get_names(retired=0,subset=None):
         names = {}
         con = None
         try :
-            sql = 'select name from amrs.location where retired=' + str(voided)
+            sql = 'select name from amrs.location where retired=' + str(retired)
             if subset: sql += ' and location_id in ' + subset
             sql += ' order by name'
             con = mdb.connect(Location.HOST,Location.USER,Location.PASSWORD,Location.DATABASE)
@@ -205,6 +205,7 @@ class DerivedGroup(models.Model):
         description = get_var(args,'description')
         members = args.getlist('members')
         member_ids = get_var(args,'member_ids')
+
         if name and base_class and (members or member_ids):
             self.name = name
             self.base_class = base_class
@@ -219,6 +220,7 @@ class DerivedGroup(models.Model):
             for member_id in member_ids :
                 dg = DerivedGroupMember(derived_group_id=self.id,member_id=member_id)
                 dg.save()
+
                     
 
 class DerivedGroupMember(models.Model):

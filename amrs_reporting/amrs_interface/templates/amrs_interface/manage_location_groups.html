@@ -1,0 +1,75 @@
+{% extends "amrs_interface/base.html" %}
+
+
+{% block content %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+  $('#location_groups').dataTable( {
+  "sScrollY": "150px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  } );
+
+</script>
+<h2>Manage Location Groups</h2>
+
+<table id='location_groups'>
+  <thead>
+    <tr>
+      <th>Location Group</th>
+      <th>Description</th>
+      <th>Locations</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for g in location_groups %}
+    <tr>
+      <td>{{g.name}}</td>
+      <td>{{g.description}}</td>
+      <td>{% for row in g.get_member_names%}{{row.name}}, {%endfor%}</td>
+      <td><a href='/amrs_interface/edit_location_group?location_group_id={{g.id}}'>Edit</a> | <a href='/amrs_interface/delete_location_group?location_group_id={{g.id}}'>Delete</a></td>
+    </tr>
+    {%endfor%}
+  </tbody>
+</table>
+
+<h2>Create Location Group</h2>
+
+<form method='post' action='/amrs_interface/edit_location_group'>
+{%csrf_token%}
+<input type='hidden' name='base_class' value='Location'/>
+<table>
+  <tbody>
+    <tr>
+      <td>Name</td><td><input type='text' name='name' value='{{location_group.name}}' size='30'/></td>
+    </tr>
+    <tr>
+      <td>Description</td><td><textarea name='description' rows='5' cols='50'>{%if g.description%} {{location_group.description}} {%endif%}</textarea></td>
+    </tr>
+    <tr>
+      <td>Members</td>
+      <td>
+	<select name='members' multiple>
+	  {% for l in locations %}
+	  <option value={{l.location_id}}>{{l.name}}</option>
+	  {%endfor%}
+	</select>
+      </td>
+    </tr>
+    <tr><td>Member Ids</td><td><textarea name='member_ids' rows='5' cols='50'></textarea></td></tr>
+    <tr><td><input type='submit'?></td><td></td></tr>
+  </tbody>
+</table>
+</form>
+
+
+{% endblock %}

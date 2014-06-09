@@ -1,0 +1,56 @@
+{% extends "amrs_user_validation/base.html" %}
+
+
+{% block content %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+  $('#role_types').dataTable( {
+  "sScrollY": "150px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  } );
+
+</script>
+
+<table id='role_types'>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Description</th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for role_type in role_types %}
+    <tr>
+      <td>{{role_type.name}}</td>
+      <td>{{role_type.description}}</td>
+      <td>
+	<a href='/amrs_user_validation/edit_role_type?role_type_id={{role_type.id}}'>Edit</a> | 
+	<a href='/amrs_user_validation/delete_role_type?role_type_id={{role_type.id}}'>Delete</a>
+      </td>
+    </tr>
+    {%endfor%}
+  </tbody>
+</table>
+<br/>
+<hr/>
+<h3>Create New Role Type</h3>	
+<form method='post' action='/amrs_user_validation/edit_role_type'>
+  {%csrf_token%}
+  <table>
+    <tr><td>Role Type:</td><td><input type='text' size='30' name='name'/></td></tr>
+    <tr><td>Description:</td><td><textarea name='description' rows='5' cols='50'></textarea></td></tr>
+    <tr><td><input type='submit'</input></td><td></td></tr>      
+  </table>
+</form>
+      
+{% endblock %}

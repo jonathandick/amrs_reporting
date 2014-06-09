@@ -1,0 +1,33 @@
+{% extends "amrs_user_validation/base.html" %}
+
+
+{% block content %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+  $('#roles').dataTable( {
+  "sScrollY": "250px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  } );
+
+</script>
+
+<form method='post' action='/amrs_user_validation/edit_role_type'>
+  {%csrf_token%}
+  <input type='hidden' name='role_type_id' value='{{role_type_id}}'/>
+  <table>
+    <tr><td>Role Type:</td><td><input type='text' size='50' name='name' value={{role_type.name}}/></td></tr>
+    <tr><td>Description:</td><textarea name='description'>{{role_type.description}}</textarea></tr>
+    <tr><td><input type='submit'</input></td><td></td></tr>      
+  </table>
+</form>
+      
+{% endblock %}

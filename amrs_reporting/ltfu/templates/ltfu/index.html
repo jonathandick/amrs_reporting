@@ -4,6 +4,11 @@
 
 {% block content %}
 
+<script>
+
+</script>
+
+
 <script type="text/javascript">
   function download_defaulter_list() {
       var form = document.getElementById('defaulter_list_form');
@@ -17,27 +22,50 @@
       form.submit();
   }
 
+
+
+jQuery.extend( jQuery.fn.dataTableExt.oSort, {
+    "percent-pre": function ( a ) {
+        var x = (a == "-") ? 0 : a.replace( /%/, "" );
+        return parseFloat( x );
+    },
+ 
+    "percent-asc": function ( a, b ) {
+        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
+    },
+ 
+    "percent-desc": function ( a, b ) {
+        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
+    }
+} );
+
   $(document).ready(function() {
 
-  jQuery.fn.dataTableExt.oSort['pct-asc']  = function(x,y) {
-    x = parseFloat(x);
-    y = parseFloat(y);
-     
-    return ((x < y) ? -1 : ((x > y) ?  1 : 0));
-  };
-  
-  jQuery.fn.dataTableExt.oSort['pct-desc'] = function(x,y) {
-      x = parseFloat(x);
-      y = parseFloat(y);
-     
-      return ((x < y) ?  1 : ((x > y) ? -1 : 0));
-  };
+  $('#system_indicators').dataTable( {
+  "sScrollY": "100px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
 
-  $('#key_indicators').dataTable( {
+
+  $('#clinic_indicators').dataTable( {
+  "sScrollY": "100px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+
+  $('#defaulters_by_clinic').dataTable( {
   "sScrollY": "150px",
-  "aaSorting" : [[0,"asc"]],
-  "aaColumns" : [null,null,null,null,null,null,null],
-  "aoColumnDefs" : [{"sType":"pct","aTargets":[6]}],
+  "columnDefs": [{"targets":3,"type":"percent"}],  
   "bJQueryUI": true,
   "bPaginate": false,
   "bLengthChange": false,
@@ -56,76 +84,15 @@
   $("#end_date_provider_indicators").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
 
 
+      
+
 
   });
 
 
 </script>
 
-<br/>
-<!--
-<table id='key_indicators'>
-  <thead>
-    <tr>
-      <td>Clinic</td>
-      <td>Total</td>      
-      <td>Total pre-LTFU</td>
-      <td>LTFU</td>
-      <td>Untraceable</td>
-    </tr>
-  </thead>
-  <tbody>
-    {% for row in key_indicators %}
-    <tr>
-      <td><a href='ltfu_by_range?location_id={{row.location_id}}'>{{row.name}}</a></td>
-      <td>{{row.total}}</td>
-      <td>{{row.num_pre_ltfu}}</td>
-      <td>{{row.num_ltfu}}</td>
-      <td>{{row.num_untraceable}}</td>
-    </tr>
-    {% endfor %}
-    </tbody>
-  </table>
--->
-<table id='key_indicators'>
-  <thead>
-    <tr>
-      <td>Clinic</td>
-      {% for period in ltfu_periods%}
-      <td>{{period}}</td>
-      {%endfor%}
-      <td>Total Change</td>
-    </tr>
-  </thead>
-  <tbody>
-    {% for clinic,ltfu in ltfu_by_clinic.iteritems %}    
-    <tr>      
-      <td>{{clinic}}</td>
-      {% for period in ltfu_periods%}
-      {% with period|add:'_diff' as period_diff %}
-      {% with ltfu|get_from_dict:period as num_ltfu%}
-      <td>{{num_ltfu}} {%if ltfu|get_from_dict:period_diff %}({{ltfu|get_from_dict:period_diff}} | {{ltfu|get_from_dict:period_diff|percentage:num_ltfu}}){%endif%}</td>
-      {%endwith%}
-      {%endwith%}
-      {%endfor%}
-
-      {% with ltfu|get_from_dict:'initial_period' as initial_period%}
-      {% with ltfu|get_from_dict:initial_period as initial_ltfu%}      
-      {% with ltfu|get_from_dict:'final_period' as final_period%}
-      {% with ltfu|get_from_dict:final_period as final_ltfu%}
-      <td>{{final_ltfu|get_percentage_difference:initial_ltfu}}</td>
-      {%endwith%}
-      {%endwith%}
-      {%endwith%}
-      {%endwith%}
-      
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
-  
-  
-
+<h3>Retention Control Panel</h3>
 <ul>
   <li> <b>Identify patients who missed their last appointment</b>
     <form action='/ltfu/ltfu_by_range' method='post' id='defaulter_list_form'> {% csrf_token %}
@@ -230,7 +197,121 @@
   </li>
 -->
   <li><a href='/ltfu/view_outreach_worker_forms_done'>View outreach worker forms done in past 7 days</a></li>
+  <li><a href='/ltfu/view_data_entry_forms_done'>View data entry forms done in past 7 days</a></li>
     
 </ul>
+
+<hr>
+
+<h3>Key System Indicators</h3>
+<table id='system_indicators'>
+  <thead>
+    <tr>
+      <td>year</td>
+      <td>month</td>
+      <td># of forms </td>
+      <td>forms / day </td>
+      <td># patients <br/>
+	  followed up</td>
+      <td># being traced</td>
+      <td>% found</td>
+      <td>% reached <br/>
+	  by phone</td>
+      <td># hiv+, not dead</td>
+      <td>rtc rate, overall</td>
+      <td>rtc rate, <br/>
+          due to return</td>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in system_indicators %}    
+    <tr>      
+      <td>{{row.year}}</td>
+      <td>{{row.month}}</td>
+      <td>{{row|get:'# of forms'}}</td>
+      <td>{{row|get:'forms / day'|floatformat:1}}</td>
+      <td>{{row|get:'# patients followed-up'}}</td>
+      <td>{{row|get:'# being traced'}}</td>
+      <td>{{row|get:'perc found'|make_percent:1}}</td>
+      <td>{{row|get:'perc reached by phone'|make_percent:1}}</td>
+      <td>{{row|get:'# followed up, not dead, HIV+'}}</td>
+      <td>{{row|get:'RTC rate, overall'|make_percent:1}}</td>
+      <td>{{row|get:'RTC rate, due to return'|make_percent:1}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<br/>
+<hr>
+
+
+<h3>Key System Indicators By Clinic</h3>
+<table id='clinic_indicators'>
+  <thead>
+    <tr>
+      <td>Clinic</td>
+      <td>year</td>
+      <td>month</td>
+      <td># of forms </td>
+      <td>forms / day </td>
+      <td># patients <br/>
+	  followed up</td>
+      <td># being traced</td>
+      <td>% found</td>
+      <td>% reached <br/>
+	  by phone</td>
+      <td># hiv+, <br/>
+          not dead</td>
+      <td>rtc rate, overall</td>
+      <td>rtc rate, <br/>
+          due to return</td>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in clinic_indicators %}    
+    <tr>
+      <td>{{row.clinic}}</td>
+      <td>{{row.year}}</td>
+      <td>{{row.month}}</td>
+      <td>{{row|get:'# of forms'}}</td>
+      <td>{{row|get:'forms / day'|floatformat:1}}</td>
+      <td>{{row|get:'# patients followed-up'}}</td>
+      <td>{{row|get:'# being traced'}}</td>
+      <td>{{row|get:'perc found'|make_percent:1}}</td>
+      <td>{{row|get:'perc reached by phone'|make_percent:1}}</td>
+      <td>{{row|get:'# followed up, not dead, HIV+'}}</td>
+      <td>{{row|get:'RTC rate, overall'|make_percent:1}}</td>
+      <td>{{row|get:'RTC rate, due to return'|make_percent:1}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<br/>
+<hr>
+
+
+
+
+<h3>Current Defaulter Totals</h3>
+<table id='defaulters_by_clinic'>
+  <thead>
+    <tr>
+      <td>Clinic</td>      
+      <td># defaulting</td>
+      <td>% on list > 2 weeks</td>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in defaulters_by_clinic %}
+    <tr>
+      <td>{{row.clinic}}</td>
+      <td>{{row|get:'requiring_follow_up'}}</td>
+      <td>{{row|get:'on_list_gt_2_week' | percentage:row.requiring_follow_up}}</td>
+    </tr>
+    {%endfor%}    
+  </tbody>
+</table>
+  
+<hr>
 
 {% endblock %}

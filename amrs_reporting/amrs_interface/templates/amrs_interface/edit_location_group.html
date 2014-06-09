@@ -1,0 +1,64 @@
+{% extends "amrs_interface/base.html" %}
+
+
+{% block content %}
+
+<script type="text/javascript">
+  $(document).ready(function() {
+
+  $('#location_groups').dataTable( {
+  "sScrollY": "250px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  $('#reports').dataTable( {
+  "sScrollY": "100px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  } );
+
+</script>
+<h2>Create Location Group</h2>
+
+<form method='post' action='/amrs_interface/edit_location_group'>
+{%csrf_token%}
+<input type='hidden' name='location_group_id' value='{{location_group.id}}'/>
+<input type='hidden' name='base_class' value='Location'/>
+<table>
+  <tbody>
+    <tr>
+      <td>Name</td><td><input type='text' name='name' value='{{location_group.name}}' size='30'/></td>
+    </tr>
+    <tr>
+      <td>Description</td><td><textarea name='description' rows='5' cols='50'>{%if location_group.description%}{{location_group.description}} {%endif%}</textarea></td>
+    </tr>
+    <tr>
+      <td>Members</td>
+      <td>
+	<select name='members' multiple>
+	  {% for l in locations%}
+	  <option value={{l.location_id}} {% if l.location_id in existing_member_ids %}selected {%endif%}>{{l.name}}</option>
+	  {%endfor%}
+	</select>
+      </td>
+    </tr>
+    <tr><td>Member Ids</td><td><textarea name='member_ids' rows='5' cols='50'></textarea></td></tr>
+    <tr><td><input type='submit'?></td><td></td></tr>
+  </tbody>
+</table>
+
+
+
+
+{% endblock %}

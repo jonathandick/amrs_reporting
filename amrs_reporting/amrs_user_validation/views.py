@@ -27,7 +27,7 @@ def my_login(request):
         if user is not None:
             if user.is_active: 
                 login(request,user)
-                request.session.set_expiry(900)
+                request.session.set_expiry(1800)
                 return HttpResponseRedirect('../')
             else : error = 'User is not active.'
         else : error = 'Username and password do not match'

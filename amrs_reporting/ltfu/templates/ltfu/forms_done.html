@@ -1,0 +1,78 @@
+{% extends "ltfu/base.html" %}
+{% load staticfiles %}
+{% load ltfu_filters %}
+{% block content %}
+
+<script type="text/javascript" language="javascript" src="{% static 'js/flot/jquery.flot.js'%}"></script>
+<script type="text/javascript">
+
+  function download_defaulter_list() {
+      var form = document.getElementById('defaulter_list_form');
+      form.action = '/ltfu/ltfu_get_defaulter_list';
+      form.submit();
+  }
+
+  function view_defaulter_list() {
+      var form = document.getElementById('defaulter_list_form');
+      form.action = '/ltfu/ltfu_by_range';
+      form.submit();
+  }
+
+  
+  $(document).ready(function() {
+
+  $('#forms_done').dataTable( {
+  "width":"100%",
+  "sScrollY": "auto",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false
+   } );
+
+  } );
+
+</script>
+
+<table id='forms_done' class="displays">
+  <thead>
+    <tr>
+      <th class="gradeA">Given Name</th>
+      <th class="gradeA">Family Name</th>
+      <th class="gradeA">{{-7|get_from_today}}</th>
+      <th class="gradeA">{{-6|get_from_today}}</th>
+      <th class="gradeA">{{-5|get_from_today}}</th>
+      <th class="gradeA">{{-4|get_from_today}}</th>
+      <th class="gradeA">{{-3|get_from_today}}</th>
+      <th class="gradeA">{{-2|get_from_today}}</th>
+      <th class="gradeA">{{-1|get_from_today}}</th>
+      <th class="gradeA">{{0|get_from_today}}</th>
+      <th class="gradeA">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in forms_done %}
+    <tr>
+      <td>{{row.given_name}}</td>
+      <td>{{row.family_name}}</td>
+      <td>{{row|get:'-7'}}</td>
+      <td>{{row|get:'-6'}}</td>
+      <td>{{row|get:'-5'}}</td>
+      <td>{{row|get:'-4'}}</td>
+      <td>{{row|get:'-3'}}</td>
+      <td>{{row|get:'-2'}}</td>
+      <td>{{row|get:'-1'}}</td>
+      <td>{{row|get:'0'}}</td>
+      <td>{{row.total}}</td>
+    </tr>
+    {%endfor%}
+    </tbody>
+</table>
+<br/>
+<a href='/ltfu/index'>Return to Retention Home</a>
+
+
+
+{% endblock %}

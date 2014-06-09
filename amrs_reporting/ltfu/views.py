@@ -14,6 +14,7 @@ from xlwt import Workbook, easyxf,Formula
 from xlutils.copy import copy
 import pytz
 from datetime import datetime, date
+import simplejson
 
 # Create your views here.
 
@@ -26,51 +27,50 @@ def index(request):
     locations = Location.get_locations()
     location_groups = DerivedGroup.objects.filter(base_class='Location').order_by('name')
 
-    #rt = ReportTable.objects.filter(name='retention_key_indicators')[0]    
-    #key_indicators = rt.run_report_table(as_dict=True)['rows']
     key_indicators = {}
     providers = Provider().get_outreach_providers()
 
-    ltfu_by_clinic = request.session.get('ltfu_by_clinic')
-    ltfu_periods = request.session.get('ltfu_periods')
-    if ltfu_by_clinic is None :
-        ltfu_date = date(2014,1,1)
-        cur_date = date.today()    
-        rt = ReportTable.objects.filter(name='ltfu_by_clinic')[0]
-        ltfu_by_clinic = {}
-        ltfu_periods = []
-        final_period = ''
-        prev_ltfu = {}
-        while ltfu_date <= cur_date :
-            parameter_values = (str(ltfu_date),)
-            rows = rt.run_report_table(parameter_values=parameter_values,as_dict=True)['rows']
-            for row in rows :
-                if row['name'] in ltfu_by_clinic : 
-                    ltfu_by_clinic[row['name']][str(ltfu_date)]=row['num_ltfu'] 
-                    ltfu_by_clinic[row['name']][str(ltfu_date) + '_diff'] = row['num_ltfu'] - prev_ltfu[row['name']]
+    defaulters_by_clinic = request.session.get('defaulters_by_clinic')
+    if defaulters_by_clinic is not None : defaulters_by_clinic = simplejson.loads(defaulters_by_clinic)
+    
+    system_indicators = request.session.get('system_indicators')
+    if system_indicators is not None : system_indicators = simplejson.loads(system_indicators)
 
-                    # this will be rewritten each time so that the last iteration is the final period
-                    ltfu_by_clinic[row['name']]['final_period'] = str(ltfu_date)
-                else : 
-                    ltfu_by_clinic[row['name']] = {str(ltfu_date):row['num_ltfu']}
-                    ltfu_by_clinic[row['name']]['initial_period']=str(ltfu_date)
-                prev_ltfu[row['name']] = row['num_ltfu']
+    clinic_indicators = request.session.get('clinic_indicators')
+    if clinic_indicators is not None : clinic_indicators = simplejson.loads(clinic_indicators)
 
-            ltfu_periods.append(str(ltfu_date))
-            if ltfu_date.month == 12 : ltfu_date = date(ltfu_date.year+1,1,1)
-            else : ltfu_date = date(ltfu_date.year,ltfu_date.month+1,1)
-                    
 
-        request.session['ltfu_by_clinic'] = ltfu_by_clinic
-        request.session['ltfu_periods'] = ltfu_periods
+    if defaulters_by_clinic is None :
+        rt = ReportTable.objects.get(name='retention_key_indicators_system')
+        system_indicators = rt.run_report_table(as_dict=True)['rows']
+
+        rt = ReportTable.objects.get(name='retention_key_indicators_clinic')
+        clinic_indicators = rt.run_report_table(as_dict=True)['rows']
+
+        rt = ReportTable.objects.get(name='retention_defaulters_by_clinic') 
+        defaulters_by_clinic = rt.run_report_table(as_dict=True)['rows']
+
+                
+        if system_indicators : 
+            print 'saving system indicators to session'
+            request.session['system_indicators'] = simplejson.dumps(system_indicators)
+
+        if clinic_indicators : 
+            print 'saving clinic indicators to session'
+            request.session['clinic_indicators'] = simplejson.dumps(clinic_indicators)
+
+        if defaulters_by_clinic : 
+            print 'saving defaulters_by_clinic to session'
+            request.session['defaulters_by_clinic'] = simplejson.dumps(defaulters_by_clinic)
+
 
     return render(request,'ltfu/index.html',
                   {'locations':locations,
                    'location_groups':location_groups,
-                   'key_indicators':key_indicators,
+                   'system_indicators':system_indicators,
+                   'clinic_indicators':clinic_indicators,
                    'providers':providers,
-                   'ltfu_by_clinic':ltfu_by_clinic,
-                   'ltfu_periods':ltfu_periods,
+                   'defaulters_by_clinic':defaulters_by_clinic,
                    })
 
 
@@ -171,21 +171,32 @@ def ltfu_by_range(request):
 
     if location_ids:
         rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
-        parameter_values = (start_range_high_risk,start_range,end_range,location_ids)
+        parameter_values = (start_range_high_risk,start_range,end_range,location_ids,location_ids)
         table = rt.run_report_table(parameter_values=parameter_values,as_dict=True,limit=limit)['rows']
         
         counts = {'tracing':0,'high':0,'medium':0,'low':0,'LTFU':0,'total':0,'no_rtc_date':0,'untraceable':0,'on_list_two_weeks':0}
         total = 0
+        per_day = {}
         for row in table:
             if row['risk_category'] >= 0 :
                 
                 if row['risk_category'] == 0 : counts['tracing'] += 1
                 else : counts[risk_categories[row['risk_category']]] +=1            
                 counts['total'] +=1
-                if row['risk_category'] == 1 and row['days_since_rtc'] >= 22 : counts['on_list_two_weeks'] += 1 
-                elif row['days_since_rtc'] >= 44 : counts['on_list_two_weeks'] += 1 
+
+                if row['days_since_rtc'] : days_since_rtc = int(row['days_since_rtc'])
+                else : days_since_rtc = (date.today() - row['encounter_datetime']).days
+
+                if (row['risk_category'] == 1 and days_since_rtc >= 22) or days_since_rtc >=44 : counts['on_list_two_weeks'] += 1 
+
+                if days_since_rtc < 30 : days_since_rtc -= 8
+                else : days_since_rtc -= 30
+                if days_since_rtc in per_day : per_day[days_since_rtc] += 1
+                else : per_day[days_since_rtc] = 1
 
 
+
+        print per_day
         return render(request,'ltfu/ltfu_by_range.html',
                       {'ltfu_by_range':table,
                        'locations':locations,
@@ -197,6 +208,7 @@ def ltfu_by_range(request):
                        'start_range_high_risk':start_range_high_risk,
                        'limit':limit,
                        'counts':counts,
+                       'per_day':per_day,
                        }
                       )
     else :
@@ -259,10 +271,10 @@ def ltfu_get_defaulter_list(request):
     location_groups = DerivedGroup.objects.filter(base_class='Location').order_by('name')
 
 
-    if location_id or location_group_id:
+    if location_ids:
 
         rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
-        parameter_values = (start_range_high_risk,start_range,end_range,location_ids)
+        parameter_values = (start_range_high_risk,start_range,end_range,location_ids,location_ids)
         table = rt.run_report_table(parameter_values=parameter_values,as_dict=True,limit=limit)['rows']
         if location_id : location_name = location['name']
         else : location_name = g.name
@@ -327,6 +339,18 @@ def view_outreach_worker_forms_done(request):
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
     
     rt = ReportTable.objects.filter(name='outreach_worker_forms_done')[0]
+    table = rt.run_report_table(as_dict=True)['rows']
+     
+    return render(request,'ltfu/forms_done.html',
+                  {'forms_done' : table,
+                   })
+
+
+def view_data_entry_forms_done(request):
+    if not Authorize.authorize(request.user,['superuser']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+    
+    rt = ReportTable.objects.filter(name='data_entry_forms_done')[0]
     table = rt.run_report_table(as_dict=True)['rows']
      
     return render(request,'ltfu/forms_done.html',

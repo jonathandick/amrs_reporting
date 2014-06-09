@@ -1,0 +1,230 @@
+{% extends "ltfu/base.html" %}
+{% load staticfiles %}
+{% load ltfu_filters %}
+{% block content %}
+
+<script type="text/javascript" language="javascript" src="{% static 'js/flot/jquery.flot.js'%}"></script>
+<script type="text/javascript">
+  
+  $(document).ready(function() {
+
+  $('#worker_performance').dataTable( {
+  "width":"100%",
+  "sScrollY": "auto",
+  "aoColumnDefs": [{ "foo": "numeric", "aTargets": [ 0 ] }],
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth" : false
+   } );
+
+  $('#follow_up_results').dataTable( {
+  "width":"100%",
+  "sScrollY": "auto",
+  "aoColumnDefs": [{ "foo": "numeric", "aTargets": [ 0 ] }],
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth" : false
+   } );
+
+  $('#retention').dataTable( {
+  "width":"100%",
+  "sScrollY": "auto",
+  "aoColumnDefs": [{ "foo": "numeric", "aTargets": [ 0 ] }],
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth" : false
+   } );
+
+  $('#ampath_status').dataTable( {
+  "width":"100%",
+  "sScrollY": "auto",
+  "aoColumnDefs": [{ "foo": "numeric", "aTargets": [ 0 ] }],
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth" : false
+   } );
+
+  $("#system_performance_start_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
+  $("#system_performance_end_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
+
+  } );
+
+</script>
+
+<a href='/ltfu/index'>Return to Retention Home</a><br/>
+<form action='/ltfu/view_indicators_by_{{query_subject}}' method='post'> {% csrf_token %}
+  <table>
+    <tr>
+      <td>Start Date:</td>
+      <td><input type='text' name='start_date' id='system_performance_start_date' value='{{start_date}}'/></td>
+      <td>End Date:</td>
+      <td><input type='text' name='end_date' id='system_performance_end_date' value='{{end_date}}'/></td>
+      <td><input type='submit'/></td>
+    </tr>	  
+  </table>
+</form>
+
+
+<hr>
+
+<h4>Table 1. Worker Performance</h4>
+<table id='worker_performance' class="displays">
+  <thead>
+    <tr>
+      <th class="gradeA">Name</th>
+      <th class="gradeA"># of forms</th>
+      <th class="gradeA"># days with a form</th>
+      <th class="gradeA">forms / day</th>
+      <th class="gradeA"># of calls</th>
+      <th class="gradeA">calls / day</th>
+      <th class="gradeA"># of field follow-ups</th>
+      <th class="gradeA">field follow-ups / day</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in indicators %}
+    <tr>
+      <td>{%if row.location_id or row.provider_id %}{{row|get:'name'}} {% else %}Total{%endif%}</td>
+      <td>{{row|get:'# of forms'}}</td>
+      <td>{{row|get:'# days with a form'}}</td>
+      <td>{{row|get:'forms / day'|floatformat:"1"}}</td>
+      <td>{{row|get:'# of calls'|floatformat:"1"}}</td>
+      <td>{{row|get:'calls / day'|floatformat:"1"}}</td>
+      <td>{{row|get:'# of field follow-ups'}}</td>
+      <td>{{row|get:'field follow-ups / day'|floatformat:"1"}}</td>
+    </tr>
+    {%endfor%}
+    </tbody>
+</table>
+
+
+<h4>Table 2. Follow-up Results</h4>
+<table id='follow_up_results' class="displays">
+  <thead>
+    <tr>
+      <th class="gradeA">Name</th>
+      <th class="gradeA"># patients followed-up</th>
+      <th class="gradeA"># found</th>
+      <th class="gradeA">perc found</th>
+      <th class="gradeA"># being traced</th>
+      <th class="gradeA"># reached by phone</th>
+      <th class="gradeA">perc reached by phone</th>
+      <th class="gradeA"># found in field</th>
+      <th class="gradeA">perc found in field</th>
+      <th class="gradeA">perc claiming did not miss</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in indicators %}
+    <tr>
+      <td>{%if row.location_id or row.provider_id %}{{row|get:'name'}} {% else %}Total{%endif%}</td>
+      <td>{{row|get:'# patients followed-up'}}</td>
+      <td>{{row|get:'# found'}}</td>
+      <td>{{row|get:'perc found'|make_percent}}%</td>
+      <td>{{row|get:'# being traced'}}</td>
+      <td>{{row|get:'# reached by phone'}}</td>
+      <td>{{row|get:'perc reached by phone'|make_percent}}%</td>
+      <td>{{row|get:'# found in field'}}</td>
+      <td>{{row|get:'perc found in field'|make_percent}}%</td>
+      <td>{{row|get:'perc claiming did not miss'|make_percent}}%</td>
+    </tr>
+    {%endfor%}
+    </tbody>
+</table>
+
+
+<h4>Table 3. Retention</h4>
+<table id='retention' class="displays">
+  <thead>
+    <tr>
+      <td>{%if row.location_id or row.provider_id %}{{row|get:'name'}} {% else %}Total{%endif%}</td>
+      <th class="gradeA"># followed up, not dead, HIV+</th>
+      <th class="gradeA"># who returned</th>
+      <th class="gradeA">RTC rate, overall</th>
+      <th class="gradeA"># due to return</th>
+      <th class="gradeA"># who returned,due to return</th>
+      <th class="gradeA">RTC rate, due to return</th>
+      <th class="gradeA"># returning, reached by phone</th>
+      <th class="gradeA">RTC rate, reached by phone</th>
+      <th class="gradeA"># returning, found in field</th>
+      <th class="gradeA">RTC rate, found in field</th>
+      <th class="gradeA">RTC rate, untraceable</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in indicators %}
+    <tr>
+      <td>{%if row.location_id or row.provider_id %}{{row|get:'name'}} {% else %}Total{%endif%}</td>
+      <td>{{row|get:'# followed up, not dead, HIV+'}}</td>
+      <td>{{row|get:'# who returned'}}</td>
+      <td>{{row|get:'RTC rate, overall'|make_percent}}%</td>
+      <td>{{row|get:'# due to return'}}</td>
+      <td>{{row|get:'# who returned,due to return'}}</td>
+      <td>{{row|get:'RTC rate, due to return'|make_percent}}%</td>
+      <td>{{row|get:'# returning, reached by phone'}}</td>
+      <td>{{row|get:'RTC rate, reached by phone'|make_percent}}%</td>
+      <td>{{row|get:'# returning, found in field'}}</td>
+      <td>{{row|get:'RTC rate, found in field'|make_percent}}%</td>
+      <td>{{row|get:'RTC rate, untraceable'|make_percent}}%</td>
+    </tr>
+    {%endfor%}
+    </tbody>
+</table>
+
+
+<h4>Table 4. AMPATH Status</h4>
+<table id='ampath_status' class="displays">
+  <thead>
+    <tr>
+      <th class="gradeA">Name</th>
+      <th class="gradeA">planning to return (%)</th>
+      <th class="gradeA"># deaths</th>
+      <th class="gradeA"># self-disengaged</th>
+      <th class="gradeA"># hiv neg</th>
+      <th class="gradeA"># untraceable</th>
+      <th class="gradeA"># transfer non-amrs</th>
+      <th class="gradeA"># transfer amrs</th>
+      <th class="gradeA"># transfer non-ampath</th>
+      <th class="gradeA"># being traced</th>
+
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in indicators %}
+    <tr>
+      <td>{%if row.location_id or row.provider_id %}{{row|get:'name'}} {% else %}Total{%endif%}</td>
+      <td>{{row|get:'# planning to return'}} ({{row|get:'perc planning to return'|make_percent}}%)</td>
+      <td>{{row|get:'# deaths'}} ({{row|get:'perc dead'|make_percent}}%)</td>
+      <td>{{row|get:'# self-disengaged'}} ({{row|get:'perc self-disengaged'|make_percent}}%)</td>
+      <td>{{row|get:'# hiv neg'}} ({{row|get:'perc hiv neg'|make_percent}}%)</td>
+      <td>{{row|get:'# untraceable'}} ({{row|get:'perc untraceable'|make_percent}}%)</td>
+      <td>{{row|get:'# transfer non-amrs'}} ({{row|get:'perc transfer non-amrs'|make_percent}}%)</td>
+      <td>{{row|get:'# transfer amrs'}} ({{row|get:'perc transfer amrs'|make_percent}}%)</td>
+      <td>{{row|get:'# transfer non-ampath'}} ({{row|get:'perc transfer non-ampath'|make_percent}}%)</td>
+      <td>{{row|get:'# being traced'}} ({{row|get:'perc being traced'|make_percent}}%)</td>
+    </tr>
+    {%endfor%}
+    </tbody>
+</table>
+
+
+
+
+
+{% endblock %}

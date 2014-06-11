@@ -3,7 +3,15 @@
 {% block content %}
 
 <script type="text/javascript" language="javascript" src="{% static 'js/flot/jquery.flot.js'%}"></script>
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.js'%}"></script>
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/extensions/TableTools/js/dataTables.tableTools.js'%}"></script>
+  <style type="text/css" title="currentStyle">
+    @import "{% static 'js/DataTables-1.10.0/extensions/TableTools/css/dataTables.tableTools.css'%}";
+    @import "{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.css' %}";
+  </style>
+
 <script type="text/javascript">
+
 
   function download_defaulter_list() {
       var form = document.getElementById('defaulter_list_form');
@@ -17,33 +25,62 @@
       form.submit();
   }
 
-  
-  $(document).ready(function() {
+
+$(document).ready(function() {
 
   $('#report').dataTable( {
   "width":"100%",
-  "sScrollY": "auto",
+  "sScrollY": "250px",
   "bJQueryUI": true,
   "bPaginate": false,
   "bLengthChange": false,
   "bFilter": true,
   "bSort": true,
   "bInfo": false,
-  "bAutoWidth" : false
-   } );
+  "sDom": '<"clear">Tlfrtip',
+  "oTableTools": {
+        "sSwfPath": "{% static 'js/DataTables-1.10.0/extensions/TableTools/swf/copy_csv_xls_pdf.swf'%}",
+        "aButtons": [
+             {
+                "sExtends": "xls",
+                "sButtonText": " Excel ",
+                "oSelectorOpts": {
+                    page: 'current'
+                }
+            },
+             {
+                "sExtends": "pdf",
+                "sButtonText": " pdf ",
+                "oSelectorOpts": {
+                    page: 'current'
+                }
+            },  
+            {
+                "sExtends": "copy",
+                "sButtonText": "Copy to clipboard",
+                "oSelectorOpts": {
+                    page: 'current'
+                }
+            }
+        ]
+  },
+  "bAutoWidth" : false,
+  "fnDrawCallback": function ( oSettings ) {
+      /* Need to redo the counters if filtered or sorted */
+      if ( oSettings.bSorted || oSettings.bFiltered )
+      {
+           for ( var i=0, iLen=oSettings.aiDisplay.length ; i<iLen ; i++ )
+           {
+	       $('td:eq(0)', oSettings.aoData[ oSettings.aiDisplay[i] ].nTr ).html( i+1 );
+           }
+      }
+   }
+   }).columnFilter({sPlaceHolder:"head:before",
+                    aoColumns:[null,null,null,{type:"select"},null,{type:"select"},null,{type:"number-range"}]
+                   });
 
-  $('#report_backup').dataTable( {
-  "width":"100%",
-  "sScrollY": "auto",
-  "bJQueryUI": true,
-  "bPaginate": false,
-  "bLengthChange": false,
-  "bFilter": true,
-  "bSort": true,
-  "bInfo": false
-   } );
 
-  } );
+});
 
 </script>
 
@@ -106,16 +143,30 @@
 <table id='report' class="displays">
   <thead>
     <tr>
-      <th class="gradeA"></th>
-      <th class="gradeA">ID</th>
-      <th class="gradeA">AMRS ID</th>
-      <th class="gradeA">Risk Category</th>
-      <th class="gradeA">last enc date</th>
-      <th class="gradeA">encounter type</th>
-      <th class="gradeA">rtc date</th>
-      <th class="gradeA">days from rtc date</th>
+	<th class="gradeA"></th>
+	<th class="gradeA">ID</th>
+	<th class="gradeA">AMRS ID</th>
+	<th class="gradeA">Risk Cat</th>
+	<th class="gradeA">last enc date</th>
+	<th class="gradeA">enc type</th>
+	<th class="gradeA">rtc date</th>
+	<th class="gradeA">days from rtc date</th>
     </tr>
   </thead>
+
+    <!--tfoot>
+      <tr>
+	<th></th>
+	<th>ID</th>
+	<th>AMRS ID</th>
+	<th>Risk Category</th>
+	<th>last enc date</th>
+	<th>encounter type</th>
+	<th>rtc date</th>
+	<th>days from rtc date</th>
+      </tr>
+    </tfoot-->
+ 
   <tbody>
     {% for row in ltfu_by_range %}
     <tr>
@@ -126,7 +177,7 @@
       <td>{{row.encounter_datetime}}</td>
       <td>{{row.name}}</td>
       <td>{{row.rtc_date}}</td>
-      <td>{{row.days_since_rtc}}</td>
+      <td>{% if row.days_since_rtc %}{{row.days_since_rtc}} {%endif%}</td>
     </tr>
     {%endfor%}
     </tbody>

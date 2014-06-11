@@ -159,10 +159,10 @@ class ReportTable(models.Model):
             if parameter_values is None :
                 parameter_values = self.get_parameter_values(parameters)
 
-            print parameter_values
             sql = self.report_table_sql
             if limit : sql += ' limit 0,' + str(limit)
             cur.execute(sql,parameter_values)
+            print 'last query: ' + str(cur._last_executed)
 
             #assume that the last query in the string is the query intended to produce the data table
             rows = cur.fetchall()
@@ -234,7 +234,7 @@ class ReportMember(models.Model):
     def get_parameter_values(self):
         parameter_values = None
         if self.parameter_values :
-            print self.parameter_values
+            #print self.parameter_values
             parameter_values = ast.literal_eval(self.parameter_values)
         return parameter_values
 

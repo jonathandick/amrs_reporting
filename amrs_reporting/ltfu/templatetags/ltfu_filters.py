@@ -3,7 +3,10 @@ from django import template
 register = template.Library()
 
 @register.filter
-def get(mapping,key) : return mapping.get(key,'')
+def get(mapping,key) : 
+    v = mapping.get(key,'')
+    if v is not None : return v
+    else : return ''
 
 @register.filter
 def percentage(numerator,denominator):

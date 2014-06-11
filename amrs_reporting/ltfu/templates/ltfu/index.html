@@ -8,7 +8,8 @@
 
 </script>
 
-
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/plugins/datatables.percent.js'%}"></script>
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.js'%}"></script>
 <script type="text/javascript">
   function download_defaulter_list() {
       var form = document.getElementById('defaulter_list_form');
@@ -24,21 +25,6 @@
 
 
 
-jQuery.extend( jQuery.fn.dataTableExt.oSort, {
-    "percent-pre": function ( a ) {
-        var x = (a == "-") ? 0 : a.replace( /%/, "" );
-        return parseFloat( x );
-    },
- 
-    "percent-asc": function ( a, b ) {
-        return ((a < b) ? -1 : ((a > b) ? 1 : 0));
-    },
- 
-    "percent-desc": function ( a, b ) {
-        return ((a < b) ? 1 : ((a > b) ? -1 : 0));
-    }
-} );
-
   $(document).ready(function() {
 
   $('#system_indicators').dataTable( {
@@ -49,7 +35,45 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {
   "bFilter": true,
   "bSort": true,
   "bInfo": false,
-  "bAutoWidth": false } );
+  "bAutoWidth": false,
+  "footerCallback": function ( row, data, start, end, display ) {
+       var cs = [2,4,8];
+       for(var item in cs) {
+            var index = cs[item];
+            var api = this.api();
+            // Remove the formatting to get integer data for summation
+            var intVal = function ( i ) {
+                return typeof i === 'string' ?
+                    i.replace(/[\$,]/g, '')*1 :
+                    typeof i === 'number' ?
+                        i : 0;
+            };
+ 
+            // Total over all pages
+            var total = api
+                .column( index )
+                .data()
+                .reduce( function (a, b) {
+                    return intVal(a) + intVal(b);
+                } );
+ 
+            // Total over this page
+            var pageTotal = api
+                .column( index, { page: 'current'} )
+                .data()
+                .reduce( function (a, b) {
+                    return intVal(a) + intVal(b);
+                } );
+            var s = ''
+            if(pageTotal == total) {
+                s = total;
+            }
+            else { s = pageTotal +' ('+ total +')'; }
+            // Update footer
+            $( api.column( index ).footer() ).html(s);
+        }  
+     }
+} );
 
 
   $('#clinic_indicators').dataTable( {
@@ -60,12 +84,13 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {
   "bFilter": true,
   "bSort": true,
   "bInfo": false,
-  "bAutoWidth": false } );
+  "bAutoWidth": false } ).columnFilter({sPlaceHolder:"head:after",
+                                        aoColumns:[{type:"select"}]});
 
 
   $('#defaulters_by_clinic').dataTable( {
   "sScrollY": "150px",
-  "columnDefs": [{"targets":3,"type":"percent"}],  
+  "columnDefs": [{"targets":2,"type":"percent"}],  
   "bJQueryUI": true,
   "bPaginate": false,
   "bLengthChange": false,
@@ -84,8 +109,7 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {
   $("#end_date_provider_indicators").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
 
 
-      
-
+     
 
   });
 
@@ -140,7 +164,6 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {
       </tr>	  
     </table>
     </form>
-
   </li>
 
   <li><b>View Indicators Stratified By Provider</b>
@@ -156,6 +179,22 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {
     </table>
     </form>
 
+  </li>
+  <li><b>View Reasons Appt Missed</b>
+    <form action='/ltfu/view_reason_missed_appt' method='post' id='reason_missed_appt_form'> 
+      {% csrf_token %}
+      <table>
+	<tr>
+	  <td>start date</td>
+	  <td><input type='text' name='start_date' value='{{start_date}}'/></td>
+	  <td>end date:</td>
+	  <td><input type='text' name='end_date' value='{{end_date}}'/></td>
+	  <td>location_ids</td>
+	  <td><input type='text' name='location_ids' value='{{location_ids}}'/></td>
+	  <td><input type='submit'></td>
+	</tr>	  
+      </table>
+    </form>  
   </li>
 
 <!--
@@ -207,22 +246,40 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {
 <table id='system_indicators'>
   <thead>
     <tr>
-      <td>year</td>
-      <td>month</td>
-      <td># of forms </td>
-      <td>forms / day </td>
-      <td># patients <br/>
-	  followed up</td>
-      <td># being traced</td>
-      <td>% found</td>
-      <td>% reached <br/>
-	  by phone</td>
-      <td># hiv+, not dead</td>
-      <td>rtc rate, overall</td>
-      <td>rtc rate, <br/>
-          due to return</td>
+      <th>year</th>
+      <th>month</th>
+      <th># of forms </th>
+      <th>forms / day </th>
+      <th># patients <br/>
+	  followed up</th>
+      <th># being traced</th>
+      <th>% found</th>
+      <th>% reached <br/>
+	  by phone</th>
+      <th># hiv+, not dead</th>
+      <th>rtc rate, overall</th>
+      <th>rtc rate, <br/>
+          due to return</th>
     </tr>
   </thead>
+  <tfoot>
+    <tr>
+      <th>year</th>
+      <th>month</th>
+      <th># of forms </th>
+      <th>forms / day </th>
+      <th># patients <br/>
+	  followed up</th>
+      <th># being traced</th>
+      <th>% found</th>
+      <th>% reached <br/>
+	  by phone</th>
+      <th># hiv+, not dead</th>
+      <th>rtc rate, overall</th>
+      <th>rtc rate, <br/>
+          due to return</th>
+    </tr>
+  </tfoot>
   <tbody>
     {% for row in system_indicators %}    
     <tr>      
@@ -245,29 +302,29 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {
 <hr>
 
 
-<h3>Key System Indicators By Clinic</h3>
-<table id='clinic_indicators'>
+<h3>Key Indicators By Clinic</h3>
+<table id='clinic_indicators' class='display'>
   <thead>
     <tr>
-      <td>Clinic</td>
-      <td>year</td>
-      <td>month</td>
-      <td># of forms </td>
-      <td>forms / day </td>
-      <td># patients <br/>
-	  followed up</td>
-      <td># being traced</td>
-      <td>% found</td>
-      <td>% reached <br/>
-	  by phone</td>
-      <td># hiv+, <br/>
-          not dead</td>
-      <td>rtc rate, overall</td>
-      <td>rtc rate, <br/>
-          due to return</td>
+      <th>Clinic</th>
+      <th>year</th>
+      <th>month</th>
+      <th># of forms </th>
+      <th>forms / day </th>
+      <th># patients <br/>
+	  followed up</th>
+      <th># being traced</th>
+      <th>% found</th>
+      <th>% reached <br/>
+	  by phone</th>
+      <th># hiv+, <br/>
+          not dead</th>
+      <th>rtc rate, overall</th>
+      <th>rtc rate, <br/>
+          due to return</th>
     </tr>
   </thead>
-  <tbody>
+ <tbody>
     {% for row in clinic_indicators %}    
     <tr>
       <td>{{row.clinic}}</td>

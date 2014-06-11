@@ -40,6 +40,7 @@ def index(request):
     if clinic_indicators is not None : clinic_indicators = simplejson.loads(clinic_indicators)
 
 
+
     if defaulters_by_clinic is None :
         rt = ReportTable.objects.get(name='retention_key_indicators_system')
         system_indicators = rt.run_report_table(as_dict=True)['rows']
@@ -196,7 +197,6 @@ def ltfu_by_range(request):
 
 
 
-        print per_day
         return render(request,'ltfu/ltfu_by_range.html',
                       {'ltfu_by_range':table,
                        'locations':locations,
@@ -405,5 +405,66 @@ def view_indicators_by_provider(request):
                   )
     
 
-
+def view_reason_missed_appt(request):
+    if not Authorize.authorize(request.user,['outreach_all']) :
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
     
+    start_date = get_var_from_request(request,'start_date')
+    if start_date is None : start_date = '2014-01-01'
+    end_date = get_var_from_request(request,'end_date')
+    if end_date is None : end_date = '2020-01-01'
+
+    all_locations = 0
+    location_ids_str = get_var_from_request(request,'location_ids')
+
+    if location_ids_str is None or location_ids_str == '()':
+        location_ids = ('-1',)
+        all_locations = 1
+        location_ids_str = ''
+    else :
+        location_ids = tuple(location_ids_str.split(','))
+
+
+    rt = ReportTable.objects.get(name='retention_reason_missed_appt_total')
+    parameter_values = (start_date,end_date,all_locations,location_ids)
+    rows = rt.run_report_table(parameter_values=parameter_values,as_dict=True)['rows']
+    times_asked = rows[0]['total']
+
+    rt = ReportTable.objects.get(name='retention_reason_missed_appt')
+    parameter_values = (start_date,end_date,all_locations,location_ids)
+    rows = rt.run_report_table(parameter_values=parameter_values,as_dict=True)['rows']
+
+    coded_reasons = {}
+    concept_ids = []
+    for row in rows :
+        codes = row['reason_missed_appt'].split(' // ')
+        for code in codes:
+            if code in coded_reasons : coded_reasons[code]['count'] += row['count']
+            else : 
+                coded_reasons[code] = {'count':row['count']}
+                concept_ids.append(code)
+    concept_ids = tuple(concept_ids)
+
+    rt = ReportTable.objects.get(name='amrs_concept_name')
+    parameter_values = (concept_ids,)
+    rows = rt.run_report_table(parameter_values=parameter_values,as_dict=True)['rows']              
+
+    reasons = []
+    for r in rows:
+        reasons.append({'concept_id':r['concept_id'],
+                        'name':r['name'],
+                        'count':coded_reasons[str(r['concept_id'])]['count']
+                        })
+
+
+    return render(request,'ltfu/reason_missed_appt.html',
+                  {'reason_missed_appt':reasons,
+                   'start_date':start_date,
+                   'end_date':end_date,
+                   'location_ids': location_ids_str,
+                   'times_asked': times_asked,
+                   }
+                  )
+
+
+

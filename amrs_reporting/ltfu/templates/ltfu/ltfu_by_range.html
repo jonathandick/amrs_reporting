@@ -176,7 +176,7 @@ $(document).ready(function() {
       <td>{{row.risk_category}}</td>
       <td>{{row.encounter_datetime}}</td>
       <td>{{row.name}}</td>
-      <td>{{row.rtc_date}}</td>
+      <td>{% if row.rtc_date%} {{row.rtc_date}} {%endif%}</td>
       <td>{% if row.days_since_rtc %}{{row.days_since_rtc}} {%endif%}</td>
     </tr>
     {%endfor%}

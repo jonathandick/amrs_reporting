@@ -19,4 +19,5 @@ urlpatterns = patterns('',
                        url(r'^' + app_name + '/view_outreach_worker_forms_done/?$',views.view_outreach_worker_forms_done),
                        url(r'^' + app_name + '/view_data_entry_forms_done/?$',views.view_data_entry_forms_done),
                        url(r'^' + app_name + '/view_reason_missed_appt/?$',views.view_reason_missed_appt),
+                       url(r'^' + app_name + '/update_cohorts/?$',views.update_cohorts),
                        )

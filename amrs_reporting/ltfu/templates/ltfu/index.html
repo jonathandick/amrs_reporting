@@ -10,6 +10,14 @@
 
 <script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/plugins/datatables.percent.js'%}"></script>
 <script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.js'%}"></script>
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/extensions/TableTools/js/dataTables.tableTools.js'%}"></script>
+
+  <style type="text/css" title="currentStyle">
+    @import "{% static 'js/DataTables-1.10.0/extensions/TableTools/css/dataTables.tableTools.css'%}";
+    @import "{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.css' %}";
+  </style>
+
+
 <script type="text/javascript">
   function download_defaulter_list() {
       var form = document.getElementById('defaulter_list_form');
@@ -77,15 +85,46 @@
 
 
   $('#clinic_indicators').dataTable( {
-  "sScrollY": "100px",
+  "sScrollY": "200px",
   "bJQueryUI": true,
   "bPaginate": false,
   "bLengthChange": false,
   "bFilter": true,
   "bSort": true,
   "bInfo": false,
-  "bAutoWidth": false } ).columnFilter({sPlaceHolder:"head:after",
-                                        aoColumns:[{type:"select"}]});
+  "bAutoWidth": false,
+  "sDom": '<"clear">Tlfrtip',
+  "oTableTools": {
+        "sSwfPath": "{% static 'js/DataTables-1.10.0/extensions/TableTools/swf/copy_csv_xls_pdf.swf'%}",
+        "aButtons": [
+             {
+                "sExtends": "xls",
+                "sButtonText": " Excel ",
+                "oSelectorOpts": {
+                    page: 'current'
+                }
+            },
+             {
+                "sExtends": "pdf",
+                "sButtonText": " pdf ",
+                "oSelectorOpts": {
+                    page: 'current'
+                }
+            },  
+            {
+                "sExtends": "copy",
+                "sButtonText": "Copy to clipboard",
+                "oSelectorOpts": {
+                    page: 'current'
+                }
+            }
+        ]
+  }
+
+
+
+  } ).columnFilter({sPlaceHolder:"head:after",
+                                        aoColumns:[{type:"select"},null,{type:"select"}]});
 
 
   $('#defaulters_by_clinic').dataTable( {
@@ -118,6 +157,7 @@
 
 <h3>Retention Control Panel</h3>
 <ul>
+  <li><a href='/ltfu/update_cohorts'>Update defaulter cohorts</a></li>
   <li> <b>Identify patients who missed their last appointment</b>
     <form action='/ltfu/ltfu_by_range' method='post' id='defaulter_list_form'> {% csrf_token %}
     <table>
@@ -303,7 +343,7 @@
 
 
 <h3>Key Indicators By Clinic</h3>
-<table id='clinic_indicators' class='display'>
+<table id='clinic_indicators'>
   <thead>
     <tr>
       <th>Clinic</th>
@@ -324,6 +364,20 @@
           due to return</th>
     </tr>
   </thead>
+  <tfoot>
+    <th></th>
+    <th></th>
+    <th></th>
+    <th></th>
+    <th></th>
+    <th></th>
+    <th></th>
+    <th></th>
+    <th></th>
+    <th></th>
+    <th></th>
+    <th></th>
+  </tfoot>
  <tbody>
     {% for row in clinic_indicators %}    
     <tr>
@@ -345,9 +399,6 @@
 </table>
 <br/>
 <hr>
-
-
-
 
 <h3>Current Defaulter Totals</h3>
 <table id='defaulters_by_clinic'>

@@ -15,6 +15,7 @@ from xlutils.copy import copy
 import pytz
 from datetime import datetime, date
 import simplejson
+from ltfu.models import *
 
 # Create your views here.
 
@@ -467,4 +468,32 @@ def view_reason_missed_appt(request):
                   )
 
 
+def update_cohorts(request):
+    import amrs_settings as amrs_settings
+    import requests
+    import json
 
+    
+    '''
+    url_cohort = 'https://testserver1.ampath.or.ke:8443/amrs/ws/rest/v1/cohort'
+
+    payload = {'name': 'JJD_test_cohort_1',            
+               'description': 'test',
+               'memberIds':['233813'],
+               }
+    headers = {'content-type': 'application/json'}
+    data = json.dumps(payload)
+    #req = requests.post(url_cohort, data, auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+    req = requests.get(url_cohort, auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+                        
+    vals = json.loads(req.text)
+    if 'error' in vals:
+        print 'there was an error'
+    '''
+
+    ids = DefaulterCohort.get_defaulter_patient_ids(1)
+    print ids
+    return render(request,
+                  'ltfu/update_cohorts.html',
+                  {'response':ids}
+                  )

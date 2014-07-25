@@ -162,7 +162,7 @@ class ReportTable(models.Model):
             sql = self.report_table_sql
             if limit : sql += ' limit 0,' + str(limit)
             cur.execute(sql,parameter_values)
-            print 'last query: ' + str(cur._last_executed)
+            #print 'last query: ' + str(cur._last_executed)
 
             #assume that the last query in the string is the query intended to produce the data table
             rows = cur.fetchall()

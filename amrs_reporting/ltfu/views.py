@@ -468,32 +468,29 @@ def view_reason_missed_appt(request):
                   )
 
 
-def update_cohorts(request):
-    import amrs_settings as amrs_settings
+def update_defaulter_cohorts(request):
+    DefaulterCohort.update_defaulter_cohorts()    
+    return HttpResponseRedirect('/ltfu/manage_defaulter_cohorts')
+
+
+def manage_defaulter_cohorts(request):    
     import requests
     import json
+    import amrs_settings
 
-    
-    '''
-    url_cohort = 'https://testserver1.ampath.or.ke:8443/amrs/ws/rest/v1/cohort'
-
-    payload = {'name': 'JJD_test_cohort_1',            
-               'description': 'test',
-               'memberIds':['233813'],
-               }
     headers = {'content-type': 'application/json'}
-    data = json.dumps(payload)
-    #req = requests.post(url_cohort, data, auth=(amrs_settings.username,amrs_settings.password),headers=headers)
-    req = requests.get(url_cohort, auth=(amrs_settings.username,amrs_settings.password),headers=headers)
-                        
-    vals = json.loads(req.text)
-    if 'error' in vals:
-        print 'there was an error'
-    '''
-
-    ids = DefaulterCohort.get_defaulter_patient_ids(1)
-    print ids
+    url = amrs_settings.amrs_url + '/ws/rest/v1/cohort/4443b53b-ff8b-4d17-88c6-63b1d2999921/member/00005894-4a25-467f-b0e3-9d1e19dbfc58'
+    
+    dcs = DefaulterCohort.objects.all()
+    
     return render(request,
-                  'ltfu/update_cohorts.html',
-                  {'response':ids}
+                  'ltfu/manage_defaulter_cohorts.html',
+                  {"defaulter_cohorts":dcs
+                   }
                   )
+
+
+def delete_defaulter_cohort(request):
+    cohort_uuid = request.GET['cohort_uuid']
+    DefaulterCohort.delete_defaulter_cohort(cohort_uuid)
+    return HttpResponseRedirect('/ltfu/manage_defaulter_cohorts')

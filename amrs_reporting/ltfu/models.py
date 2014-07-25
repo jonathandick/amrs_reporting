@@ -13,82 +13,103 @@ class DefaulterCohort(models.Model):
     location_id = models.IntegerField()
 
 
-    @staticmethod
-    def get_defaulter_patient_ids(location_id):
-        location_ids = (location_id,)
-        start_range_high_risk = 8
-        start_range = 30
-        end_range = 89
-        
-        limit = 200
-        risk_categories = {0:'Being Traced',1:'high',2:'medium',3:'low',4:'LTFU',5:'no_rtc_date',6:'untraceable'}    
-
-        rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
-        parameter_values = (start_range_high_risk,start_range,end_range,location_id,location_ids)
-        table = rt.run_report_table(parameter_values=parameter_values,as_dict=True,limit=limit)['rows']
-    
-        patient_ids = []
-        for row in table:
-            patient_ids.append(row.person_id)        
-        return patient_ids
-
-
-    def update_cohort(self):
-        url_cohort = 'https://testserver1.ampath.or.ke:8443/amrs/ws/rest/v1/cohort/' + self.cohort_uuid        
+    def update_defaulter_cohort(self):
         headers = {'content-type': 'application/json'}
-        req = requests.get(url_cohort, auth=(amrs_settings.username,amrs_settings.password),headers=headers)                        
-        vals = json.loads(req.text)
-        if 'error' in vals:
-            print 'there was an error'
-            return 'error'                
-        
-        patient_ids = self.get_defaulter_patient_ids
+        url_cohort = amrs_settings.amrs_url + '/ws/rest/v1/cohort/' 
+        patient_uuids = self.get_defaulter_uuids(self.location_id)
 
-        payload = {'name': self.name,
-                   'description': self.description,
-                   'memberIds':patient_ids,
-                   }
-        data = json.dumps(payload)
-        req = requests.post(url_cohort, data, auth=(amrs_settings.username,amrs_settings.password),headers=headers)
-        vals = json.loads(req.text)
-        if 'error' in vals:
-            print 'error creating new cohort'
-            return 'error'
-        
-        self.uuid = vals['uuid']
-        self.save()
-    
-    
-    
-    @staticmethod
-    def create_defaulter_lists(self):
-        locations_ids = [1,13,14,15]
-        for id in location_ids :
-            location = Location.get_location(id)
+        patient_uuids = ['00002702-560c-4804-b1be-a4846b1fc98c',
+                         '00002fda-4de6-45de-b7ed-6404ae4971fc',
+                         '00006b1f-8bfb-4769-b443-ecf7eb908ab1']
+
+
+        if self.cohort_uuid is not None:                        
+            url_cohort += self.cohort_uuid + '/member'
+            req = requests.get(url_cohort + '?v=ref', auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+            vals = json.loads(req.text)
+            for member in vals['results']:
+                
+                url = member['links'][0]['uri'].replace('192.168.5.201','testserver1.ampath.or.ke')                
+                req = requests.delete(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+                try : 
+                    vals = json.loads(req.text)
+                    if 'error' in vals:
+                        print url
+                        print 'error deleting member'
+                except:
+                    pass
+                        
+                    
             
-            name = location.name + ' Defaulter List'
-            description = location.name + ' Defaulter List'
-            patient_ids = DefaulterCohort.get_defaulter_patient_ids(id)
-
-            url_cohort = 'https://testserver1.ampath.or.ke:8443/amrs/ws/rest/v1/cohort'  
-            headers = {'content-type': 'application/json'}
-            payload = {'name': name,
-                       'description': description,
-                       'memberIds':patient_ids,
+        else :
+            payload = {'name': self.name,
+                       'description': self.description,
+                       'memberIds':[],
                        }
+
             data = json.dumps(payload)
             req = requests.post(url_cohort, data, auth=(amrs_settings.username,amrs_settings.password),headers=headers)
-            
             vals = json.loads(req.text)
             if 'error' in vals:
                 print 'error creating new cohort'
                 return 'error'
             
-            dc = DefaulterCohort()        
-            dc.name = name
-            dc.description = description
-            dc.uuid = vals['uuid']
-            dc.save()
-            
-            
-            
+            self.cohort_uuid = vals['uuid']
+            self.save()
+
+
+        for uuid in patient_uuids:
+            payload = {'patient':uuid}
+            data = json.dumps(payload)
+            req = requests.post(url_cohort, data, auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+                
+
+
+    @staticmethod
+    def get_defaulter_uuids(location_id):
+        location_ids = (location_id,)
+        start_range_high_risk = 8
+        start_range = 30
+        end_range = 89
+        limit = 200
+
+        rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
+        parameter_values = (start_range_high_risk,start_range,end_range,location_ids,location_ids)
+        table = rt.run_report_table(parameter_values=parameter_values,as_dict=True,limit=limit)['rows']
+    
+        patient_ids = []
+        for row in table:
+            patient_ids.append(str(row['uuid']))
+        return patient_ids
+
+
+    
+    
+    @staticmethod
+    def delete_defaulter_cohort(cohort_uuid):
+        url_cohort = amrs_settings.amrs_url + '/ws/rest/v1/cohort/' + cohort_uuid
+        headers = {'content-type': 'application/json'}
+        req = requests.delete(url_cohort, auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+
+        dc = DefaulterCohort.objects.get(cohort_uuid=cohort_uuid)
+        dc.delete()
+        
+    
+
+    
+    @staticmethod
+    def update_defaulter_cohorts():
+        location_ids = [1,13,14,15]
+        cohorts = []
+        for location_id in location_ids :
+            location = Location.get_location(location_id)
+            dcs = DefaulterCohort.objects.filter(location_id=location_id)
+            if dcs.count() > 0:
+                dc = dcs[0]
+            else :
+                name = location['name'] + ' Defaulter List'
+                description = location['name'] + ' Defaulter List'
+                dc = DefaulterCohort(name=name,description=description,location_id=location_id)
+            dc.update_defaulter_cohort()            
+            cohorts.append(dc)
+        return cohorts

@@ -3,9 +3,6 @@ import ltfu.views as views
 from django.conf.urls.static import static
 from django.conf import settings
 
-# Uncomment the next two lines to enable the admin:
-# from django.contrib import admin
-# admin.autodiscover()
 app_name = 'ltfu'
 urlpatterns = patterns('',
                        url(r'^' + app_name + '/index/?$',views.index),
@@ -19,5 +16,7 @@ urlpatterns = patterns('',
                        url(r'^' + app_name + '/view_outreach_worker_forms_done/?$',views.view_outreach_worker_forms_done),
                        url(r'^' + app_name + '/view_data_entry_forms_done/?$',views.view_data_entry_forms_done),
                        url(r'^' + app_name + '/view_reason_missed_appt/?$',views.view_reason_missed_appt),
-                       url(r'^' + app_name + '/update_cohorts/?$',views.update_cohorts),
+                       url(r'^' + app_name + '/update_defaulter_cohorts/?$',views.update_defaulter_cohorts),
+                       url(r'^' + app_name + '/manage_defaulter_cohorts/?$',views.manage_defaulter_cohorts),
+                       url(r'^' + app_name + '/delete_defaulter_cohort/?$',views.delete_defaulter_cohort),
                        )

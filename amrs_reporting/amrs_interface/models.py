@@ -98,17 +98,22 @@ class Location(models.Model):
     def get_location_by_uuid(location_uuid):
         headers = {'content-type': 'application/json'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/location/' + location_uuid
-        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
-        data = json.dumps(res.text)
-        location = {'name':data['name'],
-                    'uuid':data['uuid']}
+        location = ''
+        try:
+            res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+            data = json.dumps(res.text)
+            print data
+            location = {'name':data['name'],
+                        'uuid':data['uuid']}
+        except:
+            pass
         return location
 
 
 class Patient():
 
     @staticmethod
-    def get_patient_by_uuid(patientx_uuid):
+    def get_patient_by_uuid(patient_uuid):
         headers = {'content-type': 'application/json'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/patient/' + patient_uuid
         res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
@@ -117,13 +122,12 @@ class Patient():
         split = names.split(' ')
         num_names = len(split)
         given_name = split[0]
-        last_name = split[num_names-1]
-
+        family_name = split[num_names-1]
         middle_name = ''
         for x in range(1,num_names-2):
             middle_name += ' ' + names[x]
-
-        identifier = request.GET['identifiers']['identifier']['display']
+        print data
+        identifier = data['identifiers'][0]['display']
         split = identifier.split(' = ')
         identifier = split[1]
 

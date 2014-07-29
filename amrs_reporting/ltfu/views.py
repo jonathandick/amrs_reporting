@@ -480,7 +480,7 @@ def manage_defaulter_cohorts(request):
     import amrs_settings
 
     headers = {'content-type': 'application/json'}
-    url = amrs_settings.amrs_url + '/ws/rest/v1/encounter'
+    #url = amrs_settings.amrs_url + '/ws/rest/v1/encounter'
     payload = {'patient':'00002702-560c-4804-b1be-a4846b1fc98c',#patient_id 247342
                'encounterDatetime':'2014-07-05',
                "location":'08feae7c-1352-11df-a1f1-0026b9348838', #mtrh module 1
@@ -515,14 +515,14 @@ def outreach_form(request):
     import amrs_settings
 
     headers = {'content-type': 'application/json'}
+
     if request.method == 'GET':
-        patient_uuid = request.GET['patient_uuid']
-        location_uuid = request.GET['location_uuid']
-        provider_uuid = request.GET['provider_uuid']
-        
+        patient_uuid = '00002702-560c-4804-b1be-a4846b1fc98c' #patient_id 247342 #request.GET['patient_uuid']        
+        location_uuid = '08feae7c-1352-11df-a1f1-0026b9348838' #mtrh module 1 #request.GET['location_uuid']
         patient = Patient.get_patient_by_uuid(patient_uuid)
-        location = Location.get_location_by_uuid(location_uuid)
-        locations = Location.get_locations()
+        location = {'name':'MTRH Module 1','uuid': location_uuid}  
+        #location = Location.get_location_by_uuid(location_uuid)
+        locations = Location.get_locations()        
         encounter_type = EncounterType.get_encounter_type_by_uuid('df5547bc-1350-11df-a1f1-0026b9348838') #outreach
         
         args = {'patient':patient,
@@ -530,15 +530,13 @@ def outreach_form(request):
                 'location':location,
                 'locations':locations
                 }
-
-        return render(request,args,'ltfu/OutreachForm.html')
+        return render(request,'ltfu/OutreachForm.html',args)
                 
 
 
     elif request.method == 'POST':
         url = amrs_settings.amrs_url + '/ws/rest/v1/encounter'
 
-        user = request.
         patient_uuid = request.POST['patient_uuid']
         provider_uuid = request.POST['provider_uuid']
         encouter_type_uuid = request.POST['encounter_type_uuid']

@@ -15,7 +15,7 @@ from report.models import Report, ReportTable, ReportTableParameter, ReportMembe
 import ast
 # from weasyprint import HTML, default_url_fetcher, CSS
 from amrs_user_validation.models import Authorize
-
+from ltfu.models import DefaulterCohort
 
 # Admin *********************************************************************************
 
@@ -23,9 +23,9 @@ from amrs_user_validation.models import Authorize
 def index(request):
     if not Authorize.authorize(request.user) :
         return HttpResponseRedirect('amrs_user_validation/access_denied')
-
+    defaulter_cohorts = DefaulterCohort.objects.all()
     return render(request, "amrs_reports/index.html",
-                  {})
+                  {'defaulter_cohorts':defaulter_cohorts})
 
 
 

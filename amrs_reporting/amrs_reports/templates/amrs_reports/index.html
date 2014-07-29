@@ -37,6 +37,19 @@
   <li><a href=''>HIV Quality of Care</a></li>
   <li><a href=''>Human Resources</a></li>
   <li><a href=''>Data Quality</a></li>
+  <li>
+    <form action='/ltfu/outreach_worker_defaulter_list' method='post'>
+      {%csrf_token%}
+      Outreach Defaulter List:
+      <select name='defaulter_cohort_uuid'>
+	<option/>
+	{% for dc in defaulter_cohorts %}
+	<option value='{{dc.cohort_uuid}}'>{{dc.name}}</option>
+	{%endfor%}
+      </select>
+      <input type='submit' value='Go'/></td>
+    </form>
+  </li>
 </ul>
 <h4>Administrative</h4>
 <ul>

@@ -509,6 +509,18 @@ def delete_defaulter_cohort(request):
 
 
 
+def outreach_worker_defaulter_list(request):
+    cohort_uuid = get_var_from_request(request,'defaulter_cohort_uuid')
+    dc = DefaulterCohort.objects.get(cohort_uuid=cohort_uuid)
+    defaulter_list = dc.get_defaulter_list()
+    return render(request,'ltfu/outreach_worker_defaulter_list.html',
+                  {'defaulter_list':defaulter_list,
+                   'location_uuid':'',#dc.location_uuid,
+                   }                  
+                  )
+
+    
+
 def outreach_form(request):
     import requests
     import json
@@ -517,14 +529,14 @@ def outreach_form(request):
     headers = {'content-type': 'application/json'}
 
     if request.method == 'GET':
-        patient_uuid = '00002702-560c-4804-b1be-a4846b1fc98c' #patient_id 247342 #request.GET['patient_uuid']        
+        #patient_uuid = '00002702-560c-4804-b1be-a4846b1fc98c' #patient_id 247342 #request.GET['patient_uuid']        
         location_uuid = '08feae7c-1352-11df-a1f1-0026b9348838' #mtrh module 1 #request.GET['location_uuid']
         patient = Patient.get_patient_by_uuid(patient_uuid)
         location = {'name':'MTRH Module 1','uuid': location_uuid}  
         #location = Location.get_location_by_uuid(location_uuid)
-        locations = Location.get_locations()        
+        locations = Location.get_locations()
         encounter_type = EncounterType.get_encounter_type_by_uuid('df5547bc-1350-11df-a1f1-0026b9348838') #outreach
-        
+                                                                   
         args = {'patient':patient,
                 'encounter_type':encounter_type,
                 'location':location,
@@ -535,17 +547,21 @@ def outreach_form(request):
 
 
     elif request.method == 'POST':
+        
         url = amrs_settings.amrs_url + '/ws/rest/v1/encounter'
 
         patient_uuid = request.POST['patient_uuid']
-        provider_uuid = request.POST['provider_uuid']
-        encouter_type_uuid = request.POST['encounter_type_uuid']
+        provider_uuid = '5b6e3978-1359-11df-a1f1-0026b9348838' #request.POST['provider_uuid']
+        encounter_type_uuid = request.POST['encounter_type_uuid']
+
         encounter_datetime = request.POST['encounter_datetime']
         location_uuid = request.POST['location_uuid']
         obs = []
+
+        print 'number of calls: ' + request.POST['obs__e6c52d7e-3e25-4a83-8f9c-55a03bdc653a']
         for key,value in request.POST.iteritems():
             if key.startswith('obs__') and value.strip() != '':
-                question_uuid = key[6:]                
+                question_uuid = key[5:]                
                 obs.append({'concept':question_uuid,'value':value})
     
         payload = {'patient':patient_uuid,
@@ -555,9 +571,11 @@ def outreach_form(request):
                    'provider':provider_uuid,
                    'obs': obs
                    }
-    
         data = json.dumps(payload)
-        res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers)    
+        print data
+        #res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+        #print res.text
+        return HttpResponseRedirect('/ltfu/manage_defaulter_cohorts')
     
     
     

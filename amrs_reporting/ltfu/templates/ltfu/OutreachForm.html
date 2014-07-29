@@ -10,19 +10,21 @@
   $("#date_found").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
   $("#date_of_death").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
   $("#return_visit_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
+  $("#missed_return_visit_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
+  
   });
 
 
 </script>
 
   <div id="pre_populate_data"></div>
-  <form id="outreach_form" name="outreach_form">
-    
+  <form id="outreach_form" name="outreach_form" method='post' action='/ltfu/outreach_form'>
+    {%csrf_token%}
     <h2 class="text-center">Outreach Follow-up Form v1.0</h2><div class="section">
       <h3>Demographics</h3>
       <div class="form-group">
         <input class="form-control" id="patient.uuid"
-               name="patient.uuid" type="hidden" value='{{patient.uuid}}' readonly>
+               name="patient_uuid" type="hidden" value='{{patient.uuid}}' readonly>
       </div>
       
       <div class="form-group">
@@ -77,7 +79,7 @@
       </div-->
 
       <input type='hidden' name='encounter_type_uuid' value='{{encounter_type.uuid}}'/>
-      <input type='hidden' name='location_uuid' value='{{location.location_uuid}}'/>
+      <input type='hidden' name='location_uuid' value='{{location.uuid}}'/>
       Clinic: {{location.name}}<br/>
 
       
@@ -102,8 +104,8 @@
 
 
       <div class="form-group">
-        <label for="obs.missed_return_visit_date">Missed appointment date:</label>
-        <input class="form-control datepicker" data-concept="1592^MISSED RETURN VISIT DATE^99DCT" id="obs.missed_return_visit_date" 
+        <label for="missed_return_visit_date">Missed appointment date:</label>
+        <input class="form-control datepicker" data-concept="1592^MISSED RETURN VISIT DATE^99DCT" id="missed_return_visit_date" 
 	       name="obs__a89e3896-1350-11df-a1f1-0026b9348838" type="text">
       </div>
       
@@ -119,7 +121,7 @@
 	  <td>
 	    <div class="form-group">
 	      <label for="obs.number_of_call_attempts">Number of call attempts:</label>
-	      <input id="obs.number_of_call_attempts" type="text" name="obs__e6c52d7e-3e25-4a83-8f9c-55a03bdc653a" value="">
+	      <input id="number_of_call_attempts" type="text" name="obs__e6c52d7e-3e25-4a83-8f9c-55a03bdc653a"></input>	          
             </div>
 	  </td>
 	</tr>
@@ -129,11 +131,11 @@
 	      <label for="obs.who_does_phone_belong_to">Who does the phone belong to? :</label>
 	      <select class="form-control" id="obs.who_does_phone_belong_to" name="obs__47a5988a-e5f7-424e-96cc-3b34aeea3c1a" data-concept="7506^OWNER OF PHONE^99DCT">
 		<option value="">...</option>
- 		<option value="1065^YES^99DCT">Patient</option>
-		<option value="1410^CARETAKER^99DCT">Caregiver</option>
-		<option value="5620^OTHER FAMILY MEMBER^99DCT">Family Member</option>
-		<option value="5618^FRIEND^99DCT">Friend</option>
-		<option value="5622^OTHER NON-CODED^99DCT">Other</option>
+ 		<option value='a899b35c-1350-11df-a1f1-0026b9348838' oldvalue="1065^YES^99DCT">Patient</option>
+		<option value="a89cd280-1350-11df-a1f1-0026b9348838" oldvalue="1410^CARETAKER^99DCT">Caregiver</option>
+		<option value="a8aaf234-1350-11df-a1f1-0026b9348838" oldvalue="5620^OTHER FAMILY MEMBER^99DCT">Family Member</option>
+		<option value="a8aaf07c-1350-11df-a1f1-0026b9348838" oldvalue="5618^FRIEND^99DCT">Friend</option>
+		<option value='obs__a8aaf3e2-1350-11df-a1f1-0026b9348838' oldvalue='5622^OTHER NON-CODED^99DCT'>Other</option>
 	      </select>
             </div>
 	  </td>
@@ -154,14 +156,15 @@
 	</tr>
 	<tr>
 	  <td> 
-	    <label>Refer for field follow-up?</label>
+	    <label>If not contacted, refer for field follow-up?</label>
             <select class="form-control" id='obs.refer_for_field_follow_up' name="obs__3cef9756-ae0e-4b35-9ee2-b0fb96556971"
 		    data-concept="9067^REFER FOR FIELD FOLLOW-UP^99DCT">
+	      <option/>
 	      <option value='obs__a899b35c-1350-11df-a1f1-0026b9348838'  oldvalue='1065^Yes^99DCT'>Yes</option>
-	      <option value='obs__a89de526-1350-11df-a1f1-0026b9348838' oldvalue='1551^DISTANCE TOO FAR^99DCT'>In catchment but distant too far</option>
+	      <option value='obs__a89de526-1350-11df-a1f1-0026b9348838' oldvalue='1551^DISTANCE TOO FAR^99DCT'>No, in catchment but distant too far</option>
               <option value='obs__83df5f26-f97a-4cda-9c05-d0bdc6e4ebee' 
 		      oldvalue='oldvalue='6834^OUT OF AMPATH CATCHMENT AREA^99DCT'>No, out of catchment area</option>
-	      <option value='obs__a89decc4-1350-11df-a1f1-0026b9348838' oldvalue='1561^INADEQUATE LOCATOR INFORMATION^99DCT'>Locator inadequate</option>	  
+	      <option value='obs__a89decc4-1350-11df-a1f1-0026b9348838' oldvalue='1561^INADEQUATE LOCATOR INFORMATION^99DCT'>No, locator inadequate</option>	  
 	    </select>
 	  </td>
 	</tr>
@@ -220,8 +223,8 @@
 	    <fieldset>	 
 	      <div class="form-group">
 		<label for="obs.number_of_days_of_remaining_arv_medication">Does the patient have medications remaining? If yes, # of days worth:</label>
-		<input id="obs.number_of_days_of_remaining_arv_medication" type="text" 
-		       name="obs__e6c52d7e-3e25-4a83-8f9c-55a03bdc653a"/>
+		<input id="obs.number_of_days_of_remaining_arv_medication" type="text" oldname='1816'
+		       name="obs__a89fe006-1350-11df-a1f1-0026b9348838"/>
               </div>
 	    </fieldset>
 	  </td>
@@ -455,33 +458,39 @@
     </div>
     
     <div class="section">
-      <h3>Patient Status</h3>
-      <div class='form-group'>
-	<select name="obs__7c579743-5ef7-4e2c-839f-5b95597cb01c" data-concept="9082^PATIENT CARE STATUS^99DCT">				
-	  <option value="a8af5018-1350-11df-a1f1-0026b9348838" oldvalue='6101^CONTINUE^99DCT'>Patient wishes to remain in care at AMPATH</option>
-	  <option value="a89335d6-1350-11df-a1f1-0026b9348838" oldvalue='159^DECEASED^99DCT'>Patient Dead</option>
-	  <option value="a89c2f42-1350-11df-a1f1-0026b9348838" oldvalue='1286^AMPATH^99DCT'> Transfer out - to AMPATH AMRS alinic</option>  
-	  <option value="6daff4ce-bce7-41f5-9141-17e694155180" oldvalue='9083^SELF DISENGAGED FROM CARE^99DCT'>Patient self-disengaged from care</option>
-	  <option value="7e381b07-81d5-4425-be84-f188b61b4bd1" oldvalue='9068^AMPATH, NON-AMRS^99DCT'>Transfer out - to AMPATH non-AMRS clinic</option>
-	  <option value="636b7246-51f7-4985-9430-431b09d39bea" oldvalue='9036^HIV NEGATIVE, NO LONGER AT RISK^99DCT'>Patient HIV negative</option>
-	  <option value="a89c301e-1350-11df-a1f1-0026b9348838" oldvalue='1287^NON-AMPATH^99DCT'>Transfer out - to non-AMPATH clinic</option>
-	  <option value="bea9c288-0650-4b42-a324-1d6d51591c72" oldvalue='9079^UNTRACEABLE^99DCT>
-	    Outreach worker does not believe patient can be traced
-	  </option>
-	  <option value="07c536bc-19f2-4296-9c4a-edd85f070095" oldvalue='9080^PROCESS OF BEING TRACED^99DCT'>Patient in process of being traced</option>
-	</select>
-      </div>
+      <b>Patient Status</b>
+      <select name="obs__7c579743-5ef7-4e2c-839f-5b95597cb01c" data-concept="9082^PATIENT CARE STATUS^99DCT">
+	<option/>
+	<option value="a8af5018-1350-11df-a1f1-0026b9348838" oldvalue='6101^CONTINUE^99DCT'>Patient wishes to remain in care at AMPATH</option>
+	<option value="a89335d6-1350-11df-a1f1-0026b9348838" oldvalue='159^DECEASED^99DCT'>Patient Dead</option>
+	<option value="a89c2f42-1350-11df-a1f1-0026b9348838" oldvalue='1286^AMPATH^99DCT'> Transfer out - to AMPATH AMRS alinic</option>  
+	<option value="6daff4ce-bce7-41f5-9141-17e694155180" oldvalue='9083^SELF DISENGAGED FROM CARE^99DCT'>Patient self-disengaged from care</option>
+	<option value="7e381b07-81d5-4425-be84-f188b61b4bd1" oldvalue='9068^AMPATH, NON-AMRS^99DCT'>Transfer out - to AMPATH non-AMRS clinic</option>
+	<option value="636b7246-51f7-4985-9430-431b09d39bea" oldvalue='9036^HIV NEGATIVE, NO LONGER AT RISK^99DCT'>Patient HIV negative</option>
+	<option value="a89c301e-1350-11df-a1f1-0026b9348838" oldvalue='1287^NON-AMPATH^99DCT'>Transfer out - to non-AMPATH clinic</option>
+	<option value="bea9c288-0650-4b42-a324-1d6d51591c72" oldvalue='9079^UNTRACEABLE^99DCT>
+	  Outreach worker does not believe patient can be traced
+	</option>
+	<option value="07c536bc-19f2-4296-9c4a-edd85f070095" oldvalue='9080^PROCESS OF BEING TRACED^99DCT'>Patient in process of being traced</option>
+      </select>
+      
       <br/>
       If patient plans to return to clinic, RTC Date: 
       <input class="form-control datepicker checkFutureDate" data-concept="5096^RETURN VISIT DATE^99DCT" id="return_visit_date" 
 	     name="obs__a8a666ba-1350-11df-a1f1-0026b9348838" type="text">
       <br/>
       If patient transferred to another AMPATH clinic, clinic name:      
-      <input type='text' name=''/>
-
+      <select name=''>
+	<option/>
+	{% for l in locations %}
+	<option value='{{l.uuid}}'>{{l.name}}</option>
+	{%endfor%}
+      </select>
+      
       <div class="form-group text-center">
-	<input class="btn btn-primary" id="save_draft" type="button" value="Save"/>
-	<input class="btn btn-primary" id="submit_form" type="button" value="Submit"/>
+	<!--input class="btn btn-primary" id="save_draft" type="button" value="Save"/>
+	<input class="btn btn-primary" id="submit_form" type="button" value="Submit"/-->
+	<input type='submit'/>
       </div>
       
   </form>

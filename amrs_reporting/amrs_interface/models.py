@@ -101,8 +101,7 @@ class Location(models.Model):
         location = ''
         try:
             res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
-            data = json.dumps(res.text)
-            print data
+            data = json.dumps(res.text)            
             location = {'name':data['name'],
                         'uuid':data['uuid']}
         except:
@@ -126,7 +125,7 @@ class Patient():
         middle_name = ''
         for x in range(1,num_names-2):
             middle_name += ' ' + names[x]
-        print data
+        
         identifier = data['identifiers'][0]['display']
         split = identifier.split(' = ')
         identifier = split[1]
@@ -140,7 +139,8 @@ class Patient():
                    'family_name':family_name,
                    'identifier':identifier,
                    'gender':gender,
-                   'birthdate':birthdate,                   
+                   'birthdate':birthdate,
+                   'uuid':patient_uuid,
                    }
         return patient
     

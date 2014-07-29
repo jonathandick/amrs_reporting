@@ -1,0 +1,125 @@
+{% extends "ltfu/base.html" %}
+{% load staticfiles %}
+{% block content %}
+
+<script type="text/javascript" language="javascript" src="{% static 'js/flot/jquery.flot.js'%}"></script>
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.js'%}"></script>
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/extensions/TableTools/js/dataTables.tableTools.js'%}"></script>
+  <style type="text/css" title="currentStyle">
+    @import "{% static 'js/DataTables-1.10.0/extensions/TableTools/css/dataTables.tableTools.css'%}";
+    @import "{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.css' %}";
+  </style>
+
+<script type="text/javascript">
+
+
+  function download_defaulter_list() {
+      var form = document.getElementById('defaulter_list_form');
+      form.action = '/ltfu/ltfu_get_defaulter_list';
+      form.submit();
+  }
+
+  function view_defaulter_list() {
+      var form = document.getElementById('defaulter_list_form');
+      form.action = '/ltfu/ltfu_by_range';
+      form.submit();
+  }
+
+
+$(document).ready(function() {
+
+  $('#report').dataTable( {
+  "width":"100%",
+  "sScrollY": "250px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "sDom": '<"clear">Tlfrtip',
+  "oTableTools": {
+        "sSwfPath": "{% static 'js/DataTables-1.10.0/extensions/TableTools/swf/copy_csv_xls_pdf.swf'%}",
+        "aButtons": [
+             {
+                "sExtends": "xls",
+                "sButtonText": " Excel ",
+                "oSelectorOpts": {
+                    page: 'current'
+                }
+            },
+             {
+                "sExtends": "pdf",
+                "sButtonText": " pdf ",
+                "oSelectorOpts": {
+                    page: 'current'
+                }
+            },  
+            {
+                "sExtends": "copy",
+                "sButtonText": "Copy to clipboard",
+                "oSelectorOpts": {
+                    page: 'current'
+                }
+            }
+        ]
+  },
+  "bAutoWidth" : false,
+  "fnDrawCallback": function ( oSettings ) {
+      /* Need to redo the counters if filtered or sorted */
+      if ( oSettings.bSorted || oSettings.bFiltered )
+      {
+           for ( var i=0, iLen=oSettings.aiDisplay.length ; i<iLen ; i++ )
+           {
+	       $('td:eq(0)', oSettings.aoData[ oSettings.aiDisplay[i] ].nTr ).html( i+1 );
+           }
+      }
+   }
+   }).columnFilter({sPlaceHolder:"head:before",
+                    aoColumns:[null,null,null,{type:"select"},null,{type:"select"},null,{type:"number-range"}]
+                   });
+
+
+});
+
+</script>
+
+
+<table id='report' class="displays">
+  <thead>
+    <tr>
+	<th class="gradeA"></th>
+	<th class="gradeA">Name</th>
+	<th class="gradeA">AMRS ID</th>
+	<th class="gradeA">Phone Number</th>
+	<th class="gradeA">Risk Cat</th>
+	<th class="gradeA">last enc date</th>
+	<th class="gradeA">enc type</th>
+	<th class="gradeA">rtc date</th>
+	<th class="gradeA">days from rtc date</th>
+	<th class="gradeA"></th>
+    </tr>
+  </thead>
+ 
+  <tbody>
+    {% for row in defaulter_list %}
+    <tr>
+      <td>{{forloop.counter}}</td>
+      <td>{{row.person_name}}</td>
+      <td>{{row.identifier}}</td>
+      <td>{{row.phone_number}}</td>
+      <td>{{row.risk_category}}</td>
+      <td>{{row.encounter_datetime}}</td>
+      <td>{{row.name}}</td>
+      <td>{% if row.rtc_date%} {{row.rtc_date}} {%endif%}</td>
+      <td>{% if row.days_since_rtc %}{{row.days_since_rtc}} {%endif%}</td>
+      <td><a href='/ltfu/outreach_form?patient_uuid={{row.uuid}}&location_uuid={{location.uuid}}'>Enter Form</a></td>
+    </tr>
+    {%endfor%}
+    </tbody>
+</table>
+</div>
+
+
+
+{% endblock %}

@@ -11,6 +11,8 @@ class DefaulterCohort(models.Model):
     description = models.CharField(max_length=500)
     cohort_uuid = models.CharField(max_length=500)
     location_id = models.IntegerField()
+    #location_uuid = models.CharField(max_length=500)
+    date_updated = models.DateTimeField(auto_now=True)
 
 
     def update_defaulter_cohort(self):
@@ -62,7 +64,31 @@ class DefaulterCohort(models.Model):
             payload = {'patient':uuid}
             data = json.dumps(payload)
             req = requests.post(url_cohort, data, auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+        
                 
+
+
+    def get_defaulter_list(self):        
+        location_ids = (self.location_id,)
+        start_range_high_risk = 8
+        start_range = 30
+        end_range = 89
+        limit = 200
+
+        rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
+        parameter_values = (start_range_high_risk,start_range,end_range,location_ids,location_ids)
+        table = rt.run_report_table(parameter_values=parameter_values,as_dict=True,limit=limit)['rows']
+
+        uuids = OutreachFormSubmissionLog.objects.filter(date_submitted__gte=self.date_updated).values_list('patient_uuid',flat=True)
+        defaulters = []
+        
+        for row in table:
+            if row['uuid'] not in uuids:
+                defaulters.append(row)
+        
+        return defaulters
+        
+
 
 
     @staticmethod
@@ -81,6 +107,11 @@ class DefaulterCohort(models.Model):
         for row in table:
             patient_ids.append(str(row['uuid']))
         return patient_ids
+
+    
+    
+
+
 
 
     
@@ -113,3 +144,12 @@ class DefaulterCohort(models.Model):
             dc.update_defaulter_cohort()            
             cohorts.append(dc)
         return cohorts
+
+
+
+class OutreachFormSubmissionLog(models.Model):
+    patient_uuid = models.CharField(max_length=500)
+    location_uuid = models.CharField(max_length=500)
+    defaulter_cohort_id = models.IntegerField()
+    date_submitted = models.DateTimeField(auto_now=True,db_index=True)
+        

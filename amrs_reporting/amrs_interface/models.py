@@ -3,6 +3,9 @@ import MySQLdb as mdb
 import report.settings as settings
 from report.models import *
 from utilities import *
+import requests
+import json
+import amrs_settings
 
 class Location(models.Model):
 
@@ -58,7 +61,7 @@ class Location(models.Model):
         locations = {}
         con = None
         try :
-            sql = 'select location_id, name from amrs.location where retired=' + str(retired) + ' order by name'
+            sql = 'select location_id, name,uuid from amrs.location where retired=' + str(retired) + ' order by name'
             con = mdb.connect(Location.HOST,Location.USER,Location.PASSWORD,Location.DATABASE)
             cur = con.cursor(mdb.cursors.DictCursor)
             cur.execute(sql)
@@ -77,7 +80,7 @@ class Location(models.Model):
         location = {}
         con = None
         try :
-            sql = 'select location_id, name from amrs.location where location_id=%s'
+            sql = 'select location_id, name, uuid from amrs.location where location_id=%s'
             con = mdb.connect(Location.HOST,Location.USER,Location.PASSWORD,Location.DATABASE)
             cur = con.cursor(mdb.cursors.DictCursor)
             cur.execute(sql,(location_id,))
@@ -89,6 +92,54 @@ class Location(models.Model):
             if con : con.close()
 
         return location
+
+
+    @staticmethod
+    def get_location_by_uuid(location_uuid):
+        headers = {'content-type': 'application/json'}
+        url = amrs_settings.amrs_url + '/ws/rest/v1/location/' + location_uuid
+        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+        data = json.dumps(res.text)
+        location = {'name':data['name'],
+                    'uuid':data['uuid']}
+        return location
+
+
+class Patient():
+
+    @staticmethod
+    def get_patient_by_uuid(patientx_uuid):
+        headers = {'content-type': 'application/json'}
+        url = amrs_settings.amrs_url + '/ws/rest/v1/patient/' + patient_uuid
+        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+        data = json.loads(res.text)
+        names = data['person']['display']
+        split = names.split(' ')
+        num_names = len(split)
+        given_name = split[0]
+        last_name = split[num_names-1]
+
+        middle_name = ''
+        for x in range(1,num_names-2):
+            middle_name += ' ' + names[x]
+
+        identifier = request.GET['identifiers']['identifier']['display']
+        split = identifier.split(' = ')
+        identifier = split[1]
+
+        gender = data['person']['gender']
+
+        birthdate = data['person']['birthdate']
+
+        patient = {'given_name':given_name,
+                   'middle_name':middle_name,
+                   'family_name':family_name,
+                   'identifier':identifier,
+                   'gender':gender,
+                   'birthdate':birthdate,                   
+                   }
+        return patient
+    
 
 
                        
@@ -162,6 +213,24 @@ class Provider(models.Model):
         rt = ReportTable.objects.filter(name='outreach_worker_indicators')[0]
         outreach_worker_indicators = rt.run_report_table(as_dict=True)['rows']
         return outreach_worker_indicators
+
+
+class EncounterType():
+
+    @staticmethod
+    def get_encounter_type_by_uuid(uuid):
+        headers = {'content-type': 'application/json'}
+        url = amrs_settings.amrs_url + '/ws/rest/v1/encountertype/' + uuid
+        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+        data = json.loads(res.text)
+        name = data['name']
+        description = data['description']
+        return {'name':name,
+                'description':description,
+                'uuid':uuid,
+                }
+    
+        
 
 
 class DerivedGroup(models.Model):

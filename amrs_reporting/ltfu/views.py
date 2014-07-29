@@ -17,6 +17,7 @@ from datetime import datetime, date
 import simplejson
 from ltfu.models import *
 
+
 # Create your views here.
 
 
@@ -508,35 +509,57 @@ def delete_defaulter_cohort(request):
 
 
 
-def process_outreach_form(request):
+def outreach_form(request):
     import requests
     import json
     import amrs_settings
 
     headers = {'content-type': 'application/json'}
-    url = amrs_settings.amrs_url + '/ws/rest/v1/encounter'
+    if request.method == 'GET':
+        patient_uuid = request.GET['patient_uuid']
+        location_uuid = request.GET['location_uuid']
+        provider_uuid = request.GET['provider_uuid']
+        
+        patient = Patient.get_patient_by_uuid(patient_uuid)
+        location = Location.get_location_by_uuid(location_uuid)
+        locations = Location.get_locations()
+        encounter_type = EncounterType.get_encounter_type_by_uuid('df5547bc-1350-11df-a1f1-0026b9348838') #outreach
+        
+        args = {'patient':patient,
+                'encounter_type':encounter_type,
+                'location':location,
+                'locations':locations
+                }
 
-    patient_uuid = request.POST['patient_uuid']
-    provider_uuid = request.POST['provider_uuid']
-    encouter_type_uuid = request.POST['encounter_type_uuid'] # 'df5547bc-1350-11df-a1f1-0026b9348838' #outreach
-    encounter_datetime = request.POST['encounter_datetime']
-    location_uuid = request.POST['location_uuid']
-    obs = []
-    for key,value in request.POST.iteritems():
-        if key.startswith('obs__'):
-            question_uuid = key[6:]
-            obs.append({'concept':question_uuid,'value':value})
+        return render(request,args,'ltfu/OutreachForm.html')
+                
+
+
+    elif request.method == 'POST':
+        url = amrs_settings.amrs_url + '/ws/rest/v1/encounter'
+
+        user = request.
+        patient_uuid = request.POST['patient_uuid']
+        provider_uuid = request.POST['provider_uuid']
+        encouter_type_uuid = request.POST['encounter_type_uuid']
+        encounter_datetime = request.POST['encounter_datetime']
+        location_uuid = request.POST['location_uuid']
+        obs = []
+        for key,value in request.POST.iteritems():
+            if key.startswith('obs__') and value.strip() != '':
+                question_uuid = key[6:]                
+                obs.append({'concept':question_uuid,'value':value})
     
-    payload = {'patient':patient_uuid,
-               'encounterDatetime':encounter_datetime,               
-               'location':location_uuid,
-               'encounterType':encounter_type_uuid,
-               'provider':provider_uuid,
-               'obs': obs
-               }
+        payload = {'patient':patient_uuid,
+                   'encounterDatetime':encounter_datetime,               
+                   'location':location_uuid,
+                   'encounterType':encounter_type_uuid,
+                   'provider':provider_uuid,
+                   'obs': obs
+                   }
     
-    data = json.dumps(payload)
-    res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers)    
+        data = json.dumps(payload)
+        res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers)    
     
     
     

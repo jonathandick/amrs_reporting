@@ -479,7 +479,18 @@ def manage_defaulter_cohorts(request):
     import amrs_settings
 
     headers = {'content-type': 'application/json'}
-    url = amrs_settings.amrs_url + '/ws/rest/v1/cohort/4443b53b-ff8b-4d17-88c6-63b1d2999921/member/00005894-4a25-467f-b0e3-9d1e19dbfc58'
+    url = amrs_settings.amrs_url + '/ws/rest/v1/encounter'
+    payload = {'patient':'00002702-560c-4804-b1be-a4846b1fc98c',#patient_id 247342
+               'encounterDatetime':'2014-07-05',
+               "location":'08feae7c-1352-11df-a1f1-0026b9348838', #mtrh module 1
+               'encounterType':'df5547bc-1350-11df-a1f1-0026b9348838', #outreach
+               'provider':'5b6e3978-1359-11df-a1f1-0026b9348838', #person_id 8
+               'obs':
+                   [{'concept':'d10edf78-adae-44c8-9e05-4464b594e581', 'value':'ee40f765-d7ed-4ba2-98f6-df4f91abb9d8'}]                        
+               }
+    data = json.dumps(payload)
+    #res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers)    
+    
     
     dcs = DefaulterCohort.objects.all()
     
@@ -494,3 +505,38 @@ def delete_defaulter_cohort(request):
     cohort_uuid = request.GET['cohort_uuid']
     DefaulterCohort.delete_defaulter_cohort(cohort_uuid)
     return HttpResponseRedirect('/ltfu/manage_defaulter_cohorts')
+
+
+
+def process_outreach_form(request):
+    import requests
+    import json
+    import amrs_settings
+
+    headers = {'content-type': 'application/json'}
+    url = amrs_settings.amrs_url + '/ws/rest/v1/encounter'
+
+    patient_uuid = request.POST['patient_uuid']
+    provider_uuid = request.POST['provider_uuid']
+    encouter_type_uuid = request.POST['encounter_type_uuid'] # 'df5547bc-1350-11df-a1f1-0026b9348838' #outreach
+    encounter_datetime = request.POST['encounter_datetime']
+    location_uuid = request.POST['location_uuid']
+    obs = []
+    for key,value in request.POST.iteritems():
+        if key.startswith('obs__'):
+            question_uuid = key[6:]
+            obs.append({'concept':question_uuid,'value':value})
+    
+    payload = {'patient':patient_uuid,
+               'encounterDatetime':encounter_datetime,               
+               'location':location_uuid,
+               'encounterType':encounter_type_uuid,
+               'provider':provider_uuid,
+               'obs': obs
+               }
+    
+    data = json.dumps(payload)
+    res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers)    
+    
+    
+    

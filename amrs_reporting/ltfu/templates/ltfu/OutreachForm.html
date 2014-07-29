@@ -1,0 +1,481 @@
+<html>
+<head>
+    <!--link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href="css/muzima.css" rel="stylesheet">
+    <link href="css/ui-darkness/jquery-ui-1.10.4.custom.min.css" rel="stylesheet">
+
+    <script src="js/jquery.min.js"></script>
+    <script src="js/jquery-ui-1.10.4.custom.min.js"></script>
+    <script src="js/jquery.validate.min.js"></script>
+    <script src="js/additional-methods.min.js"></script>
+    <script src="js/muzima.js"></script-->
+
+    <title>Outreach Follow-up Form v1.0</title>
+</head>
+<body class="col-md-8 col-md-offset-2">
+  <div id="pre_populate_data"></div>
+  <form id="outreach_form" name="outreach_form">
+    
+    <h2 class="text-center">Outreach Follow-up Form v1.0</h2><div class="section">
+      <h3>Demographics</h3>
+      <div class="form-group">
+        <input class="form-control" id="patient.uuid"
+               name="patient.uuid" type="hidden" value='{{patient.uuid}}' readonly>
+      </div>
+      
+      <div class="form-group">
+        <label for="patient.medical_record_number">AMRS ID Number:</label>
+        <input class="form-control" id="patient.medical_record_number"
+               name="patient.medical_record_number" type="text" value = "{{patient.identifier}}" readonly>
+      </div>
+      
+      <div class="form-group">
+        <label for="patient.family_name">Family Name:</label>
+        <input class="form-control" id="patient.family_name" name="patient.family_name" type="text"
+               readonly="readonly" value="{{patient.family_name}}">
+      </div>
+      <div class="form-group">
+        <label for="patient.given_name">Given Name:</label>
+        <input class="form-control" id="patient.given_name" name="patient.given_name" type="text"
+               readonly="readonly" value="{{patient.given_name}}">
+      </div>
+      <div class="form-group">
+        <label for="patient.middle_name">Middle Name:</label>
+        <input class="form-control" id="patient.middle_name" name="patient.middle_name" type="text"
+               readonly="readonly" value="{{patient.middlen_name}}">
+      </div>
+      
+      <div class="form-group">
+        <label for="patient.sex">Gender:</label>
+        <!--select class="form-control" id="patient.sex" name="patient.sex" readonly="readonly">
+        <option value="">...</option>
+        <option value="M">Male</option>
+        <option value="F">Female</option>
+        </select-->
+	<input type='text' name='patient.sex' value="{{patient.sex}}" readonly="readonly"/>
+	
+      </div>
+      <div class="form-group">
+        <label for="patient.birthdate">Date Of Birth:</label>
+        <input id="patient.birthdate" name="patient.birthdate" type="text"
+               readonly="readonly" value="{{patient.birthdate}}"/>
+      </div>
+      
+    </div>
+    <div class="section">
+      <h3>Encounter Details</h3>
+      
+      <div class="form-group">
+        <label for="encounter.location_id">Name of Clinic:<span class="required">*</span></label>
+        <input class="form-control" id="encounter.location_id" type="text" placeholder="Start typing something...">
+        <input class="form-control" name="encounter.location_id" type="hidden">
+      </div>
+      
+      <div class="form-group">
+        <label for="encounter.provider_id_select">Provider ID:</label>
+        <input class="form-control" id="encounter.provider_id_select" type="text" placeholder="Start typing something...">
+        <input class="form-control" name="encounter.provider_id_select" type="hidden">
+      </div>
+
+      <div class="form-group show_provider_id_text">
+        <label for="encounter.provider_id">Enter provider's system-id:<span class="required">*</span></label>
+        <input class="form-control checkDigit" id="encounter.provider_id" name="encounter.provider_id"
+               type="text" required>
+      </div>
+      <div class="form-group">
+        <label for="encounter.encounter_datetime">Encounter Date:<span class="required">*</span></label>
+        <input class="form-control datepicker nonFutureDate" id="encounter.encounter_datetime"
+               name="encounter.encounter_datetime" type="text" readonly encounter.encounter_datetime
+               required="required">
+      </div>
+      <div class="form-group">
+        <input class="form-control" id="encounter.form_uuid" name="encounter.form_uuid"
+               type="hidden" required>
+      </div>
+      <div class="form-group">
+        <label for="obs.missed_return_visit_date">Missed appointment date:</label>
+        <input class="form-control datepicker" data-concept="1592^MISSED RETURN VISIT DATE^99DCT" id="obs.missed_return_visit_date" name="obs.missed_return_visit_date" type="text">
+      </div>
+      <div class="form-group">
+        <label for="patient.phone">Phone:</label>
+        <input class="form-control phoneNumber" id="patient.phone" name="patient.phone" type="tel">
+      </div>
+    </div>
+    <div class="section">
+      <h3>Phone Follow-up</h3>
+      <table>
+	<tr>
+	  <td>
+	    <div class="form-group">
+	      <label for="obs.number_of_call_attempts">Number of call attempts:</label>
+	      <input id="obs.number_of_call_attempts" type="text" name="obs__e6c52d7e-3e25-4a83-8f9c-55a03bdc653a" value="">
+            </div>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+            <div class="form-group">
+	      <label for="obs.who_does_phone_belong_to">Who does the phone belong to? :</label>
+	      <select class="form-control" id="obs.who_does_phone_belong_to" name="obs__47a5988a-e5f7-424e-96cc-3b34aeea3c1a" data-concept="7506^OWNER OF PHONE^99DCT">
+		<option value="">...</option>
+ 		<option value="1065^YES^99DCT">Patient</option>
+		<option value="1410^CARETAKER^99DCT">Caregiver</option>
+		<option value="5620^OTHER FAMILY MEMBER^99DCT">Family Member</option>
+		<option value="5618^FRIEND^99DCT">Friend</option>
+		<option value="5622^OTHER NON-CODED^99DCT">Other</option>
+	      </select>
+            </div>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <label>Was the patient contacted?</label>
+            <select class="form-control" id='obs.patient_contacted_byPhone' name="obs__2b90dbd2-8897-49fd-9784-e5999e7312fa" data-concept="9063^PATIENT CONTACTED BY PHONE^99DCT">
+	      <option value=""></option>
+    	      <option value='obs__a899b35c-1350-11df-a1f1-0026b9348838' oldvalue='1065^Yes^99DCT'>Yes</option>
+	      <option value='obs__a89dec06-1350-11df-a1f1-0026b9348838' oldvalue='1560^PHONE NOT CONNECTING^99DCT'>No, phone not connecting</option>
+	      <option value='obs__a69cdbf7-edf0-4e4d-a4dc-1ff3bc771d5c' oldvalue='9064^NO PHONE NUMBER^99DCT'>No, phone number inactive</option>
+	      <option value='obs__1965eb6f-fc86-4f44-b3b8-59772b1daa20' oldvalue='9065^WRONG PHONE NUMBER^99DCT'>No, wrong phone number</option>
+	      <option value='obs__fdd18cec-11ba-4512-ab3c-b66066847f58' oldvalue='9066^NO RESPONSE ON PHONE CALL ATTEMPT^99DCT'>No, no one picks up</option>
+              <option value='obs__a8aaf3e2-1350-11df-a1f1-0026b9348838' oldvalue='5622^OTHER NON-CODED^99DCT'>Other</option>
+	    </select>
+	  </td>
+	</tr>
+	<tr>
+	  <td> 
+	    <label>Refer for field follow-up?</label>
+            <select class="form-control" id='obs.refer_for_field_follow_up' name="obs__3cef9756-ae0e-4b35-9ee2-b0fb96556971"
+		    data-concept="9067^REFER FOR FIELD FOLLOW-UP^99DCT">
+	      <option value='obs__a899b35c-1350-11df-a1f1-0026b9348838'  oldvalue='1065^Yes^99DCT'>Yes</option>
+	      <option value='obs__a89de526-1350-11df-a1f1-0026b9348838' oldvalue='1551^DISTANCE TOO FAR^99DCT'>In catchment but distant too far</option>
+              <option value='obs__83df5f26-f97a-4cda-9c05-d0bdc6e4ebee' 
+		      oldvalue='oldvalue='6834^OUT OF AMPATH CATCHMENT AREA^99DCT'>No, out of catchment area</option>
+	      <option value='obs__a89decc4-1350-11df-a1f1-0026b9348838' oldvalue='1561^INADEQUATE LOCATOR INFORMATION^99DCT'>Locator inadequate</option>	  
+	    </select>
+	  </td>
+	</tr>
+      </table>
+    </div>
+
+    <div class="section">
+      <h3>Field Follow-up</h3>
+      <table>
+	<tr>
+	  <td>
+            <div class="form-group">
+              <fieldset data-concept="9067^REFER FOR FIELD FOLLOW-UP^99DCT" name="9067^REFER FOR FIELD FOLLOW-UP^99DCT">
+		<label>Was the patient found?:</label>
+    		<input id='obs.patient_found.yes' type='radio' value='true'>
+		<label for='obs.patient_found.yes'>Yes</label>  
+		
+    		<input id='obs.patient_found.no' type='radio' value='false'>
+		<label for='obs.patient_found.no'>No</label>  
+              </fieldset>
+            </div>
+	  </td>
+	</tr>
+	<tr>
+	  <td>            	
+            <div class="form-group">
+              <fieldset>
+		<label for="obs.not_found_reasons">If not found, reason:</label>
+		<select class="form-control" id="obs.not_found_reasons" name="obs.not_found_reasons" data-concept="1552^NOT FOUND, REASONS^99DCT">
+		  <option value="">...</option>
+ 		  <option value="1561^LOCATOR INFORMATION INADEQUATE^99DCT">Locator information inadequate</option>
+		  <option value="1562^RELOCATED^99DCT">Patient moved away</option>
+		  <option value="1547^WORK OR SCHOOL^99DCT">Patient at work</option>
+		  <option value="1563^NOT AT HOME^99DCT">Patient not at home</option>
+		  <option value="1739^ROAD IMPASSABLE^99DCT">Road impassable</option>
+		  <option value="5622^OTHER NON-CODED^99DCT">Other</option>
+		</select>
+              </fieldset>
+            </div>
+	    
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+	    <fieldset>	 
+	      <div class="form-group">
+		<label for="obs.number_of_days_of_remaining_arv_medication">Does the patient have medications remaining? If yes, # of days worth:</label>
+		<input id="obs.number_of_days_of_remaining_arv_medication" type="text" name="9062^NUMBER OF DAYS OF REMAINING ARV MEDICATION^99DCT" value="">
+              </div>
+	    </fieldset>
+	  </td>
+	</tr>
+      </table>
+    </div>
+    
+    <div class="section">
+      <h3>If found or information supplied</h3>
+      <table>
+	<tr>
+	  <td>
+            <div class="form-group"> 
+	      <label for="obs.date_found">Date Found:</label>
+              <input class="form-control datepicker" data-concept="1568^DATE FOUND^99DCT" id="obs.date_found" name="obs.date_found" type="text">
+	    </div>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
+            <div class="form-group">
+              <fieldset>
+		<label for="obs.location_of_contact">Location of contact:</label>
+		<select class="form-control" id="obs.location_of_contact" name="obs.location_of_contact" data-concept="1569^LOCATION OF CONTACT^99DCT">
+		  <option value="">...</option>
+ 		  <option value="1567^HOME^99DCT">Home</option>
+		  <option value="1947^WORK^99DCT">Work</option>
+		  <option value="1555^PHONE^99DCT">Phone</option>
+		  <option value="1749^SCHOOL^99DCT">School</option>
+		  <option value="5622^OTHER NON-CODED^99DCT">Patient File</option>
+		  <option value="5622^OTHER NON-CODED^99DCT">Other</option>
+		</select>
+              </fieldset>
+            </div>
+	  </td>
+	</tr>
+	<tr>
+	  <td>            	 
+            <fieldset data-concept="1733^REASON FOR MISSED VISIT^99DCT" name="1733^REASON FOR MISSED VISIT^99DCT">
+	      <label>Reason for Missed Visit:</label>
+              <table>
+		<tr>
+		  <td>
+	    	    <input id='obs.reason_for_missed_visit.deceased' type='checkbox' value='159^DECEASED^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.deceased'>Deceased </label>  
+		  </td>
+ 		  <td>
+	    	    <input id='obs.reason_for_missed_visit.ampath_clinic_transfer' type='checkbox' value='1732^AMPATH CLINIC TRANSFER^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.ampath_clinic_transfer'>Transferred Clinic</label>  
+		  </td>
+		  <td>
+	    	    <input id='obs.reason_for_missed_visit.work_commitments' type='checkbox' value='1577^WORK COMMITMENTS^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.work_commitments'>Work Committments</label>  
+		  </td>
+		  <td>
+	    	    <input id='obs.reason_for_missed_visit.family_commitments' type='checkbox' value='1576^FAMILY COMMITMENTS^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.family_commitments'>Family Committments</label>  
+		  </td>
+		</tr>                            
+		<tr>
+		  <td>
+	    	    <input id='obs.reason_for_missed_visit.transport_costs' type='checkbox' value='1578^TRANSPORT COSTS^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.transport_costs'>Transport Costs</label>  
+		  </td>
+ 		  <td>
+	    	    <input id='obs.reason_for_missed_visit.did_not_miss_appointment' type='checkbox' value='1574^DID NOT MISS APPOINTMENT^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.did_not_miss_appointment'>Did not actually miss appointment</label>  
+		  </td>
+		  <td>
+	    	    <input id='obs.reason_for_missed_visit.school_commitments' type='checkbox' value='1956^SCHOOL COMMITMENTS^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.school_commitments'>School Committments</label>  
+		  </td>
+		  <td>
+	    	    <input id='obs.reason_for_missed_visit.travel' type='checkbox' value='1546^TRAVEL^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.travel'>Travelled</label>  
+		  </td>
+		</tr>                            
+		<tr>
+		  <td>
+	    	    <input id='obs.reason_for_missed_visit.insecurity' type='checkbox' value='1954^INSECURITY^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.insecurity'>Insecurity</label>  
+		  </td>
+		  <td>
+	    	    <input id='obs.reason_for_missed_visit.forgot_appointment' type='checkbox' value='1575^FORGOT APPOINTMENT^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.forgot_appointment'>Forgot appointment</label>  
+		  </td>
+		  <td>
+	    	    <input id='obs.reason_for_missed_visit.health_issues' type='checkbox' value='1548^HEALTH ISSUES^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.health_issues'>To ill to come</label>  
+		  </td>
+		  <td>
+	    	    <input id='obs.reason_for_missed_visit.hiv_disclosure' type='checkbox' value='1688^HIV DISCLOSURE^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.hiv_disclosure'>Disclosure Issues</label>  
+		  </td>
+		</tr>                            
+		<tr>
+		  <td>
+	    	    <input id='obs.reason_for_missed_visit.in_good_health' type='checkbox' value='9070^IN GOOD HEALTH^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.in_good_health'>Had medications and felt well</label>  
+		  </td>
+		  <td>
+	    	    <input id='obs.reason_for_missed_visit.family_conflict' type='checkbox' value='9075^FAMILY CONFLICT^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.family_conflict'>Family conflict</label>  
+		  </td>
+		  <td>
+	    	    <input id='obs.reason_for_missed_visit.conflicting_return_to_clinic_dates' type='checkbox' value='9076^CONFLICTING RETURN TO CLINIC DATES^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.conflicting_return_to_clinic_dates'>Patient given different date than in AMRS</label>  
+		  </td>
+		  <td>
+	    	<input id='obs.reason_for_missed_visit.admitted_to_hospital' type='checkbox' value='6419^ADMITTED TO HOSPITAL^99DCT'>
+    	    	<label for='obs.reason_for_missed_visit.admitted_to_hospital'>Patient was admitted</label>  
+              </td>
+		</tr>                            
+		<tr>
+		  <td>
+	    	    <input id='obs.reason_for_missed_visit.other_non_coded' type='checkbox' value='5622^OTHER NON-CODED^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.other_non_coded'>Other</label>  
+		  </td>
+		  <td>	    			            
+                    <input id='obs.reason_for_missed_visit.refusal' type='checkbox' value='1504^REFUSAL^99DCT'>
+    	    	    <label for='obs.reason_for_missed_visit.refusal'>Other</label>  
+		  </td>
+		  <td></td>
+		  <td></td>
+		</tr>                            
+		
+	  </table>
+            </fieldset>
+	  </td>            
+	</tr>
+	<tr>
+	  <td>            	
+            <table><tr><td>
+		  <div class="form-group"> 
+        	    <label for="obs.date_of_death">If patient is deceased: Death date:</label>
+		    <input class="form-control datepicker" data-concept="1570^DATE OF DEATH^99DCT" id="obs.date_of_death" name="obs.date_of_death" type="text">               
+		  </div>
+            </td>
+		<td>
+		  <div class="form-group">
+		    <label for="obs.cause_for_death">Cause of death:</label>
+		    <select class="form-control" id="obs.cause_for_death" name="obs.cause_for_death" data-concept="1573^CAUSE FOR DEATH^99DCT">
+		      <option value="">...</option>
+                      <option value="1548^HEALTH ISSUES^99DCT">Illness</option>
+ 		      <option value="1571^SUICIDE^99DCT">Suicide</option>
+                      <option value="84^ACCIDENT, NOT OTHERWISE SPECIFIED^99DCT">Accident</option>
+                      <option value="1572^MURDER^99DCT">Murder</option>
+		      <option value="1067^UNKNOWN^99DCT">Unknown</option>
+	              <option value="5622^OTHER NON-CODED^99DCT">Other</option>
+	    	    </select>
+		  </div>
+		</td>
+		<td>
+		  <div class="form-group">
+		    <label for="obs.death_reported_by">Cause of death:</label>
+		    <select class="form-control" id="obs.death_reported_by" name="obs.death_reported_by" data-concept="1734^DEATH REPORTED BY^99DCT">
+		      <option value="">...</option>
+ 		      <option value="1409^WIFE^99DCT">Wife</option>
+                      <option value="1408^HUSBAND^99DCT">Husband</option>
+                      <option value="970^MOTHER^99DCT">Mother</option>
+                      <option value="971^FATHER^99DCT">Father</option>
+		      <option value="1067^GRANDPARENT^99DCT">Grandparent</option>
+		      <option value="972^SIBLING^99DCT">Sibling</option>
+		      <option value="5620^OTHER FAMILY MEMBER^99DCT">Other family member</option>
+		      <option value="5618^FRIEND^99DCT">Friend</option>
+		      <option value="1411^NEIGHBOR^99DCT">Neighbor</option>								
+	              <option value="5622^OTHER NON-CODED^99DCT">Other</option>
+	    	    </select>
+		  </div>
+	    </td></tr></table>
+	  </td>
+	</tr>
+	<tr>
+	  <td>            	
+	    <div class="form-group"> 
+              <label for="obs.reason_to_refuse_care">If refused care, reason: </label>                 
+	      <select class="form-control" id="obs.reason_to_refuse_care" name="obs.reason_to_refuse_care" data-concept="1588^REASON TO REFUSE CARE^99DCT">
+		<option value=""></option>
+		<option value="1584^FAMILY DISCRIMINATION^99DCT">Family Discrimination (disclosure issues)</option>
+ 		<option value="1587^HEALED BY FAITH^99DCT">Believes healed by faith</option>
+		<option value="1586^DENIAL^99DCT">Denial</option>
+		<option value="1585^COMMUNITY DISCRIMINATION^99DCT">Community Discrimination</option>
+		<option value="1961^NO LONGER TAKING MEDICINE^99DCT">No longer taking medicines</option>
+		<option value="5622^HERBAL TRADITIONAL MEDICATIONS^99DCT">Taking herbals</option>
+	      </select>
+            </div>
+	  </td>
+	</tr>
+	
+	<tr>
+	  <td>            	
+	    <div class="form-group"> 
+              <label for="obs.likelihood_of_patient_returning_to_clinic">Do you think the patient will return to clinic?</label>                 
+	      <select class="form-control" id="obs.likelihood_of_patient_returning_to_clinic" name="obs.likelihood_of_patient_returning_to_clinic" data-concept="9077^LIKELIHOOD OF PATIENT RETURNING TO CLINIC^99DCT">
+		<option value=""></option>
+		<option value="7248^VERY LOW^99DCT">No</option>
+		<option value="9078^VERY HIGH^99DCT">Yes</option>
+	      </select>
+            </div>
+	  </td>
+	</tr>
+      </table>
+    </div>
+    
+    <div class="section">
+      <h3>Patient Status</h3>
+      <div class='form-group'>
+	<fieldset data-concept="9082^PATIENT CARE STATUS^99DCT" name="9082^PATIENT CARE STATUS^99DCT">				
+	  <table>
+	    <tr>
+              <td>
+		<input id='obs.patient_care_status.continue' type='radio' value='6101^CONTINUE^99DCT'>
+		<label for='obs.patient_care_status.continue'>Patient wishes to remain in care at AMPATH</label>  
+		<div class="form-group"> 
+		  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label for="obs.return_visit_date">Return to clinic date:</label>
+		  <input class="form-control datepicker checkFutureDate" data-concept="5096^RETURN VISIT DATE^99DCT" id="obs.return_visit_date" name="obs.return_visit_date" type="text">
+		  
+	  </div>
+		
+              </td>
+              <td>
+		<label>Patient Transferred out:</label>  
+              </td>
+	    </tr>
+	    <tr>
+              <td>
+		<input id='obs.patient_care_status.deceased' type='radio' value='159^DECEASED^99DCT'>
+		<label for='obs.patient_care_status.deceased'>Patient Dead</label>  
+              </td>
+              <td>
+		&nbsp;&nbsp;&nbsp;&nbsp;<input id='obs.patient_care_status.ampath' type='radio' value='1286^AMPATH^99DCT'>
+		<label for='obs.patient_care_status.ampath'>to an AMPATH AMRS alinic</label>  
+              </td>
+	    </tr>
+	    <tr>
+              <td>
+		<input id='obs.patient_care_status.self_disengaged_from_care' type='radio' value='9083^SELF DISENGAGED FROM CARE^99DCT'>
+		<label for='obs.patient_care_status.self_disengaged_from_care'>Patient self-disengaged from care</label>  
+              </td>
+              <td>
+		&nbsp;&nbsp;&nbsp;&nbsp;<input id='obs.patient_care_status.ampath_non_amrs' type='radio' value='9068^AMPATH, NON-AMRS^99DCT'>
+		<label for='obs.patient_care_status.ampath_non_amrs'>to an AMPATH non-AMRS clinic</label>  
+              </td>
+	    </tr>
+	    <tr>
+              <td>
+		<input id='obs.patient_care_status.hiv_negative' type='radio' value='9036^HIV NEGATIVE, NO LONGER AT RISK^99DCT'>
+		<label for='obs.patient_care_status.hiv_negative'>Patient HIV negative</label>  
+              </td>
+              <td>
+		&nbsp;&nbsp;&nbsp;&nbsp;<input id='obs.patient_care_status.non_ampath' type='radio' value='1287^NON-AMPATH^99DCT'>
+		<label for='obs.patient_care_status.non_ampath'>to non-AMPATH clinic</label>  
+              </td>
+	    </tr>
+	    <tr>
+              <td>
+		<input id='obs.patient_care_status.untraceable' type='radio' value='9079^UNTRACEABLE^99DCT'>
+		<label for='obs.patient_care_status.untraceable'>Outreach worker does not believe patient can be traced</label>  
+              </td>
+              <td>
+		<input id='obs.patient_care_status.process_of_being_traced' type='radio' value='9080^PROCESS OF BEING TRACED^99DCT'>
+		<label for='obs.patient_care_status.process_of_being_traced'>Patient in process of being traced</label>  
+              </td>
+	    </tr>
+	  </table>
+	</fieldset>
+      </div>
+      
+      
+      <div class="section">
+      </div>
+      <div class="form-group text-center">
+	<input class="btn btn-primary" id="save_draft" type="button" value="Save"/>
+	<input class="btn btn-primary" id="submit_form" type="button" value="Submit"/>
+      </div>
+      
+  </form>
+  
+</body>
+</html>

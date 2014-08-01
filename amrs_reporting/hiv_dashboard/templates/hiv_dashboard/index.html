@@ -1,0 +1,158 @@
+{% extends "hiv_dashboard/base.html" %}
+{% load staticfiles %}
+{% load hiv_dashboard_filters %}
+	    
+{% block content %}
+
+<script>
+
+</script>
+
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/plugins/datatables.percent.js'%}"></script>
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.js'%}"></script>
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/extensions/TableTools/js/dataTables.tableTools.js'%}"></script>
+
+  <style type="text/css" title="currentStyle">
+    @import "{% static 'js/DataTables-1.10.0/extensions/TableTools/css/dataTables.tableTools.css'%}";
+    @import "{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.css' %}";
+  </style>
+
+
+<script type="text/javascript">
+  function download_defaulter_list() {
+      var form = document.getElementById('defaulter_list_form');
+      form.action = '/ltfu/ltfu_get_defaulter_list';
+      form.submit();
+  }
+
+  function view_defaulter_list() {
+      var form = document.getElementById('defaulter_list_form');
+      form.action = '/ltfu/ltfu_by_range';
+      form.submit();
+  }
+
+
+
+  $(document).ready(function() {
+
+  $('#system_indicators').dataTable( {
+  "sScrollY": "100px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false,
+} );
+
+
+  $('#clinic_indicators').dataTable( {
+  "sScrollY": "200px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false,
+  "sDom": '<"clear">Tlfrtip',
+  "oTableTools": {
+        "sSwfPath": "{% static 'js/DataTables-1.10.0/extensions/TableTools/swf/copy_csv_xls_pdf.swf'%}",
+        "aButtons": [
+             {
+                "sExtends": "xls",
+                "sButtonText": " Excel ",
+                "oSelectorOpts": {
+                    page: 'current'
+                }
+            },
+             {
+                "sExtends": "pdf",
+                "sButtonText": " pdf ",
+                "oSelectorOpts": {
+                    page: 'current'
+                }
+            },  
+            {
+                "sExtends": "copy",
+                "sButtonText": "Copy to clipboard",
+                "oSelectorOpts": {
+                    page: 'current'
+                }
+            }
+        ]
+  }
+
+
+
+  } ).columnFilter({sPlaceHolder:"head:after",
+                                        aoColumns:[{type:"select"},null,{type:"select"}]});
+
+
+
+
+  $("#ltfu_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
+  $("#system_performance_start_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
+  $("#system_performance_end_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
+
+  $("#start_date_provider_indicators").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
+  $("#end_date_provider_indicators").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
+
+
+     
+
+  });
+
+
+</script>
+
+<h3>Key System Indicators</h3>
+<table id='system_indicators'>
+  <thead>
+    <tr>
+      <th>year</th>
+      <th>month</th>
+      <th># encounters</th>
+      <th># patients</th>
+      <th># of CD4s reported</th>
+      <th># VLs reported</th>
+      <th># on ARVs</th>
+      <th># started ARVs</th>      
+    </tr>
+  </thead> 
+  <tbody>
+    {% for row in system_indicators %}    
+    <tr>      
+      <td>{{row.year}}</td>
+      <td>{{row.month}}</td>
+      <td>{{row.num_encounters}}</td>
+      <td>{{row.num_patients}}</td>
+      <td>{{row.num_cd4s}}</td>
+      <td>{{row.num_vls}}</td>
+      <td>{{row.on_arvs}}</td>
+      <td>{{row.num_started_on_arvs}}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+<hr>
+<h3>Control Panel</h3>
+<table>
+  <form action='/hiv_dashboard/view_indicators_by_clinic' method='post'> {% csrf_token %}
+    <tr>      
+      <td><b>View Indicators Stratified By Clinic:</b></td>
+      <td>Start Date:</td>
+      <td><input type='text' name='start_date' id='system_performance_start_date'/></td>
+      <td>End Date:</td>
+      <td><input type='text' name='end_date' id='system_performance_end_date'/></td>
+      <td><input type='submit'/></td>
+    </tr>
+  </form>
+</table>
+
+
+<hr>
+
+
+{% endblock %}

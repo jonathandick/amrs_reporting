@@ -5,7 +5,7 @@ import amrs_user_validation.urls as amrs_user_validation_urls
 import amrs_interface.urls as amrs_interface_urls
 import ltfu.urls as ltfu_urls
 import amrs_user_validation.views as amrs_user_validation_views
-
+import hiv_dashboard.urls as hiv_dashboard_urls
 from django.conf.urls.static import static
 from django.conf import settings
 
@@ -31,5 +31,7 @@ urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 urlpatterns += amrs_user_validation_urls.urlpatterns 
 urlpatterns += amrs_interface_urls.urlpatterns
 urlpatterns += ltfu_urls.urlpatterns
+urlpatterns += hiv_dashboard_urls.urlpatterns
+
 
 

@@ -15,11 +15,14 @@
   });
 
 
+
+
 </script>
 
-  <div id="pre_populate_data"></div>
+<div id="pre_populate_data"></div>
+
   <form id="outreach_form" name="outreach_form" method='post' action='/ltfu/outreach_form'>
-    {%csrf_token%}
+    {%csrf_token%}    
     <h2 class="text-center">Outreach Follow-up Form v1.0</h2><div class="section">
       <h3>Demographics</h3>
       <div class="form-group">
@@ -135,7 +138,7 @@
 		<option value="a89cd280-1350-11df-a1f1-0026b9348838" oldvalue="1410^CARETAKER^99DCT">Caregiver</option>
 		<option value="a8aaf234-1350-11df-a1f1-0026b9348838" oldvalue="5620^OTHER FAMILY MEMBER^99DCT">Family Member</option>
 		<option value="a8aaf07c-1350-11df-a1f1-0026b9348838" oldvalue="5618^FRIEND^99DCT">Friend</option>
-		<option value='obs__a8aaf3e2-1350-11df-a1f1-0026b9348838' oldvalue='5622^OTHER NON-CODED^99DCT'>Other</option>
+		<option value='a8aaf3e2-1350-11df-a1f1-0026b9348838' oldvalue='5622^OTHER NON-CODED^99DCT'>Other</option>
 	      </select>
             </div>
 	  </td>
@@ -145,12 +148,12 @@
 	    <label>Was the patient contacted?</label>
             <select class="form-control" id='obs.patient_contacted_byPhone' name="obs__2b90dbd2-8897-49fd-9784-e5999e7312fa" data-concept="9063^PATIENT CONTACTED BY PHONE^99DCT">
 	      <option value=""></option>
-    	      <option value='obs__a899b35c-1350-11df-a1f1-0026b9348838' oldvalue='1065^Yes^99DCT'>Yes</option>
-	      <option value='obs__a89dec06-1350-11df-a1f1-0026b9348838' oldvalue='1560^PHONE NOT CONNECTING^99DCT'>No, phone not connecting</option>
-	      <option value='obs__a69cdbf7-edf0-4e4d-a4dc-1ff3bc771d5c' oldvalue='9064^NO PHONE NUMBER^99DCT'>No, phone number inactive</option>
-	      <option value='obs__1965eb6f-fc86-4f44-b3b8-59772b1daa20' oldvalue='9065^WRONG PHONE NUMBER^99DCT'>No, wrong phone number</option>
-	      <option value='obs__fdd18cec-11ba-4512-ab3c-b66066847f58' oldvalue='9066^NO RESPONSE ON PHONE CALL ATTEMPT^99DCT'>No, no one picks up</option>
-              <option value='obs__a8aaf3e2-1350-11df-a1f1-0026b9348838' oldvalue='5622^OTHER NON-CODED^99DCT'>Other</option>
+    	      <option value='a899b35c-1350-11df-a1f1-0026b9348838' oldvalue='1065^Yes^99DCT'>Yes</option>
+	      <option value='a89dec06-1350-11df-a1f1-0026b9348838' oldvalue='1560^PHONE NOT CONNECTING^99DCT'>No, phone not connecting</option>
+	      <option value='a69cdbf7-edf0-4e4d-a4dc-1ff3bc771d5c' oldvalue='9064^NO PHONE NUMBER^99DCT'>No, phone number inactive</option>
+	      <option value='1965eb6f-fc86-4f44-b3b8-59772b1daa20' oldvalue='9065^WRONG PHONE NUMBER^99DCT'>No, wrong phone number</option>
+	      <option value='fdd18cec-11ba-4512-ab3c-b66066847f58' oldvalue='9066^NO RESPONSE ON PHONE CALL ATTEMPT^99DCT'>No, no one picks up</option>
+              <option value='a8aaf3e2-1350-11df-a1f1-0026b9348838' oldvalue='5622^OTHER NON-CODED^99DCT'>Other</option>
 	    </select>
 	  </td>
 	</tr>
@@ -160,11 +163,11 @@
             <select class="form-control" id='obs.refer_for_field_follow_up' name="obs__3cef9756-ae0e-4b35-9ee2-b0fb96556971"
 		    data-concept="9067^REFER FOR FIELD FOLLOW-UP^99DCT">
 	      <option/>
-	      <option value='obs__a899b35c-1350-11df-a1f1-0026b9348838'  oldvalue='1065^Yes^99DCT'>Yes</option>
-	      <option value='obs__a89de526-1350-11df-a1f1-0026b9348838' oldvalue='1551^DISTANCE TOO FAR^99DCT'>No, in catchment but distant too far</option>
-              <option value='obs__83df5f26-f97a-4cda-9c05-d0bdc6e4ebee' 
-		      oldvalue='oldvalue='6834^OUT OF AMPATH CATCHMENT AREA^99DCT'>No, out of catchment area</option>
-	      <option value='obs__a89decc4-1350-11df-a1f1-0026b9348838' oldvalue='1561^INADEQUATE LOCATOR INFORMATION^99DCT'>No, locator inadequate</option>	  
+	      <option value='a899b35c-1350-11df-a1f1-0026b9348838'  oldvalue='1065^Yes^99DCT'>Yes</option>
+	      <option value='a89de526-1350-11df-a1f1-0026b9348838' oldvalue='1551^DISTANCE TOO FAR^99DCT'>No, in catchment but distant too far</option>
+              <option value='83df5f26-f97a-4cda-9c05-d0bdc6e4ebee' 
+		      oldvalue='6834^OUT OF AMPATH CATCHMENT AREA^99DCT'>No, out of catchment area</option>
+	      <option value='a89decc4-1350-11df-a1f1-0026b9348838' oldvalue='1561^INADEQUATE LOCATOR INFORMATION^99DCT'>No, locator inadequate</option>	  
 	    </select>
 	  </td>
 	</tr>
@@ -440,20 +443,6 @@
             </div>
 	  </td>
 	</tr>
-	
-	<tr>
-	  <td>            	
-	    <div class="form-group"> 
-              <label for="obs.likelihood_of_patient_returning_to_clinic">Do you think the patient will return to clinic?</label>                 
-	      <select class="form-control" id="obs.likelihood_of_patient_returning_to_clinic" 
-		      name="obs__683347ee-cebe-4eac-b366-ef62d68b91c7" data-concept="9077^LIKELIHOOD OF PATIENT RETURNING TO CLINIC^99DCT">
-		<option value=""></option>
-		<option value="9407c0db-5cdc-48a9-8750-85961cf9804f" oldvalue="7248^VERY LOW^99DCT">No</option>
-		<option value="7a260efe-bd7e-4926-87d9-b9e008956873" oldvalue="9078^VERY HIGH^99DCT">Yes</option>
-	      </select>
-            </div>
-	  </td>
-	</tr>
       </table>
     </div>
     
@@ -478,6 +467,16 @@
       If patient plans to return to clinic, RTC Date: 
       <input class="form-control datepicker checkFutureDate" data-concept="5096^RETURN VISIT DATE^99DCT" id="return_visit_date" 
 	     name="obs__a8a666ba-1350-11df-a1f1-0026b9348838" type="text">
+      <br/>
+      <div class="form-group"> 
+        <label for="obs.likelihood_of_patient_returning_to_clinic">Do you think the patient will return to clinic?</label>                 
+	<select class="form-control" id="obs.likelihood_of_patient_returning_to_clinic" 
+		name="obs__683347ee-cebe-4eac-b366-ef62d68b91c7" data-concept="9077^LIKELIHOOD OF PATIENT RETURNING TO CLINIC^99DCT">
+	  <option value=""></option>
+	  <option value="9407c0db-5cdc-48a9-8750-85961cf9804f" oldvalue="7248^VERY LOW^99DCT">No</option>
+	  <option value="7a260efe-bd7e-4926-87d9-b9e008956873" oldvalue="9078^VERY HIGH^99DCT">Yes</option>
+	</select>
+      </div>
       <br/>
       If patient transferred to another AMPATH clinic, clinic name:      
       <select name=''>

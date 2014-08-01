@@ -29,6 +29,13 @@
 
   } );
 
+function get_defaulter_list() {
+  var select = document.getElementById('defaulter_list_select');
+  var value = select.options[select.selectedIndex].value;
+  var link = '/ltfu/outreach_worker_defaulter_list?defaulter_cohort_uuid=' + value;
+  window.location = link;
+}
+
 </script>
 
 <h4>Apps</h4>
@@ -38,16 +45,15 @@
   <li><a href=''>Human Resources</a></li>
   <li><a href=''>Data Quality</a></li>
   <li>
-    <form action='/ltfu/outreach_worker_defaulter_list' method='post'>
-      {%csrf_token%}
+    <form>
       Outreach Defaulter List:
-      <select name='defaulter_cohort_uuid'>
+      <select name='defaulter_cohort_uuid' id='defaulter_list_select'>
 	<option/>
 	{% for dc in defaulter_cohorts %}
 	<option value='{{dc.cohort_uuid}}'>{{dc.name}}</option>
 	{%endfor%}
       </select>
-      <input type='submit' value='Go'/></td>
+      <input type='button' onClick='get_defaulter_list()' value='Go!'/></td>
     </form>
   </li>
 </ul>

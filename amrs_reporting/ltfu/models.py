@@ -11,7 +11,6 @@ class DefaulterCohort(models.Model):
     description = models.CharField(max_length=500)
     cohort_uuid = models.CharField(max_length=500)
     location_id = models.IntegerField()
-    #location_uuid = models.CharField(max_length=500)
     date_updated = models.DateTimeField(auto_now=True)
 
 
@@ -20,12 +19,8 @@ class DefaulterCohort(models.Model):
         url_cohort = amrs_settings.amrs_url + '/ws/rest/v1/cohort/' 
         patient_uuids = self.get_defaulter_uuids(self.location_id)
 
-        patient_uuids = ['00002702-560c-4804-b1be-a4846b1fc98c',
-                         '00002fda-4de6-45de-b7ed-6404ae4971fc',
-                         '00006b1f-8bfb-4769-b443-ecf7eb908ab1']
-
-
-        if self.cohort_uuid is not None:                        
+        if self.cohort_uuid is not None and self.cohort_uuid != '':
+            print 'cohort_uuid: ' + self.cohort_uuid
             url_cohort += self.cohort_uuid + '/member'
             req = requests.get(url_cohort + '?v=ref', auth=(amrs_settings.username,amrs_settings.password),headers=headers)
             vals = json.loads(req.text)
@@ -73,7 +68,7 @@ class DefaulterCohort(models.Model):
         start_range_high_risk = 8
         start_range = 30
         end_range = 89
-        limit = 200
+        limit = 10
 
         rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
         parameter_values = (start_range_high_risk,start_range,end_range,location_ids,location_ids)
@@ -137,11 +132,13 @@ class DefaulterCohort(models.Model):
             dcs = DefaulterCohort.objects.filter(location_id=location_id)
             if dcs.count() > 0:
                 dc = dcs[0]
+                print 'dc not new'
             else :
+                print 'creating new dc'
                 name = location['name'] + ' Defaulter List'
                 description = location['name'] + ' Defaulter List'
                 dc = DefaulterCohort(name=name,description=description,location_id=location_id)
-            dc.update_defaulter_cohort()            
+            dc.update_defaulter_cohort()
             cohorts.append(dc)
         return cohorts
 
@@ -150,6 +147,7 @@ class DefaulterCohort(models.Model):
 class OutreachFormSubmissionLog(models.Model):
     patient_uuid = models.CharField(max_length=500)
     location_uuid = models.CharField(max_length=500)
-    defaulter_cohort_id = models.IntegerField()
+    defaulter_cohort_uuid = models.CharField(max_length=500)
     date_submitted = models.DateTimeField(auto_now=True,db_index=True)
+    creator = models.IntegerField(null=True)
         

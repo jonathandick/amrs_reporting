@@ -23,7 +23,7 @@ from ltfu.models import DefaulterCohort
 def index(request):
     if not Authorize.authorize(request.user) :
         return HttpResponseRedirect('amrs_user_validation/access_denied')
-    defaulter_cohorts = DefaulterCohort.objects.all()
+    defaulter_cohorts = DefaulterCohort.objects.all().order_by('name')
     return render(request, "amrs_reports/index.html",
                   {'defaulter_cohorts':defaulter_cohorts})
 

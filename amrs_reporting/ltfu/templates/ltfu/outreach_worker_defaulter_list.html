@@ -37,33 +37,6 @@ $(document).ready(function() {
   "bFilter": true,
   "bSort": true,
   "bInfo": false,
-  "sDom": '<"clear">Tlfrtip',
-  "oTableTools": {
-        "sSwfPath": "{% static 'js/DataTables-1.10.0/extensions/TableTools/swf/copy_csv_xls_pdf.swf'%}",
-        "aButtons": [
-             {
-                "sExtends": "xls",
-                "sButtonText": " Excel ",
-                "oSelectorOpts": {
-                    page: 'current'
-                }
-            },
-             {
-                "sExtends": "pdf",
-                "sButtonText": " pdf ",
-                "oSelectorOpts": {
-                    page: 'current'
-                }
-            },  
-            {
-                "sExtends": "copy",
-                "sButtonText": "Copy to clipboard",
-                "oSelectorOpts": {
-                    page: 'current'
-                }
-            }
-        ]
-  },
   "bAutoWidth" : false,
   "fnDrawCallback": function ( oSettings ) {
       /* Need to redo the counters if filtered or sorted */
@@ -76,15 +49,37 @@ $(document).ready(function() {
       }
    }
    }).columnFilter({sPlaceHolder:"head:before",
-                    aoColumns:[null,null,null,{type:"select"},null,{type:"select"},null,{type:"number-range"}]
+                    aoColumns:[null,null,null,null,null,null,null,null,{type:"select"},null]
                    });
 
 
 });
 
+function get_defaulter_list() {
+  var form = document.getElementById('defaulter_list_form');
+  var select = document.getElementById('defaulter_list_select');
+  var value = select.options[select.selectedIndex].value;
+  var link = '/ltfu/outreach_worker_defaulter_list?defaulter_cohort_uuid=' + value;
+  window.location = link;
+
+}
+
 </script>
+<form>
+  Outreach Defaulter List:
+  <select name='defaulter_cohort_uuid' id='defaulter_list_select'>
+    <option/>
+    {% for dc in defaulter_cohorts %}
+    <option value='{{dc.cohort_uuid}}'>{{dc.name}}</option>
+    {%endfor%}
+  </select>
+  <input type='button' onClick='get_defaulter_list()' value='Go!'/></td>
+</form>
+  
 
 
+<h3>{{location.name}} Defaulter List</h3>
+Cohort Last Updated: {{defaulter_cohort.date_updated}}
 <table id='report' class="displays">
   <thead>
     <tr>
@@ -113,7 +108,7 @@ $(document).ready(function() {
       <td>{{row.name}}</td>
       <td>{% if row.rtc_date%} {{row.rtc_date}} {%endif%}</td>
       <td>{% if row.days_since_rtc %}{{row.days_since_rtc}} {%endif%}</td>
-      <td><a href='/ltfu/outreach_form?patient_uuid={{row.uuid}}&location_uuid={{location.uuid}}'>Enter Form</a></td>
+      <td><a href='/ltfu/outreach_form?patient_uuid={{row.uuid}}&location_uuid={{location.uuid}}' target="_blank">Enter Form</a></td>
     </tr>
     {%endfor%}
     </tbody>

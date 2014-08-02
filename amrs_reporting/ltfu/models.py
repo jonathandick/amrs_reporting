@@ -63,22 +63,22 @@ class DefaulterCohort(models.Model):
                 
 
 
-    def get_defaulter_list(self):        
+    def get_defaulter_list(self,uuids_in_use=[]):        
         location_ids = (self.location_id,)
         start_range_high_risk = 8
         start_range = 30
         end_range = 89
-        limit = 10
-
+        limit = 5
+        
+        uuids = OutreachFormSubmissionLog.objects.filter(date_submitted__gte=self.date_updated).values_list('patient_uuid',flat=True)
         rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
         parameter_values = (start_range_high_risk,start_range,end_range,location_ids,location_ids)
-        table = rt.run_report_table(parameter_values=parameter_values,as_dict=True,limit=limit)['rows']
+        table = rt.run_report_table(parameter_values=parameter_values,as_dict=True,limit=limit+len(uuids)+len(uuids_in_use))['rows']
 
-        uuids = OutreachFormSubmissionLog.objects.filter(date_submitted__gte=self.date_updated).values_list('patient_uuid',flat=True)
         defaulters = []
         
         for row in table:
-            if row['uuid'] not in uuids:
+            if row['uuid'] not in uuids and row['uuid'] not in uuids_in_use:
                 defaulters.append(row)
         
         return defaulters
@@ -104,11 +104,6 @@ class DefaulterCohort(models.Model):
         return patient_ids
 
     
-    
-
-
-
-
     
     
     @staticmethod
@@ -141,6 +136,7 @@ class DefaulterCohort(models.Model):
             dc.update_defaulter_cohort()
             cohorts.append(dc)
         return cohorts
+
 
 
 

@@ -108,7 +108,7 @@ Cohort Last Updated: {{defaulter_cohort.date_updated}}
       <td>{{row.name}}</td>
       <td>{% if row.rtc_date%} {{row.rtc_date}} {%endif%}</td>
       <td>{% if row.days_since_rtc %}{{row.days_since_rtc}} {%endif%}</td>
-      <td><a href='/ltfu/outreach_form?patient_uuid={{row.uuid}}&location_uuid={{location.uuid}}' target="_blank">Enter Form</a></td>
+      <td><a href='/ltfu/outreach_form?patient_uuid={{row.uuid}}&location_uuid={{location.uuid}}'>Enter Form</a></td>
     </tr>
     {%endfor%}
     </tbody>

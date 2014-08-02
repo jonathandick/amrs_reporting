@@ -21,4 +21,5 @@ urlpatterns = patterns('',
                        url(r'^' + app_name + '/delete_defaulter_cohort/?$',views.delete_defaulter_cohort),
                        url(r'^' + app_name + '/outreach_form/?$',views.outreach_form),
                        url(r'^' + app_name + '/outreach_worker_defaulter_list/?$',views.outreach_worker_defaulter_list),
+                       url(r'^' + app_name + '/test/?$',views.test),
                        )

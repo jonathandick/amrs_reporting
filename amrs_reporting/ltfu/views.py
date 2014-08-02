@@ -5,6 +5,7 @@ from django.template import Context, loader, RequestContext
 from django.http import HttpResponseRedirect, HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.sessions.models import Session
 from report.models import *
 from utilities import *
 from amrs_interface.models import *
@@ -16,7 +17,7 @@ import pytz
 from datetime import datetime, date
 import simplejson
 from ltfu.models import *
-
+from django.core.serializers.json import DjangoJSONEncoder
 
 # Create your views here.
 
@@ -493,19 +494,36 @@ def delete_defaulter_cohort(request):
 def outreach_worker_defaulter_list(request):
     
     cohort_uuid = get_var_from_request(request,'defaulter_cohort_uuid')
-    if cohort_uuid is None:
-        cohort_uuid = request.session.get('cohort_uuid')
+    prev_cohort_uuid = request.session.get('cohort_uuid')
     request.session['cohort_uuid'] = cohort_uuid
-
     dc = DefaulterCohort.objects.get(cohort_uuid=cohort_uuid)    
 
-    defaulter_list = dc.get_defaulter_list()
-                
+    if prev_cohort_uuid is not None and prev_cohort_uuid == cohort_uuid:
+        my_defaulter_list = json.loads(request.session.get('my_defaulter_list'))
+    else : my_defaulter_list = []
+            
+    if my_defaulter_list is None or len(my_defaulter_list) == 0 :
+        patient_uuids_in_use = []
+        sessions = Session.objects.filter(expire_date__gt=datetime.now())
+        for s in sessions:
+
+            decoded = s.get_decoded().get('my_defaulter_list')
+            if decoded is not None:
+                defaulters = json.loads(decoded)
+                for d in defaulters:
+                    patient_uuids_in_use.append(d['uuid'])
+
+        my_defaulter_list = dc.get_defaulter_list(patient_uuids_in_use)
+        print len(my_defaulter_list)
+
+
+        request.session['my_defaulter_list'] = json.dumps(my_defaulter_list, cls=DjangoJSONEncoder)
+
     location = Location.get_location(dc.location_id)
     defaulter_cohorts = DefaulterCohort.objects.all().order_by('name')
     
     return render(request,'ltfu/outreach_worker_defaulter_list.html',
-                  {'defaulter_list':defaulter_list,
+                  {'defaulter_list':my_defaulter_list,
                    'location':location,
                    'defaulter_cohort':dc,
                    'defaulter_cohorts':defaulter_cohorts,
@@ -513,6 +531,7 @@ def outreach_worker_defaulter_list(request):
                   )
 
     
+
 
 def outreach_form(request):
     import requests
@@ -542,8 +561,8 @@ def outreach_form(request):
     elif request.method == 'POST':
         
         url = amrs_settings.amrs_url + '/ws/rest/v1/encounter'
-
         patient_uuid = request.POST['patient_uuid']
+
         provider_uuid = '5b6ee21a-1359-11df-a1f1-0026b9348838' #request.POST['provider_uuid']
         encounter_type_uuid = request.POST['encounter_type_uuid']
 
@@ -571,6 +590,12 @@ def outreach_form(request):
         #print res.text
         #dc = DefaulterCohort.objects.get(location_id=location_uuid)
         dc = DefaulterCohort.objects.get(location_id=1)
+        my_defaulter_list = request.session.get_decoded()['my_defaulter_list']
+        for d in my_defaulter_list :
+            if d['uuid'] == patient_uuid : my_defaulter_list.remove(d)
+
+        request.session['my_defaulter_list'] = my_defaulter_list
+
 
         log = OutreachFormSubmissionLog(patient_uuid=patient_uuid,
                                         location_uuid=location_uuid,
@@ -578,7 +603,21 @@ def outreach_form(request):
                                         creator=request.user.id,                                        
                                         )
         log.save()
-        return render(request,'ltfu/close_tab.html',{}) #HttpResponseRedirect('/ltfu/outreach_worker_defaulter_list')
+        return HttpResponseRedirect('/ltfu/outreach_worker_defaulter_list')
+        #return render(request,'ltfu/close_tab.html',{}) 
     
     
     
+def test(request):
+    from django.http import HttpRequest
+    from django.utils.importlib import import_module
+
+    request = HttpRequest()
+
+    sessions = Session.objects.filter(expire_date__gte=datetime.now())
+
+
+    for session in sessions:
+        pass
+
+    return render(request,'ltfu/test.html',{})

@@ -93,24 +93,25 @@
 
 
   $("#ltfu_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
-
   $("#by_clinic_start_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
   $("#by_clinic_end_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
 
   $("#by_month_start_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
   $("#by_month_end_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
+
+
      
+
   });
 
 
 </script>
-
-<h3>Key System Indicators</h3>
-<table id='system_indicators'>
+<h3>Key Indicators Stratified by Clinic</h3>
+<b>Period: {{start_date}} to {{end_date}}</b>
+<table id='clinic_indicators'>
   <thead>
     <tr>
-      <th>year</th>
-      <th>month</th>
+      <th>clinic</th>
       <th># encounters</th>
       <th># patients</th>
       <th># started ARVs</th>      
@@ -122,10 +123,9 @@
     </tr>
   </thead> 
   <tbody>
-    {% for row in system_indicators %}    
+    {% for row in clinic_indicators %}    
     <tr>      
-      <td>{{row.year}}</td>
-      <td>{{row.month}}</td>
+      <td>{{row.clinic}}</td>
       <td>{{row.num_encounters}}</td>
       <td>{{row.num_patients}}</td>
       <td>{{row.num_started_on_arvs}}</td>
@@ -138,7 +138,6 @@
     {% endfor %}
   </tbody>
 </table>
-
 <hr>
 <h3>Control Panel</h3>
 <table>

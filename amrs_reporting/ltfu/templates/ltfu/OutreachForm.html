@@ -2,54 +2,187 @@
 {% load staticfiles %}
 {% block content %}
 
-<script>
+<script type="text/javascript" src="{% static 'js/jquery-validation-1.13.0/dist/jquery.validate.min.js'%}"></script>  
 
+<script>
   $(document).ready(function() {
 
-  $("#encounter_datetime").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
+
+  $("#encounter_datetime").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true,
+                                       maxDate:"+0D",
+                                       onClose: function( selectedDate ) {
+                                                   $( "#missed_return_visit_date" ).datepicker( "option", "maxDate", selectedDate );
+                                                   $( "#date_found" ).datepicker( "option", "maxDate", selectedDate );
+                                                   $( "#date_of_death" ).datepicker( "option", "maxDate", selectedDate );
+                                                }
+                                      } );
+  $("#missed_return_visit_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
   $("#date_found").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
   $("#date_of_death").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
-  $("#return_visit_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
-  $("#missed_return_visit_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true} );
+  $("#return_visit_date").datepicker({dateFormat: 'yy-mm-dd', changeMonth:true,changeYear:true, "minDate":"+0D"} );
+
+
+  $("#contacted_by_phone").change(function () {
+     if($("#contacted_by_phone option:selected").text().toLowerCase() === 'yes') {
+         $("#refer_for_field_follow_up").removeAttr('required').attr('disabled','disabled').val('');
+         $("#owner_of_phone").attr('required','required');
+     }
+     else if($("#contacted_by_phone option:selected").text().toLowerCase().match('^no')) {
+         $("#owner_of_phone").removeAttr('required');             
+         $("#refer_for_field_follow_up").removeAttr('disabled').attr('required','required').val('');
+     }
+     else {
+         $("#refer_for_field_follow_up").removeAttr('required').attr('disabled','disabled').val('');
+     }
+   }).trigger('change');
   
+
+  $("#contacted_in_field").change(function() {
+     if($("#contacted_in_field option:selected").text().toLowerCase() === 'yes') {
+         $("#reason_not_found_in_field").attr('disabled','disabled').removeAttr('required').val('');
+     }
+     else if($("#contacted_in_field option:selected").text().toLowerCase() == 'no') {
+         $("#reason_not_found_in_field").attr('required','required').removeAttr('disabled');
+     }
+     else {
+         $("#refer_not_found_in_field").removeAttr('required').attr('disabled','disabled').val('');
+     }
   });
+
+
+  $("#patient_status").change(function() {
+     if($("#patient_status option:selected").text().toLowerCase().match('^patient wishes')) {
+         $("#return_visit_date").removeAttr('disabled');
+         $("#likelihood_of_return").removeAttr('disabled');
+     }
+     else {
+         $("#return_visit_date").attr('disabled','disabled').val('');
+         $("#likelihood_of_return").attr('disabled','disabled').val('');
+     }
+
+     if($("#patient_status option:selected").text().toLowerCase().match('to ampath')){
+         $("#transfer_location").removeAttr('disabled');
+     }
+     else {
+         $("#transfer_location").attr('disabled','disabled').val('');
+     }
+     
+  });
+  
+
+
+  $("#outreach_form").validate({
+      debug: false,
+      submitHandler: function() {
+             document.submit(); //alert("submitted! (skipping validation for cancel button)");
+      },
+  });
+
+  jQuery.validator.addMethod("needs_date_found", function(value, element) {
+     if(value === '') {
+        return ($("#contacted_in_field option:selected").text().toLowerCase() != 'yes'
+               && $("#contacted_by_phone option:selected").text().toLowerCase() != 'yes');
+     }
+     else { return true; }
+     }, "* Must provide date of found"
+  );
+
+
+  jQuery.validator.addMethod("needs_location_of_contact", function(value, element) {
+     if(value === '') {
+        return ($("#contacted_in_field option:selected").text().toLowerCase() != 'yes'
+               && $("#contacted_by_phone option:selected").text().toLowerCase() != 'yes')
+               && $("#date_found").val() == ''
+     }
+     else { return true;}
+     }, "* Must provide location of contact"
+  );
+
+
+  jQuery.validator.addMethod("needs_rtc_date", function(value, element) {
+     if($("#patient_status option:selected").text().toLowerCase().match('^patient wishes')) {
+        return value != '';
+     }
+     else { return true; }
+     }, "* Must provide RTC date"
+  );
+
+
+  jQuery.validator.addMethod("needs_likelihood_of_return", function(value, element) {
+     if($("#patient_status option:selected").text().toLowerCase().match('^patient wishes')) {
+        return value != '';
+     }
+     else { return true; }
+     }, "* Must provide likelihood of patient returning"
+  );
+
+
+  jQuery.validator.addMethod("needs_transfer_location", function(value, element) {
+     if($("#patient_status option:selected").text().toLowerCase().match('to ampath')) {
+        return value != '';
+     }
+     else { return true; }
+     }, "* Must provide transfer location"
+  );
+  
+
+  
+  $("#encounter_datetime").rules("add",{required:true});
+  $("#patient_status").rules("add",{required:true});
+  $("#date_found").rules("add",{needs_date_found:true});
+  $("#location_of_contact").rules("add",{needs_location_of_contact:true});
+  $("#return_visit_date").rules("add",{needs_rtc_date:true});
+  $("#likelihood_of_return").rules("add",{needs_likelihood_of_return:true});
+  $("#transfer_location").rules("add",{needs_transfer_location:true});
+  
+
+  /*
+  $("#submit_button").click(function(event){ 
+       if(($("#contacted_by_phone option:selected").text().toLowerCase() === 'yes' || 
+           $("#contacted_in_field option:selected").text().toLowerCase() === 'yes'))
+       {
+           $("#date_found").attr("required","required");
+       }
+       $("#outreach_form").submit();
+  });
+  */
+
+ });
 
 
 
 
 </script>
 
-<div id="pre_populate_data"></div>
-
   <form id="outreach_form" name="outreach_form" method='post' action='/ltfu/outreach_form'>
     {%csrf_token%}    
     <h2 class="text-center">Outreach Follow-up Form v1.0</h2><div class="section">
       <h3>Demographics</h3>
       <div class="form-group">
-        <input class="form-control" id="patient.uuid"
-               name="patient_uuid" type="hidden" value='{{patient.uuid}}' readonly>
+        <input class="form-control" id="patient_uuid"
+               name="patient_uuid" type="hidden" value='{{patient.uuid}}'/>
       </div>
       
       <div class="form-group">
         <label for="patient.medical_record_number">AMRS ID Number:</label>
         <input class="form-control" id="patient.medical_record_number"
-               name="patient.medical_record_number" type="text" value = "{{patient.identifier}}" readonly>
+               name="patient.medical_record_number" type="text" value = "{{patient.identifier}}" readonly/>
       </div>
       
       <div class="form-group">
         <label for="patient.family_name">Family Name:</label>
         <input class="form-control" id="patient.family_name" name="patient.family_name" type="text"
-               readonly="readonly" value="{{patient.family_name}}">
+               readonly="readonly" value="{{patient.family_name}}"/>
       </div>
       <div class="form-group">
         <label for="patient.given_name">Given Name:</label>
         <input class="form-control" id="patient.given_name" name="patient.given_name" type="text"
-               readonly="readonly" value="{{patient.given_name}}">
+               readonly="readonly" value="{{patient.given_name}}"/>
       </div>
       <div class="form-group">
         <label for="patient.middle_name">Middle Name:</label>
         <input class="form-control" id="patient.middle_name" name="patient.middle_name" type="text"
-               readonly="readonly" value="{{patient.middlen_name}}">
+               readonly="readonly" value="{{patient.middlen_name}}"/>
       </div>
       
       <div class="form-group">
@@ -98,18 +231,17 @@
                type="text" required>
       </div-->
 
+      name: <input name="name" type="text" id="name"/>
       <div class="form-group">
-        <label for="encounter.encounter_datetime">Encounter Date:<span class="required">*</span></label>
-        <input class="form-control datepicker nonFutureDate" id="encounter_datetime"
-               name="encounter_datetime" type="text"
-               required="required">
+        <label for="encounter_datetime">Encounter Date:</label>
+        <input id="encounter_datetime" name="encounter_datetime" type="text"/>
       </div>
 
 
       <div class="form-group">
         <label for="missed_return_visit_date">Missed appointment date:</label>
-        <input class="form-control datepicker" data-concept="1592^MISSED RETURN VISIT DATE^99DCT" id="missed_return_visit_date" 
-	       name="obs__a89e3896-1350-11df-a1f1-0026b9348838" type="text">
+        <input data-concept="1592^MISSED RETURN VISIT DATE^99DCT" id="missed_return_visit_date" 
+	       name="obs__a89e3896-1350-11df-a1f1-0026b9348838" type="text"/>
       </div>
       
       <div class="form-group">
@@ -130,9 +262,23 @@
 	</tr>
 	<tr>
 	  <td>
+	    <label for="contacted_by_phone">Was the patient contacted by phone?</label>
+            <select class="form-control" id='contacted_by_phone' name="obs__2b90dbd2-8897-49fd-9784-e5999e7312fa" data-concept="9063^PATIENT CONTACTED BY PHONE^99DCT">
+	      <option value=""></option>
+    	      <option value='a899b35c-1350-11df-a1f1-0026b9348838' oldvalue='1065^Yes^99DCT'>Yes</option>
+	      <option value='a89dec06-1350-11df-a1f1-0026b9348838' oldvalue='1560^PHONE NOT CONNECTING^99DCT'>No, phone not connecting</option>
+	      <option value='a69cdbf7-edf0-4e4d-a4dc-1ff3bc771d5c' oldvalue='9064^NO PHONE NUMBER^99DCT'>No, phone number inactive</option>
+	      <option value='1965eb6f-fc86-4f44-b3b8-59772b1daa20' oldvalue='9065^WRONG PHONE NUMBER^99DCT'>No, wrong phone number</option>
+	      <option value='fdd18cec-11ba-4512-ab3c-b66066847f58' oldvalue='9066^NO RESPONSE ON PHONE CALL ATTEMPT^99DCT'>No, no one picks up</option>
+              <option value='a8aaf3e2-1350-11df-a1f1-0026b9348838' oldvalue='5622^OTHER NON-CODED^99DCT'>No, a different reason</option>
+	    </select>
+	  </td>
+	</tr>
+	<tr>
+	  <td>
             <div class="form-group">
-	      <label for="obs.who_does_phone_belong_to">Who does the phone belong to? :</label>
-	      <select class="form-control" id="obs.who_does_phone_belong_to" name="obs__47a5988a-e5f7-424e-96cc-3b34aeea3c1a" data-concept="7506^OWNER OF PHONE^99DCT">
+	      <label for="owner_of_phone">Who does the phone belong to? :</label>
+	      <select class="form-control" id="owner_of_phone" name="obs__47a5988a-e5f7-424e-96cc-3b34aeea3c1a" data-concept="7506^OWNER OF PHONE^99DCT">
 		<option value="">...</option>
  		<option value='a899b35c-1350-11df-a1f1-0026b9348838' oldvalue="1065^YES^99DCT">Patient</option>
 		<option value="a89cd280-1350-11df-a1f1-0026b9348838" oldvalue="1410^CARETAKER^99DCT">Caregiver</option>
@@ -144,23 +290,9 @@
 	  </td>
 	</tr>
 	<tr>
-	  <td>
-	    <label>Was the patient contacted?</label>
-            <select class="form-control" id='obs.patient_contacted_byPhone' name="obs__2b90dbd2-8897-49fd-9784-e5999e7312fa" data-concept="9063^PATIENT CONTACTED BY PHONE^99DCT">
-	      <option value=""></option>
-    	      <option value='a899b35c-1350-11df-a1f1-0026b9348838' oldvalue='1065^Yes^99DCT'>Yes</option>
-	      <option value='a89dec06-1350-11df-a1f1-0026b9348838' oldvalue='1560^PHONE NOT CONNECTING^99DCT'>No, phone not connecting</option>
-	      <option value='a69cdbf7-edf0-4e4d-a4dc-1ff3bc771d5c' oldvalue='9064^NO PHONE NUMBER^99DCT'>No, phone number inactive</option>
-	      <option value='1965eb6f-fc86-4f44-b3b8-59772b1daa20' oldvalue='9065^WRONG PHONE NUMBER^99DCT'>No, wrong phone number</option>
-	      <option value='fdd18cec-11ba-4512-ab3c-b66066847f58' oldvalue='9066^NO RESPONSE ON PHONE CALL ATTEMPT^99DCT'>No, no one picks up</option>
-              <option value='a8aaf3e2-1350-11df-a1f1-0026b9348838' oldvalue='5622^OTHER NON-CODED^99DCT'>Other</option>
-	    </select>
-	  </td>
-	</tr>
-	<tr>
 	  <td> 
 	    <label>If not contacted, refer for field follow-up?</label>
-            <select class="form-control" id='obs.refer_for_field_follow_up' name="obs__3cef9756-ae0e-4b35-9ee2-b0fb96556971"
+            <select class="form-control" id='refer_for_field_follow_up' name="obs__3cef9756-ae0e-4b35-9ee2-b0fb96556971"
 		    data-concept="9067^REFER FOR FIELD FOLLOW-UP^99DCT">
 	      <option/>
 	      <option value='a899b35c-1350-11df-a1f1-0026b9348838'  oldvalue='1065^Yes^99DCT'>Yes</option>
@@ -181,11 +313,12 @@
 	  <td>
             <div class="form-group">
               <fieldset data-concept="9067^REFER FOR FIELD FOLLOW-UP^99DCT" name="9067^REFER FOR FIELD FOLLOW-UP^99DCT">
-		<label>Was the patient found?:</label>
-    		<input id='obs.patient_found.yes' type='radio' name='obs__3cef9756-ae0e-4b35-9ee2-b0fb96556971' value='true'>
-		<label for='obs.patient_found.yes'>Yes</label>  
-		<input id='obs.patient_found.no' type='radio' name='obs__3cef9756-ae0e-4b35-9ee2-b0fb96556971' value='false'>
-		<label for='obs.patient_found.no'>No</label>  
+		<label for="contacted_in_field">Was the patient found?:</label>
+		<select class="form-control" id="contacted_in_field" name="obs__3cef9756-ae0e-4b35-9ee2-b0fb96556971">
+		  <option/>
+		  <option value='true'>Yes</option>
+		  <option value='false'>No</option>
+		</select>
               </fieldset>
             </div>
 	  </td>
@@ -194,10 +327,10 @@
 	  <td>            	
             <div class="form-group">
               <fieldset>
-		<label for="obs.not_found_reasons">If not found, reason:</label>
-		<select class="form-control" id="obs.not_found_reasons" name="obs__a89de5e4-1350-11df-a1f1-0026b9348838" 
-			data-concept="1552^NOT FOUND, REASONS^99DCT">
-		  <option value="">...</option>
+		<label for="reason_not_found_in_field">If not found, reason:</label>
+		<select class="form-control" id="reason_not_found_in_field" name="obs__a89de5e4-1350-11df-a1f1-0026b9348838" 
+			data-concept="1552^NOT FOUND, REASONS^99DCT" disabled>
+		  <option value=""></option>
  		  
 		  <option value='a89decc4-1350-11df-a1f1-0026b9348838' 
 			  oldvalue="1561^LOCATOR INFORMATION INADEQUATE^99DCT">Locator information inadequate</option>
@@ -241,7 +374,7 @@
 	<tr>
 	  <td>
             <div class="form-group"> 
-	      <label for="obs.date_found">Date Found:</label>
+	      <label for="date_found">Date Found:</label>
               <input class="form-control datepicker" data-concept="1568^DATE FOUND^99DCT" id="date_found" 
 		     name="obs__a89df246-1350-11df-a1f1-0026b9348838" type="text"/>
 	    </div>
@@ -251,8 +384,8 @@
 	  <td>
             <div class="form-group">
               <fieldset>
-		<label for="obs.location_of_contact">Location of contact:</label>
-		<select class="form-control" id="obs.location_of_contact" 
+		<label for="location_of_contact">Location of contact:</label>
+		<select class="form-control" id="location_of_contact" 
 			name="obs__a89df30e-1350-11df-a1f1-0026b9348838" data-concept="1569^LOCATION OF CONTACT^99DCT">
 		  <option value="">...</option>
  		  <option value="a89df17e-1350-11df-a1f1-0026b9348838" oldvalue="1567^HOME^99DCT">Home</option>
@@ -448,7 +581,7 @@
     
     <div class="section">
       <b>Patient Status</b>
-      <select name="obs__7c579743-5ef7-4e2c-839f-5b95597cb01c" data-concept="9082^PATIENT CARE STATUS^99DCT">
+      <select id='patient_status' name="obs__7c579743-5ef7-4e2c-839f-5b95597cb01c" data-concept="9082^PATIENT CARE STATUS^99DCT">
 	<option/>
 	<option value="a8af5018-1350-11df-a1f1-0026b9348838" oldvalue='6101^CONTINUE^99DCT'>Patient wishes to remain in care at AMPATH</option>
 	<option value="a89335d6-1350-11df-a1f1-0026b9348838" oldvalue='159^DECEASED^99DCT'>Patient Dead</option>
@@ -469,8 +602,8 @@
 	     name="obs__a8a666ba-1350-11df-a1f1-0026b9348838" type="text">
       <br/>
       <div class="form-group"> 
-        <label for="obs.likelihood_of_patient_returning_to_clinic">Do you think the patient will return to clinic?</label>                 
-	<select class="form-control" id="obs.likelihood_of_patient_returning_to_clinic" 
+        <label for="likelihood_of_return">Do you think the patient will return to clinic?</label>                 
+	<select class="form-control" id="likelihood_of_return" 
 		name="obs__683347ee-cebe-4eac-b366-ef62d68b91c7" data-concept="9077^LIKELIHOOD OF PATIENT RETURNING TO CLINIC^99DCT">
 	  <option value=""></option>
 	  <option value="9407c0db-5cdc-48a9-8750-85961cf9804f" oldvalue="7248^VERY LOW^99DCT">No</option>
@@ -479,7 +612,7 @@
       </div>
       <br/>
       If patient transferred to another AMPATH clinic, clinic name:      
-      <select name=''>
+      <select name='transfer_location' id='transfer_location'>
 	<option/>
 	{% for l in locations %}
 	<option value='{{l.uuid}}'>{{l.name}}</option>
@@ -487,9 +620,7 @@
       </select>
       
       <div class="form-group text-center">
-	<!--input class="btn btn-primary" id="save_draft" type="button" value="Save"/>
-	<input class="btn btn-primary" id="submit_form" type="button" value="Submit"/-->
-	<input type='submit'/>
+	<input id="submit_button" type="submit" value="Submit"/>
       </div>
       
   </form>

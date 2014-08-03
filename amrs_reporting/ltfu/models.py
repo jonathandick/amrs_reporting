@@ -23,14 +23,14 @@ class DefaulterCohort(models.Model):
         if self.cohort_uuid is not None and self.cohort_uuid != '':
             print 'cohort_uuid: ' + self.cohort_uuid
             url_cohort += self.cohort_uuid + '/member'
-            req = requests.get(url_cohort + '?v=ref', auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+            req = requests.get(url_cohort + '?v=ref', auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
             vals = json.loads(req.text)
 
             for member in vals['results']:
                 
                 split = member['links'][0]['uri'].split('/ws')
                 url = amrs_settings.amrs_url + '/ws' + split[1]
-                req = requests.delete(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+                req = requests.delete(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
                 try : 
                     vals = json.loads(req.text)
                     if 'error' in vals:
@@ -38,7 +38,7 @@ class DefaulterCohort(models.Model):
                         print 'error deleting member'
                 except:
                     pass
-                        
+            self.save() #update time_updated field
                     
             
         else :
@@ -48,7 +48,7 @@ class DefaulterCohort(models.Model):
                        }
 
             data = json.dumps(payload)
-            req = requests.post(url_cohort, data, auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+            req = requests.post(url_cohort, data, auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
             vals = json.loads(req.text)
             if 'error' in vals:
                 print 'error creating new cohort'
@@ -61,7 +61,7 @@ class DefaulterCohort(models.Model):
         for uuid in patient_uuids:
             payload = {'patient':uuid}
             data = json.dumps(payload)
-            req = requests.post(url_cohort, data, auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+            req = requests.post(url_cohort, data, auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
         
                 
 
@@ -71,7 +71,7 @@ class DefaulterCohort(models.Model):
         start_range_high_risk = 8
         start_range = 30
         end_range = 89
-        limit = 5
+        limit = 40
         print 'uuids in use total: ' + str(len(uuids_in_use))
         uuids = OutreachFormSubmissionLog.objects.filter(date_submitted__gte=self.date_updated).values_list('patient_uuid',flat=True)
         rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
@@ -113,7 +113,7 @@ class DefaulterCohort(models.Model):
     def delete_defaulter_cohort(cohort_uuid):
         url_cohort = amrs_settings.amrs_url + '/ws/rest/v1/cohort/' + cohort_uuid
         headers = {'content-type': 'application/json'}
-        req = requests.delete(url_cohort, auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+        req = requests.delete(url_cohort, auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
 
         dc = DefaulterCohort.objects.get(cohort_uuid=cohort_uuid)
         dc.delete()

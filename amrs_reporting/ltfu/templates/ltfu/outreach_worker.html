@@ -1,0 +1,83 @@
+{% extends "ltfu/base.html" %}
+{% load staticfiles %}
+{% load ltfu_filters %}
+
+{% block content %}
+
+<script>
+function get_defaulter_list() {
+  var select = document.getElementById('defaulter_list_select');
+  var value = select.options[select.selectedIndex].value;
+  var link = '/ltfu/outreach_worker_defaulter_list?defaulter_cohort_uuid=' + value;
+  window.location = link;
+}
+
+</script>
+
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/plugins/datatables.percent.js'%}"></script>
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.js'%}"></script>
+
+  <style type="text/css" title="currentStyle">
+    @import "{% static 'js/DataTables-1.10.0/extensions/TableTools/css/dataTables.tableTools.css'%}";
+    @import "{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.css' %}";
+  </style>
+
+
+<script type="text/javascript">
+
+  function view_defaulter_list() {
+      var form = document.getElementById('defaulter_list_form');
+      form.action = '/ltfu/retrospective_data_entry';
+      form.submit();
+  }
+
+
+
+
+</script>
+
+<h3>Outreach Worker Control Panel</h3>
+<ul>
+  <li>
+    <form>
+      Get Defaulter List:
+      <select name='defaulter_cohort_uuid' id='defaulter_list_select'>
+	<option/>
+	{% for dc in defaulter_cohorts %}
+	<option value='{{dc.cohort_uuid}}'>{{dc.name}}</option>
+	{%endfor%}
+      </select>
+      <input type='button' onClick='get_defaulter_list()' value='Go!'/></td>
+    </form>
+  </li>
+  <li>Retrospective Data Entry:
+    <form action='/ltfu/retrospective_data_entry' method='post' id='defaulter_list_form'> {% csrf_token %}
+    <table>
+      <tr>
+	<td>Clinic:</td>
+	<td>
+	  <select name='location_id'>
+	    <option></option>
+	    {% for location in locations %}
+	    <option value='{{location.location_id}}'>{{location.name}}</option>
+	    {% endfor %}
+	  </select>
+	</td>
+	 <td>start range high risk:</td>
+	 <td><input type='text' name='start_range_high_risk' value='8' size='1'/></td>
+	<td>start range:</td>
+	<td><input type='text' name='start_range' value='30' size='1'/></td>
+	<td>end range:</td>
+	<td><input type='text' name='end_range' value='89' size='1'/></td>
+	<td>Limit to:</td>
+	<td><input type='text' name='limit' size='1'/></td>
+	<td><input type='button' onClick='download_defaulter_list()' value='Download List'/></td>
+	<td><input type='button' onClick='view_defaulter_list()'  value='View'/></td>
+      </tr>	  
+    </table>
+    </form>
+  </li>
+</ul>
+
+<hr>
+{% endblock %}

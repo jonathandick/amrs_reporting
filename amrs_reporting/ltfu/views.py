@@ -143,8 +143,8 @@ def ltfu_clinic(request):
                        'ltfu_stats':ltfu_stats,
                        }
                       )
-    
-                       
+
+
 @login_required
 def ltfu_by_range(request):
     location_id = get_var_from_request(request,'location_id')
@@ -472,13 +472,9 @@ def view_reason_missed_appt(request):
                   )
 
 
-@login_required
 def update_defaulter_cohorts(request):
-    if not Authorize.authorize(request.user,['superuser']) :
-        return HttpResponseRedirect('/amrs_user_validation/access_denied')
-
     DefaulterCohort.update_defaulter_cohorts()    
-    return HttpResponseRedirect('/ltfu/manage_defaulter_cohorts')
+    return ''
 
 
 @login_required
@@ -560,13 +556,9 @@ def outreach_worker_defaulter_list(request):
 
 @login_required
 def outreach_form(request):
-
+    
     if not Authorize.authorize(request.user,['outreach_all','outreach_manager','outreach_supervisor','outreach_worker']) :
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
-
-    import requests
-    import json
-    import amrs_settings
 
     headers = {'content-type': 'application/json'}
     if request.method == 'GET':
@@ -577,7 +569,8 @@ def outreach_form(request):
 
         locations = Location.get_locations()
         encounter_type = EncounterType.get_encounter_type_by_uuid('df5547bc-1350-11df-a1f1-0026b9348838') #outreach
-                                                                   
+
+
         args = {'patient':patient,
                 'encounter_type':encounter_type,
                 'location':location,
@@ -645,24 +638,111 @@ def outreach_form(request):
                                         creator=request.user.id,                                        
                                         )
         log.save()
-        return HttpResponseRedirect('/ltfu/outreach_worker_defaulter_list')
+        type = request.session.get('type')
+        if type is not None and type == 'retrospective':
+            location = Location.get_location_by_uuid_db(location_uuid)
+            return HttpResponseRedirect('/ltfu/retrospective_data_entry?location_id=' + location['location_id'])
+
+        else :
+            return HttpResponseRedirect('/ltfu/outreach_worker_defaulter_list')
         #return render(request,'ltfu/close_tab.html',{}) 
     
     
+
+@login_required
+def outreach_worker(request):
+    locations = Location.get_locations()
+    dcs = DefaulterCohort.objects.all()
+    return render(request,'ltfu/outreach_worker.html',
+                  {'locations':locations,
+                   'defaulter_cohorts':dcs,
+                   })
+
+
+@login_required
+def retrospective_data_entry(request):
+    location_id = get_var_from_request(request,'location_id')
+    location_group_id = get_var_from_request(request,'location_group_id')
+    g = None
+    if location_group_id :
+        g = DerivedGroup.objects.get(id=location_group_id)
+        location_ids = tuple(g.get_member_ids())
+    else : location_ids = (location_id,)
+
+    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all'],list(location_ids)) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
+
+    start_range_high_risk = int(get_var_from_request(request,'start_range_high_risk'))
+    if not start_range_high_risk : start_range_high_risk = 8
+    start_range = int(get_var_from_request(request,'start_range'))
+    if not start_range : start_range = 30
+    end_range = int(get_var_from_request(request,'end_range'))
+    if not end_range : end_range = 89
+
+    limit = get_var_from_request(request,'limit')
+    locations = Location.get_locations()
+    location = Location.get_location(location_id)
+    location_groups = DerivedGroup.objects.filter(base_class='Location').order_by('name')
+
+    risk_categories = {0:'Being Traced',1:'high',2:'medium',3:'low',4:'LTFU',5:'no_rtc_date',6:'untraceable'}    
+
+    if location_ids:
+        rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
+        parameter_values = (start_range_high_risk,start_range,end_range,location_ids,location_ids)
+        table = rt.run_report_table(parameter_values=parameter_values,as_dict=True,limit=limit)['rows']
+        
+        counts = {'tracing':0,'high':0,'medium':0,'low':0,'LTFU':0,'total':0,'no_rtc_date':0,'untraceable':0,'on_list_two_weeks':0}
+        total = 0
+        per_day = {}
+        for row in table:
+            if row['risk_category'] >= 0 :
+                
+                if row['risk_category'] == 0 : counts['tracing'] += 1
+                else : counts[risk_categories[row['risk_category']]] +=1            
+                counts['total'] +=1
+
+                if row['days_since_rtc'] : days_since_rtc = int(row['days_since_rtc'])
+                else : days_since_rtc = (date.today() - row['encounter_datetime']).days
+
+                if (row['risk_category'] == 1 and days_since_rtc >= 22) or days_since_rtc >=44 : counts['on_list_two_weeks'] += 1 
+
+                if days_since_rtc < 30 : days_since_rtc -= 8
+                else : days_since_rtc -= 30
+                if days_since_rtc in per_day : per_day[days_since_rtc] += 1
+                else : per_day[days_since_rtc] = 1
+
+
+
+        return render(request,'ltfu/retrospective_data_entry.html',
+                      {'ltfu_by_range':table,
+                       'locations':locations,
+                       'location_groups':location_groups,
+                       'location':location,
+                       'location_group':g,                       
+                       'start_range':start_range,
+                       'end_range':end_range,
+                       'start_range_high_risk':start_range_high_risk,
+                       'limit':limit,
+                       'counts':counts,
+                       'per_day':per_day,
+                       }
+                      )
+    else :
+        return HttpResponseRedirect('/ltfu/outreach_worker')    
+
+
+    
+
     
 def test(request):
     if not Authorize.authorize(request.user,['superuser']) :
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
-    patient_uuid='13eaab9a-d51f-42fc-ac89-b1e15f503746'    
-    attr_type_uuid = '72a759a8-1359-11df-a1f1-0026b9348838'
-    value = '0724000001'
-    #result = PersonAttribute.create_person_attribute_rest(patient_uuid,attr_type_uuid,value)
-    #result = Patient.get_patient_by_uuid(patient_uuid)
+    amrs_url='https://10.50.80.45:8443/amrs'
+    headers = {'content-type': 'application/json'}    
+    url = amrs_url + '/ws/rest/v1/cohort'
 
-    location1 = Location.get_location_by_uuid('08feae7c-1352-11df-a1f1-0026b9348838')
-    location2 = Location.get_location_by_uuid_db('08feae7c-1352-11df-a1f1-0026b9348838')
-    result = [location1,location2]
-
-
+    result = res.text
     return render(request,'ltfu/test.html',{'result':result})
+

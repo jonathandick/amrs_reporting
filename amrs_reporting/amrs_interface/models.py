@@ -119,7 +119,7 @@ class Location(models.Model):
         url = amrs_settings.amrs_url + '/ws/rest/v1/location/' + location_uuid
         location = ''
         try:
-            res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+            res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
             data = json.dumps(res.text)            
             location = {'name':data['name'],
                         'uuid':data['uuid']}
@@ -135,7 +135,7 @@ class Patient():
     def get_patient_by_uuid(patient_uuid):
         headers = {'content-type': 'application/json'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/patient/' + patient_uuid
-        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
         data = json.loads(res.text)
         names = data['person']['display']
         split = names.split(' ')
@@ -253,7 +253,7 @@ class EncounterType():
     def get_encounter_type_by_uuid(uuid):
         headers = {'content-type': 'application/json'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/encountertype/' + uuid
-        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
         data = json.loads(res.text)
         name = data['name']
         description = data['description']
@@ -277,8 +277,7 @@ class Encounter():
                    'obs': obs
                    }
         data = json.dumps(payload)
-        print data
-        res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+        res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
         return json.loads(res.text)
 
 
@@ -290,20 +289,20 @@ class PersonAttribute():
         url = amrs_settings.amrs_url + '/ws/rest/v1/person/' + person_uuid + '/attribute'    
 
         if void_existing :
-            res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password))
+            res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),verify=False)
             vals = json.loads(res.text)['results']
             for v in vals:
                 type_uuid = v['attributeType']['uuid']
                 uuid = v['uuid']
                 if type_uuid == person_attribute_type_uuid :
-                    requests.post(url + '/' + uuid + '?!purge',auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+                    requests.post(url + '/' + uuid + '?!purge',auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
             
 
         payload = {'attributeType':person_attribute_type_uuid,
                    'value':value
                    }
         data = json.dumps(payload)
-        res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+        res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
         return json.loads(res.text)
 
 

@@ -13,15 +13,9 @@
 <script type="text/javascript">
 
 
-  function download_defaulter_list() {
-      var form = document.getElementById('defaulter_list_form');
-      form.action = '/ltfu/ltfu_get_defaulter_list';
-      form.submit();
-  }
-
   function view_defaulter_list() {
       var form = document.getElementById('defaulter_list_form');
-      form.action = '/ltfu/ltfu_by_range';
+      form.action = '/ltfu/retrospective_data_entry';
       form.submit();
   }
 
@@ -92,7 +86,6 @@ $(document).ready(function() {
 <br/>
 <div id='datatable_wrapper'>
 <h3> {% if location_group%}Clinic Group: {{location_group.name}}{%else%}Clinic: {{location.name}}{%endif%} </h3>
-<a href='ltfu_get_defaulter_list?location_id={{location.location_id}}&start_range={{start_range}}&end_range={{end_range}}&start_range_high_risk={{start_range_high_risk}}'>Download Defaulter List</a>
 <br/><br/>
 <table border='1'>
   <tr><td><b>Total</b></td><td>{{counts.total}}</td></tr>
@@ -105,7 +98,7 @@ $(document).ready(function() {
   <tr><td><b>On List > 2 wks</b></td><td>{{counts.on_list_two_weeks}}</td></tr>
   
 </table>
-    <form action='/ltfu/ltfu_by_range' method='post' id='defaulter_list_form'> {% csrf_token %}
+    <form action='/ltfu/retrospective_data_entry' method='post' id='defaulter_list_form'> {% csrf_token %}
     <table>
       <tr>
 	<td>Clinic:</td>
@@ -171,7 +164,7 @@ $(document).ready(function() {
     {% for row in ltfu_by_range %}
     <tr>
       <td>{{forloop.counter}}</td>
-      <td><a href='/ltfu/outreach_form?patient_uuid={{row.uuid}}&location_uuid={{location.uuid}}'>{{row.person_name}}</a></td>
+      <td><a href='/ltfu/outreach_form?patient_uuid={{row.uuid}}&location_uuid={{location.uuid}}&type=retrospective'>{{row.person_name}}</a></td>
       <td>{{row.identifier}}</td>
       <td>{{row.risk_category}}</td>
       <td>{{row.encounter_datetime}}</td>

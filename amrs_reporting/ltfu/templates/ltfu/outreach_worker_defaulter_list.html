@@ -2,9 +2,7 @@
 {% load staticfiles %}
 {% block content %}
 
-<script type="text/javascript" language="javascript" src="{% static 'js/flot/jquery.flot.js'%}"></script>
 <script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.js'%}"></script>
-<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/extensions/TableTools/js/dataTables.tableTools.js'%}"></script>
   <style type="text/css" title="currentStyle">
     @import "{% static 'js/DataTables-1.10.0/extensions/TableTools/css/dataTables.tableTools.css'%}";
     @import "{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.css' %}";
@@ -38,19 +36,7 @@ $(document).ready(function() {
   "bSort": true,
   "bInfo": false,
   "bAutoWidth" : false,
-  "fnDrawCallback": function ( oSettings ) {
-      /* Need to redo the counters if filtered or sorted */
-      if ( oSettings.bSorted || oSettings.bFiltered )
-      {
-           for ( var i=0, iLen=oSettings.aiDisplay.length ; i<iLen ; i++ )
-           {
-	       $('td:eq(0)', oSettings.aoData[ oSettings.aiDisplay[i] ].nTr ).html( i+1 );
-           }
-      }
-   }
-   }).columnFilter({sPlaceHolder:"head:before",
-                    aoColumns:[null,null,null,null,null,null,null,null,{type:"select"},null]
-                   });
+  });
 
 
 });

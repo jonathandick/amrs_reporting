@@ -11,6 +11,7 @@ class DefaulterCohort(models.Model):
     description = models.CharField(max_length=500)
     cohort_uuid = models.CharField(max_length=500)
     location_id = models.IntegerField()
+    location_uuid = models.CharField(max_length=500)
     date_updated = models.DateTimeField(auto_now=True)
 
 
@@ -24,9 +25,11 @@ class DefaulterCohort(models.Model):
             url_cohort += self.cohort_uuid + '/member'
             req = requests.get(url_cohort + '?v=ref', auth=(amrs_settings.username,amrs_settings.password),headers=headers)
             vals = json.loads(req.text)
+
             for member in vals['results']:
                 
-                url = member['links'][0]['uri'].replace('192.168.5.201','testserver1.ampath.or.ke')                
+                split = member['links'][0]['uri'].split('/ws')
+                url = amrs_settings.amrs_url + '/ws' + split[1]
                 req = requests.delete(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
                 try : 
                     vals = json.loads(req.text)
@@ -69,7 +72,7 @@ class DefaulterCohort(models.Model):
         start_range = 30
         end_range = 89
         limit = 5
-        
+        print 'uuids in use total: ' + str(len(uuids_in_use))
         uuids = OutreachFormSubmissionLog.objects.filter(date_submitted__gte=self.date_updated).values_list('patient_uuid',flat=True)
         rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
         parameter_values = (start_range_high_risk,start_range,end_range,location_ids,location_ids)
@@ -132,7 +135,7 @@ class DefaulterCohort(models.Model):
                 print 'creating new dc'
                 name = location['name'] + ' Defaulter List'
                 description = location['name'] + ' Defaulter List'
-                dc = DefaulterCohort(name=name,description=description,location_id=location_id)
+                dc = DefaulterCohort(name=name,description=description,location_id=location_id,location_uuid=location['uuid'])
             dc.update_defaulter_cohort()
             cohorts.append(dc)
         return cohorts

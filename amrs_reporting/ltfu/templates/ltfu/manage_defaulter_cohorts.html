@@ -3,7 +3,7 @@
   {%for cohort in defaulter_cohorts %}
   <tr>
     <td>
-      <a href='https://testserver1.ampath.or.ke:8443/amrs/ws/rest/v1/cohort/{{cohort.cohort_uuid}}'>View {{cohort.name}}</a>
+      <a href='http://10.50.80.75:8080/amrs/ws/rest/v1/cohort/{{cohort.cohort_uuid}}'>View {{cohort.name}}</a>
     </td>
     <td>
       <a href='/ltfu/delete_defaulter_cohort?cohort_uuid={{cohort.cohort_uuid}}'>Delete</a>

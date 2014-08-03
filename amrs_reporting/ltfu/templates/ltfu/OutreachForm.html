@@ -124,16 +124,26 @@
      else { return true; }
      }, "* Must provide transfer location"
   );
+
+  jQuery.validator.addMethod("needs_phone_number", function(value, element) {
+     if($("#contacted_by_phone option:selected").text().toLowerCase() === 'yes') {
+        return value != '';
+     }
+     else { return true; }
+     }, "* Must provide transfer location"
+  );
   
 
   
   $("#encounter_datetime").rules("add",{required:true});
+  $("#missed_return_visit_date").rules("add",{required:true});
   $("#patient_status").rules("add",{required:true});
   $("#date_found").rules("add",{needs_date_found:true});
   $("#location_of_contact").rules("add",{needs_location_of_contact:true});
   $("#return_visit_date").rules("add",{needs_rtc_date:true});
   $("#likelihood_of_return").rules("add",{needs_likelihood_of_return:true});
   $("#transfer_location").rules("add",{needs_transfer_location:true});
+  $("#phone_number").rules("add",{needs_phone_number:true});
   
 
   /*
@@ -231,7 +241,6 @@
                type="text" required>
       </div-->
 
-      name: <input name="name" type="text" id="name"/>
       <div class="form-group">
         <label for="encounter_datetime">Encounter Date:</label>
         <input id="encounter_datetime" name="encounter_datetime" type="text"/>
@@ -245,8 +254,8 @@
       </div>
       
       <div class="form-group">
-        <label for="patient.phone">Phone:</label>
-        <input class="form-control phoneNumber" id="patient.phone" name="attr__a89e3896-1350-11df-a1f1-0026b9348838" type="tel">
+        <label for="phone_number">Phone:</label>
+        <input class="form-control phoneNumber" id="phone_number" name="attr__72a759a8-1359-11df-a1f1-0026b9348838" type="text" value="{{patient.phone_number}}"/>
       </div>
     </div>
     <div class="section">
@@ -612,7 +621,7 @@
       </div>
       <br/>
       If patient transferred to another AMPATH clinic, clinic name:      
-      <select name='transfer_location' id='transfer_location'>
+      <select name='attr__8d87236c-c2cc-11de-8d13-0010c6dffd0f' id='transfer_location'>
 	<option/>
 	{% for l in locations %}
 	<option value='{{l.uuid}}'>{{l.name}}</option>

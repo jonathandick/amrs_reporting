@@ -337,6 +337,7 @@ def ltfu_get_defaulter_list(request):
         return response
 
 
+@login_required
 def view_outreach_worker_forms_done(request):
     if not Authorize.authorize(request.user,['superuser']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
@@ -348,7 +349,7 @@ def view_outreach_worker_forms_done(request):
                   {'forms_done' : table,
                    })
 
-
+@login_required
 def view_data_entry_forms_done(request):
     if not Authorize.authorize(request.user,['superuser']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
@@ -361,7 +362,7 @@ def view_data_entry_forms_done(request):
                    })
 
 
-
+@login_required
 def view_indicators_by_clinic(request):
     if not Authorize.authorize(request.user,['outreach_all','outreach_manager']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
@@ -385,7 +386,7 @@ def view_indicators_by_clinic(request):
                    }
                   )
     
-
+@login_required
 def view_indicators_by_provider(request):
     if not Authorize.authorize(request.user,['superuser']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
@@ -408,6 +409,7 @@ def view_indicators_by_provider(request):
                   )
     
 
+@login_required
 def view_reason_missed_appt(request):
     if not Authorize.authorize(request.user,['outreach_all']) :
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
@@ -470,12 +472,20 @@ def view_reason_missed_appt(request):
                   )
 
 
+@login_required
 def update_defaulter_cohorts(request):
+    if not Authorize.authorize(request.user,['superuser']) :
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
     DefaulterCohort.update_defaulter_cohorts()    
     return HttpResponseRedirect('/ltfu/manage_defaulter_cohorts')
 
 
+@login_required
 def manage_defaulter_cohorts(request):    
+    if not Authorize.authorize(request.user,['superuser']) :
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
     dcs = DefaulterCohort.objects.all()    
     return render(request,
                   'ltfu/manage_defaulter_cohorts.html',
@@ -483,40 +493,56 @@ def manage_defaulter_cohorts(request):
                    }
                   )
 
-
+@login_required
 def delete_defaulter_cohort(request):
+    if not Authorize.authorize(request.user,['superuser']) :
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
     cohort_uuid = request.GET['cohort_uuid']
     DefaulterCohort.delete_defaulter_cohort(cohort_uuid)
     return HttpResponseRedirect('/ltfu/manage_defaulter_cohorts')
 
 
-
+@login_required
 def outreach_worker_defaulter_list(request):
+    if not Authorize.authorize(request.user,['outreach_all','outreach_manager','outreach_supervisor','outreach_worker']) :
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
     
     cohort_uuid = get_var_from_request(request,'defaulter_cohort_uuid')
     prev_cohort_uuid = request.session.get('cohort_uuid')
+
+    # this means the user is coming from a form submission page, otherwise there should always be a cohort_uuid
+    if cohort_uuid is None : cohort_uuid = prev_cohort_uuid
+
     request.session['cohort_uuid'] = cohort_uuid
     dc = DefaulterCohort.objects.get(cohort_uuid=cohort_uuid)    
-
-    if prev_cohort_uuid is not None and prev_cohort_uuid == cohort_uuid:
-        my_defaulter_list = json.loads(request.session.get('my_defaulter_list'))
+ 
+    if prev_cohort_uuid is not None and prev_cohort_uuid == cohort_uuid: 
+        my_defaulter_list = json.loads(request.session.get('my_defaulter_list',''))
     else : my_defaulter_list = []
             
     if my_defaulter_list is None or len(my_defaulter_list) == 0 :
         patient_uuids_in_use = []
         sessions = Session.objects.filter(expire_date__gt=datetime.now())
+        print 'num sessions: ' + str(len(sessions))
         for s in sessions:
+            print 'user_id: ' + str(request.user.id)
+            print 'session owner: ' + str(s.get_decoded().get('_auth_user_id'))
+            session_owner_id = s.get_decoded().get('_auth_user_id')
+            if session_owner_id is not None and request.user.id != int(session_owner_id):
+                decoded = s.get_decoded().get('my_defaulter_list')
+                if decoded is not None:
+                    defaulters = json.loads(decoded)
+                    for d in defaulters:
+                        patient_uuids_in_use.append(d['uuid'])
 
-            decoded = s.get_decoded().get('my_defaulter_list')
-            if decoded is not None:
-                defaulters = json.loads(decoded)
-                for d in defaulters:
-                    patient_uuids_in_use.append(d['uuid'])
+
+            #3/8/2014: the following is a temporary solution to deleting old sessions. it is NOT in the right place                             
+            if session_owner_id is None:
+                s.delete()
 
         my_defaulter_list = dc.get_defaulter_list(patient_uuids_in_use)
-        print len(my_defaulter_list)
-
-
+        
         request.session['my_defaulter_list'] = json.dumps(my_defaulter_list, cls=DjangoJSONEncoder)
 
     location = Location.get_location(dc.location_id)
@@ -532,19 +558,22 @@ def outreach_worker_defaulter_list(request):
 
     
 
-
+@login_required
 def outreach_form(request):
+
+    if not Authorize.authorize(request.user,['outreach_all','outreach_manager','outreach_supervisor','outreach_worker']) :
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
     import requests
     import json
     import amrs_settings
 
     headers = {'content-type': 'application/json'}
-
     if request.method == 'GET':
         patient_uuid = request.GET['patient_uuid']        
         location_uuid = request.GET['location_uuid']
-        patient = Patient.get_patient_by_uuid(patient_uuid)        
-        location = Location.get_location_by_uuid(location_uuid)
+        patient = Patient.get_patient_by_uuid(patient_uuid)
+        location = Location.get_location_by_uuid_db(location_uuid)
 
         locations = Location.get_locations()
         encounter_type = EncounterType.get_encounter_type_by_uuid('df5547bc-1350-11df-a1f1-0026b9348838') #outreach
@@ -558,43 +587,56 @@ def outreach_form(request):
                 
 
 
-    elif request.method == 'POST':
-        
-        url = amrs_settings.amrs_url + '/ws/rest/v1/encounter'
-        patient_uuid = request.POST['patient_uuid']
+    elif request.method == 'POST':        
+        patient_uuid = request.POST['patient_uuid']        
+        location_uuid = request.POST['location_uuid']
+        #location_uuid = '08feae7c-1352-11df-a1f1-0026b9348838'
+        dc = DefaulterCohort.objects.get(location_uuid=location_uuid)
+
+        forms = OutreachFormSubmissionLog.objects.filter(patient_uuid=patient_uuid,date_submitted__gte=dc.date_updated)
+        # if forms is non-empty, a form was already submitted for this patient today. 
+        if forms.count() > 0 :
+            pass
+            #return HttpResponseRedirect('/ltfu/outreach_worker_defaulter_list')
+            
 
         provider_uuid = '5b6ee21a-1359-11df-a1f1-0026b9348838' #request.POST['provider_uuid']
         encounter_type_uuid = request.POST['encounter_type_uuid']
-
         encounter_datetime = request.POST['encounter_datetime']
-        #location_uuid = request.POST['location_uuid']
-        location_uuid = '08feae7c-1352-11df-a1f1-0026b9348838'
         obs = []
-
 
         for key,value in request.POST.iteritems():
             if key.startswith('obs__') and value.strip() != '':
-                question_uuid = key[5:]                
-                obs.append({'concept':question_uuid,'value':value})
-    
-        payload = {'patient':patient_uuid,
-                   'encounterDatetime':encounter_datetime,               
-                   'location':location_uuid,
-                   'encounterType':encounter_type_uuid,
-                   'provider':provider_uuid,
-                   'obs': obs
-                   }
-        data = json.dumps(payload)
-        print data
-        res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
-        #print res.text
-        #dc = DefaulterCohort.objects.get(location_id=location_uuid)
-        dc = DefaulterCohort.objects.get(location_id=1)
-        my_defaulter_list = request.session.get_decoded()['my_defaulter_list']
-        for d in my_defaulter_list :
-            if d['uuid'] == patient_uuid : my_defaulter_list.remove(d)
+                question_uuid = key[5:]
+                l = request.POST.getlist(key)
+                for val in l:
+                    obs.append({'concept':question_uuid,'value':val})
+                
 
-        request.session['my_defaulter_list'] = my_defaulter_list
+
+            if key.startswith('attr__') and value.strip() != '':
+                attr_type_uuid = key[6:]                
+                result = PersonAttribute.create_person_attribute_rest(person_uuid=patient_uuid,person_attribute_type_uuid=attr_type_uuid,value=value)
+                
+
+        Encounter.create_encounter_rest(patient_uuid=patient_uuid,
+                                        encounter_datetime=encounter_datetime,
+                                        location_uuid=location_uuid,
+                                        encounter_type_uuid=encounter_type_uuid,
+                                        provider_uuid=provider_uuid,
+                                        obs=obs)
+
+
+        #dc = DefaulterCohort.objects.get(location_id=1)
+        my_defaulter_list = json.loads(request.session.get('my_defaulter_list',''))
+        for d in my_defaulter_list :
+            if d['uuid'] == patient_uuid : 
+                print 'defaulter list length: ' + str(len(my_defaulter_list))
+                my_defaulter_list.remove(d)
+                print 'removed element. defaulter list length: ' + str(len(my_defaulter_list))
+
+
+        request.session['my_defaulter_list'] = json.dumps(my_defaulter_list, cls=DjangoJSONEncoder)
 
 
         log = OutreachFormSubmissionLog(patient_uuid=patient_uuid,
@@ -609,15 +651,18 @@ def outreach_form(request):
     
     
 def test(request):
-    from django.http import HttpRequest
-    from django.utils.importlib import import_module
+    if not Authorize.authorize(request.user,['superuser']) :
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
-    request = HttpRequest()
+    patient_uuid='13eaab9a-d51f-42fc-ac89-b1e15f503746'    
+    attr_type_uuid = '72a759a8-1359-11df-a1f1-0026b9348838'
+    value = '0724000001'
+    #result = PersonAttribute.create_person_attribute_rest(patient_uuid,attr_type_uuid,value)
+    #result = Patient.get_patient_by_uuid(patient_uuid)
 
-    sessions = Session.objects.filter(expire_date__gte=datetime.now())
+    location1 = Location.get_location_by_uuid('08feae7c-1352-11df-a1f1-0026b9348838')
+    location2 = Location.get_location_by_uuid_db('08feae7c-1352-11df-a1f1-0026b9348838')
+    result = [location1,location2]
 
 
-    for session in sessions:
-        pass
-
-    return render(request,'ltfu/test.html',{})
+    return render(request,'ltfu/test.html',{'result':result})

@@ -93,6 +93,25 @@ class Location(models.Model):
 
         return location
 
+    @staticmethod
+    def get_location_by_uuid_db(location_uuid) :
+        location = {}
+        con = None
+        try :
+            sql = 'select location_id, name, uuid from amrs.location where uuid=%s'
+            con = mdb.connect(Location.HOST,Location.USER,Location.PASSWORD,Location.DATABASE)
+            cur = con.cursor(mdb.cursors.DictCursor)
+            cur.execute(sql,(location_uuid,))
+            location = cur.fetchone()
+        except Exception, e:
+            print e
+            
+        finally:
+            if con : con.close()
+
+        return location
+
+
 
     @staticmethod
     def get_location_by_uuid(location_uuid):
@@ -107,6 +126,7 @@ class Location(models.Model):
         except:
             pass
         return location
+
 
 
 class Patient():
@@ -131,8 +151,15 @@ class Patient():
         identifier = split[1]
 
         gender = data['person']['gender']
-
         birthdate = data['person']['birthdate']
+
+        phone_number = ''
+        print data
+        for a in data['person']['attributes']:
+            if a['display'].startswith('Contact Phone Number'):
+                split = a['display'].split(' = ')
+                phone_number += split[1] + ' '
+        
 
         patient = {'given_name':given_name,
                    'middle_name':middle_name,
@@ -141,6 +168,7 @@ class Patient():
                    'gender':gender,
                    'birthdate':birthdate,
                    'uuid':patient_uuid,
+                   'phone_number':phone_number
                    }
         return patient
     
@@ -235,6 +263,50 @@ class EncounterType():
                 }
     
         
+
+class Encounter():
+    @staticmethod
+    def create_encounter_rest(patient_uuid=None, encounter_datetime=None,encounter_type_uuid=None,provider_uuid=None,location_uuid=None,obs=[]):
+        headers = {'content-type': 'application/json'}
+        url = amrs_settings.amrs_url + '/ws/rest/v1/encounter'    
+        payload = {'patient':patient_uuid,
+                   'encounterDatetime':encounter_datetime,               
+                   'location':location_uuid,
+                   'encounterType':encounter_type_uuid,
+                   'provider':provider_uuid,
+                   'obs': obs
+                   }
+        data = json.dumps(payload)
+        print data
+        res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+        return json.loads(res.text)
+
+
+class PersonAttribute():
+
+    @staticmethod
+    def create_person_attribute_rest(person_uuid=None,person_attribute_type_uuid=None,value=None,void_existing=True):
+        headers = {'content-type': 'application/json'}
+        url = amrs_settings.amrs_url + '/ws/rest/v1/person/' + person_uuid + '/attribute'    
+
+        if void_existing :
+            res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password))
+            vals = json.loads(res.text)['results']
+            for v in vals:
+                type_uuid = v['attributeType']['uuid']
+                uuid = v['uuid']
+                if type_uuid == person_attribute_type_uuid :
+                    requests.post(url + '/' + uuid + '?!purge',auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+            
+
+        payload = {'attributeType':person_attribute_type_uuid,
+                   'value':value
+                   }
+        data = json.dumps(payload)
+        res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers)
+        return json.loads(res.text)
+
+
 
 
 class DerivedGroup(models.Model):

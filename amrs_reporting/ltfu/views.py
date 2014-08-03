@@ -570,6 +570,9 @@ def outreach_form(request):
         locations = Location.get_locations()
         encounter_type = EncounterType.get_encounter_type_by_uuid('df5547bc-1350-11df-a1f1-0026b9348838') #outreach
 
+        type = get_var_from_request(request,'type')
+        if type is not None and type == 'retrospective':
+            request.session['type'] = type
 
         args = {'patient':patient,
                 'encounter_type':encounter_type,
@@ -638,11 +641,13 @@ def outreach_form(request):
                                         creator=request.user.id,                                        
                                         )
         log.save()
-        type = request.session.get('type')
+
+        type = request.session.pop('type',None)
+
         if type is not None and type == 'retrospective':
             location = Location.get_location_by_uuid_db(location_uuid)
             return HttpResponseRedirect('/ltfu/retrospective_data_entry?location_id=' + location['location_id'])
-
+        
         else :
             return HttpResponseRedirect('/ltfu/outreach_worker_defaulter_list')
         #return render(request,'ltfu/close_tab.html',{}) 
@@ -651,11 +656,9 @@ def outreach_form(request):
 
 @login_required
 def outreach_worker(request):
-    locations = Location.get_locations()
     dcs = DefaulterCohort.objects.all()
     return render(request,'ltfu/outreach_worker.html',
-                  {'locations':locations,
-                   'defaulter_cohorts':dcs,
+                  {'defaulter_cohorts':dcs,
                    })
 
 
@@ -664,20 +667,23 @@ def retrospective_data_entry(request):
     location_id = get_var_from_request(request,'location_id')
     location_group_id = get_var_from_request(request,'location_group_id')
     g = None
+
+
     if location_group_id :
         g = DerivedGroup.objects.get(id=location_group_id)
         location_ids = tuple(g.get_member_ids())
-    else : location_ids = (location_id,)
+    elif location_id : location_ids = (location_id,)
+    else : HttpResponseRedirect('/ltfu/outreach_worker')
 
     if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all'],list(location_ids)) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
 
-    start_range_high_risk = int(get_var_from_request(request,'start_range_high_risk'))
+    start_range_high_risk = get_var_from_request(request,'start_range_high_risk')
     if not start_range_high_risk : start_range_high_risk = 8
-    start_range = int(get_var_from_request(request,'start_range'))
+    start_range = get_var_from_request(request,'start_range')
     if not start_range : start_range = 30
-    end_range = int(get_var_from_request(request,'end_range'))
+    end_range = get_var_from_request(request,'end_range')
     if not end_range : end_range = 89
 
     limit = get_var_from_request(request,'limit')
@@ -689,7 +695,7 @@ def retrospective_data_entry(request):
 
     if location_ids:
         rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
-        parameter_values = (start_range_high_risk,start_range,end_range,location_ids,location_ids)
+        parameter_values = (int(start_range_high_risk),int(start_range),int(end_range),location_ids,location_ids)
         table = rt.run_report_table(parameter_values=parameter_values,as_dict=True,limit=limit)['rows']
         
         counts = {'tracing':0,'high':0,'medium':0,'low':0,'LTFU':0,'total':0,'no_rtc_date':0,'untraceable':0,'on_list_two_weeks':0}
@@ -713,11 +719,10 @@ def retrospective_data_entry(request):
                 else : per_day[days_since_rtc] = 1
 
 
-
+        dcs = DefaulterCohort.objects.all()
         return render(request,'ltfu/retrospective_data_entry.html',
                       {'ltfu_by_range':table,
-                       'locations':locations,
-                       'location_groups':location_groups,
+                       'defaulter_cohorts':dcs,
                        'location':location,
                        'location_group':g,                       
                        'start_range':start_range,

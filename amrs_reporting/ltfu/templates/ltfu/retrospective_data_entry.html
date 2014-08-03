@@ -13,11 +13,15 @@
 <script type="text/javascript">
 
 
-  function view_defaulter_list() {
-      var form = document.getElementById('defaulter_list_form');
-      form.action = '/ltfu/retrospective_data_entry';
-      form.submit();
+function view_retro_defaulter_list() {
+  var select = document.getElementById('retro_defaulter_list_select');
+  var value = select.options[select.selectedIndex].value;
+  var link = '/ltfu/retrospective_data_entry?location_id=' + value;
+  if(value != '') {
+      window.location = link;
   }
+  else { alert('You must first select a clinic'); }
+}
 
 
 $(document).ready(function() {
@@ -31,107 +35,54 @@ $(document).ready(function() {
   "bFilter": true,
   "bSort": true,
   "bInfo": false,
-  "sDom": '<"clear">Tlfrtip',
-  "oTableTools": {
-        "sSwfPath": "{% static 'js/DataTables-1.10.0/extensions/TableTools/swf/copy_csv_xls_pdf.swf'%}",
-        "aButtons": [
-             {
-                "sExtends": "xls",
-                "sButtonText": " Excel ",
-                "oSelectorOpts": {
-                    page: 'current'
-                }
-            },
-             {
-                "sExtends": "pdf",
-                "sButtonText": " pdf ",
-                "oSelectorOpts": {
-                    page: 'current'
-                }
-            },  
-            {
-                "sExtends": "copy",
-                "sButtonText": "Copy to clipboard",
-                "oSelectorOpts": {
-                    page: 'current'
-                }
-            }
-        ]
-  },
   "bAutoWidth" : false,
-  "fnDrawCallback": function ( oSettings ) {
-      /* Need to redo the counters if filtered or sorted */
-      if ( oSettings.bSorted || oSettings.bFiltered )
-      {
-           for ( var i=0, iLen=oSettings.aiDisplay.length ; i<iLen ; i++ )
-           {
-	       $('td:eq(0)', oSettings.aoData[ oSettings.aiDisplay[i] ].nTr ).html( i+1 );
-           }
-      }
-   }
-   }).columnFilter({sPlaceHolder:"head:before",
-                    aoColumns:[null,null,null,{type:"select"},null,{type:"select"},null,{type:"number-range"}]
-                   });
+  });
 
 
 });
 
 </script>
 
+<script type="text/javascript">
 
 
+function view_defaulter_list() {
+  var form = document.getElementById('defaulter_list_form');
+  var select = document.getElementById('defaulter_list_select');
+  var value = select.options[select.selectedIndex].value;
+  var link = '/ltfu/retrospective_data_entry?location_id=' + value;
+  window.location = link;
 
+}
+
+</script>
+
+<br/>
+<a href='/ltfu/outreach_worker'>Return to Outreach Dashboard</a><br/>
+<table>  
+  <tr>
+    <form action='/ltfu/retrospective_data_entry' method='post' id='defaulter_list_form'> {% csrf_token %}
+      <td><b>Choose another clinic:</b></td>
+      <td>
+	<select name='location_id' id='retro_defaulter_list_select'>
+	  <option value=''></option>
+	  {% for dc in defaulter_cohorts %}
+	  <option value='{{dc.location_id}}'>{{dc.name}}</option>
+	  {% endfor %}
+	</select>
+      </td>
+      <td><input type='button' onClick='view_retro_defaulter_list()'  value='View'/></td>
+    </form>    
+  </tr>
+</table>
+
+<hr/>
       
 
 <br/>
 <div id='datatable_wrapper'>
-<h3> {% if location_group%}Clinic Group: {{location_group.name}}{%else%}Clinic: {{location.name}}{%endif%} </h3>
-<br/><br/>
-<table border='1'>
-  <tr><td><b>Total</b></td><td>{{counts.total}}</td></tr>
-  <tr><td><b>Being Traced</b></td><td>{{counts.tracing}}</td></tr>
-  <tr><td><b>High Risk</b></td><td>{{counts.high}}</td></tr>
-  <tr><td><b>Medium Risk</b></td><td>{{counts.medium}}</td></tr>
-  <tr><td><b>Low Risk</b></td><td>{{counts.low}}</td></tr>
-  <tr><td><b>No RTC Date</b></td><td>{{counts.no_rtc_date}}</td></tr>
-  <tr><td><b>LTFU</b></td><td>{{counts.LTFU}}</td></tr>
-  <tr><td><b>On List > 2 wks</b></td><td>{{counts.on_list_two_weeks}}</td></tr>
-  
-</table>
-    <form action='/ltfu/retrospective_data_entry' method='post' id='defaulter_list_form'> {% csrf_token %}
-    <table>
-      <tr>
-	<td>Clinic:</td>
-	<td>
-	  <select name='location_id'>
-	    <option></option>
-	    {% for l in locations %}
-	    <option value='{{l.location_id}}' {%if l.location_id == location.location_id%}selected{%endif%}>{{l.name}}</option>
-	    {% endfor %}
-	  </select>
-	  <br/>or<br/>
-	  <select name='location_group_id'>
-	    <option></option>
-	    {% for g in location_groups %}
-	    <option value='{{g.id}}' {%if g.id == location_group.id%}selected{%endif%}>{{g.name}}</option>
-	    {%endfor%}
-	  </select>
-	</td>
-	 <td>start range high risk:</td>
-	 <td><input type='text' name='start_range_high_risk' value='{{start_range_high_risk}}' size='1'/></td>
-	<td>start range:</td>
-	<td><input type='text' name='start_range' value='{{start_range}}' size='1'/></td>
-	<td>end range:</td>
-	<td><input type='text' name='end_range' value='{{end_range}}' size='1'/></td>
-	<td>Limit to:</td>
-	<td><input type='text' name='limit' size='1' value='{%if limit%}{{limit}}{%endif%}'/></td>
-	<td><input type='button' onClick='download_defaulter_list()' value='Download List'/></td>
-	<td><input type='button' onClick='view_defaulter_list()'  value='View'/></td>
-      </tr>	  
-    </table>
-    </form>
+<h3> Retrospective Data Entry: {% if location_group%}{{location_group.name}}{%else%}{{location.name}}{%endif%} </h3>
 
-<hr/>
 
 <table id='report' class="displays">
   <thead>
@@ -175,6 +126,21 @@ $(document).ready(function() {
     {%endfor%}
     </tbody>
 </table>
+
+<br/><br/>
+<h3>Summary Statistics</h3>
+<table border='1'>
+  <tr><td><b>Total</b></td><td>{{counts.total}}</td></tr>
+  <tr><td><b>Being Traced</b></td><td>{{counts.tracing}}</td></tr>
+  <tr><td><b>High Risk</b></td><td>{{counts.high}}</td></tr>
+  <tr><td><b>Medium Risk</b></td><td>{{counts.medium}}</td></tr>
+  <tr><td><b>Low Risk</b></td><td>{{counts.low}}</td></tr>
+  <tr><td><b>No RTC Date</b></td><td>{{counts.no_rtc_date}}</td></tr>
+  <tr><td><b>LTFU</b></td><td>{{counts.LTFU}}</td></tr>
+  <tr><td><b>On List > 2 wks</b></td><td>{{counts.on_list_two_weeks}}</td></tr>
+  
+</table>
+
 </div>
 
 

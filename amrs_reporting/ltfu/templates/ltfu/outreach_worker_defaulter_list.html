@@ -7,50 +7,47 @@
     @import "{% static 'js/DataTables-1.10.0/extensions/TableTools/css/dataTables.tableTools.css'%}";
     @import "{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.css' %}";
   </style>
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/extensions/FixedColumns/js/dataTables.fixedColumns.min.js'%}"></script>
+
 
 <script type="text/javascript">
 
 
-  function download_defaulter_list() {
-      var form = document.getElementById('defaulter_list_form');
-      form.action = '/ltfu/ltfu_get_defaulter_list';
-      form.submit();
-  }
-
-  function view_defaulter_list() {
-      var form = document.getElementById('defaulter_list_form');
-      form.action = '/ltfu/ltfu_by_range';
-      form.submit();
-  }
-
-
 $(document).ready(function() {
 
-  $('#report').dataTable( {
+  var table = $('#report').dataTable( {
   "width":"100%",
   "sScrollY": "250px",
+  "scrollX": true,
+  "scrollCollapse": true,
   "bJQueryUI": true,
   "bPaginate": false,
   "bLengthChange": false,
   "bFilter": true,
   "bSort": true,
   "bInfo": false,
-  "bAutoWidth" : false,
+  "bAutoWidth" : true,
   });
 
 
 });
 
-function get_defaulter_list() {
-  var form = document.getElementById('defaulter_list_form');
+function view_defaulter_list() {
   var select = document.getElementById('defaulter_list_select');
   var value = select.options[select.selectedIndex].value;
   var link = '/ltfu/outreach_worker_defaulter_list?defaulter_cohort_uuid=' + value;
-  window.location = link;
-
+  if(value != '') {
+      window.location = link;
+  }
+  else { alert('You must first select a clinic'); }
 }
 
+
 </script>
+
+<br/>
+<a href='/ltfu/outreach_worker'>Return to Outreach Dashboard</a><br/>
+<br/>
 <form>
   Outreach Defaulter List:
   <select name='defaulter_cohort_uuid' id='defaulter_list_select'>
@@ -59,7 +56,7 @@ function get_defaulter_list() {
     <option value='{{dc.cohort_uuid}}'>{{dc.name}}</option>
     {%endfor%}
   </select>
-  <input type='button' onClick='get_defaulter_list()' value='Go!'/></td>
+  <input type='button' onClick='view_defaulter_list()' value='Go!'/></td>
 </form>
   
 
@@ -69,16 +66,15 @@ Cohort Last Updated: {{defaulter_cohort.date_updated}}
 <table id='report' class="displays">
   <thead>
     <tr>
-	<th class="gradeA"></th>
-	<th class="gradeA">Name</th>
-	<th class="gradeA">AMRS ID</th>
-	<th class="gradeA">Phone Number</th>
-	<th class="gradeA">Risk Cat</th>
-	<th class="gradeA">last enc date</th>
-	<th class="gradeA">enc type</th>
-	<th class="gradeA">rtc date</th>
-	<th class="gradeA">days from rtc date</th>
-	<th class="gradeA"></th>
+	<th></th>
+	<th>Name</th>
+	<th>AMRS ID</th>
+	<th>Phone Number</th>
+	<th>Risk Cat</th>
+	<th>last enc date</th>
+	<th>enc type</th>
+	<th>rtc date</th>
+	<th>days from rtc date</th>
     </tr>
   </thead>
  
@@ -86,7 +82,7 @@ Cohort Last Updated: {{defaulter_cohort.date_updated}}
     {% for row in defaulter_list %}
     <tr>
       <td>{{forloop.counter}}</td>
-      <td>{{row.person_name}}</td>
+      <td><a href='/ltfu/outreach_form?patient_uuid={{row.uuid}}&location_uuid={{location.uuid}}'>{{row.person_name}}</a></td>
       <td>{{row.identifier}}</td>
       <td>{{row.phone_number}}</td>
       <td>{{row.risk_category}}</td>
@@ -94,7 +90,6 @@ Cohort Last Updated: {{defaulter_cohort.date_updated}}
       <td>{{row.name}}</td>
       <td>{% if row.rtc_date%} {{row.rtc_date}} {%endif%}</td>
       <td>{% if row.days_since_rtc %}{{row.days_since_rtc}} {%endif%}</td>
-      <td><a href='/ltfu/outreach_form?patient_uuid={{row.uuid}}&location_uuid={{location.uuid}}'>Enter Form</a></td>
     </tr>
     {%endfor%}
     </tbody>

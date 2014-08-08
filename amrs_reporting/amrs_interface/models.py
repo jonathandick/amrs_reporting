@@ -128,6 +128,23 @@ class Location(models.Model):
         return location
 
 
+class Person():
+
+    @staticmethod
+    def set_dead(person_uuid,death_date,cause_of_death):
+        try:
+            headers = {'content-type': 'application/json'}
+            url = amrs_settings.amrs_url + '/ws/rest/v1/person/' + person_uuid    
+            payload = {'deathDate':death_date,
+                       'dead':'true',
+                       'causeOfDeath':cause_of_death,
+                       }
+            data = json.dumps(payload)
+            res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)        
+            return json.loads(res.text)
+        except Exception, e:
+            return 'error'
+
 
 class Patient():
 
@@ -154,7 +171,7 @@ class Patient():
         birthdate = data['person']['birthdate']
 
         phone_number = ''
-        print data
+
         for a in data['person']['attributes']:
             if a['display'].startswith('Contact Phone Number'):
                 split = a['display'].split(' = ')
@@ -177,19 +194,20 @@ class Patient():
                        
 class Provider(models.Model):
         
-    HOST = settings.HOST
-    USER = settings.USER
-    PASSWORD = settings.PASSWORD
-    DATABASE = settings.DATABASE
-    
-
-    def get_all(self):
+    @staticmethod
+    def get_outreach_providers():
         providers = {}
         con = None
         try :
-            sql = 'select t1.provider_id, given_name, family_name from flat_outreach_data t1 join amrs.person_name t2 on t1.provider_id=t2.person_id'
-            sql += ' group by t1.provider_id order by family_name, given_name'
-            con = mdb.connect(self.HOST,self.USER,self.PASSWORD,self.DATABASE)
+            sql = 'select t2.identifier, given_name, family_name, t4.uuid'
+            sql += ' from flat_outreach_data t1'
+            sql += ' join amrs.provider t2 using (provider_id)'
+            sql += ' join amrs.person_name t3 on t2.person_id=t3.person_id'
+            sql += ' join amrs.person t4 on t2.person_id=t4.person_id'
+            sql += ' where t1.encounter_datetime >= "2014-01-01"'
+            sql += ' group by t2.identifier order by given_name, family_name'
+
+            con = mdb.connect(settings.HOST,settings.USER,settings.PASSWORD,settings.DATABASE)
             cur = con.cursor(mdb.cursors.DictCursor)
             cur.execute(sql)
             providers = cur.fetchall()
@@ -202,33 +220,13 @@ class Provider(models.Model):
         return providers
 
 
-
-    def get_outreach_providers(self):
-        providers = {}
-        con = None
-        try :
-            sql = 'select t1.provider_id, given_name, family_name from flat_outreach_data t1 join amrs.person_name t2 on t1.provider_id=t2.person_id'
-            sql += ' group by t1.provider_id order by family_name, given_name'
-            con = mdb.connect(self.HOST,self.USER,self.PASSWORD,self.DATABASE)
-            cur = con.cursor(mdb.cursors.DictCursor)
-            cur.execute(sql)
-            providers = cur.fetchall()
-        except Exception, e:
-            print e
-
-        finally:
-            if con : con.close()
-
-        return providers
-
-
-
-    def get_provider_name(self, provider_id) :
+    @staticmethod
+    def get_provider_name(provider_id) :
         provider = {}
         con = None
         try :
             sql = 'select person_id as provider_id,given_name,family_name from amrs.person_name where person_id=% and voided=0'
-            con = mdb.connect(self.HOST,self.USER,self.PASSWORD,self.DATABASE)
+            con = mdb.connect(settings.HOST,settings.USER,settings.PASSWORD,settings.DATABASE)
             cur = con.cursor(mdb.cursors.DictCursor)
             cur.execute(sql,(provider_id,))
             location = cur.fetchone()
@@ -241,7 +239,8 @@ class Provider(models.Model):
         return provider
 
 
-    def get_outreach_worker_indicators(self,provider_id):
+    @staticmethod
+    def get_outreach_worker_indicators(provider_id):
         rt = ReportTable.objects.filter(name='outreach_worker_indicators')[0]
         outreach_worker_indicators = rt.run_report_table(as_dict=True)['rows']
         return outreach_worker_indicators
@@ -278,7 +277,88 @@ class Encounter():
                    }
         data = json.dumps(payload)
         res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+
         return json.loads(res.text)
+
+
+
+    @staticmethod
+    def get_last_encounter(patient_uuid):
+        headers = {'content-type': 'application/json'}
+        url = amrs_settings.amrs_url + '/ws/rest/v1/encounter?patient=' + patient_uuid + '&limit=1'
+        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+        vals = json.loads(res.text)['results'][0]
+        print vals
+
+        enc_uuid = vals['uuid']
+
+        url = amrs_settings.amrs_url + '/ws/rest/v1/encounter/' + enc_uuid
+        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+
+        vals = json.loads(res.text)
+
+        encounter_type = vals['encounterType']['display']
+        encounter_datetime = vals['encounterDatetime']
+ 
+        rtc_date = ''
+        obs = []
+        for o in vals['obs'] :
+            if o['uuid'] == 'a8a666ba-1350-11df-a1f1-0026b9348838':
+                split = o['display'].split(' : ')
+                obs.append({'question': split[0],'answer':split[1]})
+        enc = {'uuid':enc_uuid,
+               'encounter_type':encounter_type,
+               'encounter_datetime':encounter_datetime,
+               'obs':obs
+               }
+        return enc
+
+
+        
+
+    @staticmethod
+    def get_last_encounter_db(patient_uuid):
+
+        encounter = {}
+        con = None
+        try :
+            sql = 'select encounter_datetime, name as encounter_type, rtc_date'
+            sql += ' from reporting_JD.flat_retention_data t1 join amrs.encounter_type t2 on t1.encounter_type = t2.encounter_type_id'
+            sql += ' where t1.uuid=%s and next_appt_date is NULL'
+            con = mdb.connect(settings.HOST,settings.USER,settings.PASSWORD,settings.DATABASE)
+            cur = con.cursor(mdb.cursors.DictCursor)
+            cur.execute(sql,(patient_uuid,))
+            encounter = cur.fetchone()
+        except Exception, e:
+            print e
+
+        finally:
+            if con : con.close()
+
+        return encounter
+
+
+    @staticmethod 
+    def get_last_date_created_db(location_id):
+        encounter = {}
+        con = None
+        try :
+            sql = 'select max(enc_date_created) as date_created'
+            sql += ' from reporting_JD.flat_retention_data t1'
+            sql += ' where t1.location_id=%s'
+            con = mdb.connect(settings.HOST,settings.USER,settings.PASSWORD,settings.DATABASE)
+            cur = con.cursor(mdb.cursors.DictCursor)
+            cur.execute(sql,(location_id,))
+            encounter = cur.fetchone()
+        except Exception, e:
+            print e
+
+        finally:
+            if con : con.close()
+
+        return encounter['date_created']
+
+        
 
 
 class PersonAttribute():

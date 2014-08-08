@@ -31,7 +31,7 @@ def index(request):
     location_groups = DerivedGroup.objects.filter(base_class='Location').order_by('name')
 
     key_indicators = {}
-    providers = Provider().get_outreach_providers()
+    providers = Provider.get_outreach_providers()
 
     defaulters_by_clinic = request.session.get('defaulters_by_clinic')
     if defaulters_by_clinic is not None : defaulters_by_clinic = simplejson.loads(defaulters_by_clinic)
@@ -473,8 +473,8 @@ def view_reason_missed_appt(request):
 
 
 def update_defaulter_cohorts(request):
-    DefaulterCohort.update_defaulter_cohorts()    
-    return ''
+    cohorts = DefaulterCohort.update_defaulter_cohorts()
+    return render(request,'ltfu/update_cohorts.html',{'num_cohorts':len(cohorts)})
 
 
 @login_required
@@ -568,16 +568,22 @@ def outreach_form(request):
         location = Location.get_location_by_uuid_db(location_uuid)
 
         locations = Location.get_locations()
+        providers = Provider.get_outreach_providers()
         encounter_type = EncounterType.get_encounter_type_by_uuid('df5547bc-1350-11df-a1f1-0026b9348838') #outreach
+        last_enc = Encounter.get_last_encounter_db(patient_uuid)
+        #last_enc = {}
 
         type = get_var_from_request(request,'type')
+
         if type is not None and type == 'retrospective':
             request.session['type'] = type
 
         args = {'patient':patient,
                 'encounter_type':encounter_type,
                 'location':location,
-                'locations':locations
+                'locations':locations,
+                'last_encounter': last_enc,
+                'providers':providers,
                 }
         return render(request,'ltfu/OutreachForm.html',args)
                 
@@ -591,12 +597,20 @@ def outreach_form(request):
 
         forms = OutreachFormSubmissionLog.objects.filter(patient_uuid=patient_uuid,date_submitted__gte=dc.date_updated)
         # if forms is non-empty, a form was already submitted for this patient today. 
+
+        type = request.session.pop('type',None)
+        print 'type: ' + str(type)
+
         if forms.count() > 0 :
-            pass
-            #return HttpResponseRedirect('/ltfu/outreach_worker_defaulter_list')
+            if type is not None and type == 'retrospective':
+                location = Location.get_location_by_uuid_db(location_uuid)
+                return HttpResponseRedirect('/ltfu/retrospective_data_entry?location_id=' + str(location['location_id']))        
+            else :
+                return HttpResponseRedirect('/ltfu/outreach_worker_defaulter_list')
             
 
-        provider_uuid = '5b6ee21a-1359-11df-a1f1-0026b9348838' #request.POST['provider_uuid']
+        #provider_uuid = '5b6ee21a-1359-11df-a1f1-0026b9348838' 
+        provider_uuid = request.POST['provider_uuid']
         encounter_type_uuid = request.POST['encounter_type_uuid']
         encounter_datetime = request.POST['encounter_datetime']
         obs = []
@@ -611,52 +625,69 @@ def outreach_form(request):
 
 
             if key.startswith('attr__') and value.strip() != '':
-                attr_type_uuid = key[6:]                
+                attr_type_uuid = key[6:]       
                 result = PersonAttribute.create_person_attribute_rest(person_uuid=patient_uuid,person_attribute_type_uuid=attr_type_uuid,value=value)
                 
 
-        Encounter.create_encounter_rest(patient_uuid=patient_uuid,
-                                        encounter_datetime=encounter_datetime,
-                                        location_uuid=location_uuid,
-                                        encounter_type_uuid=encounter_type_uuid,
-                                        provider_uuid=provider_uuid,
-                                        obs=obs)
+        result = Encounter.create_encounter_rest(patient_uuid=patient_uuid,
+                                                 encounter_datetime=encounter_datetime,
+                                                 location_uuid=location_uuid,
+                                                 encounter_type_uuid=encounter_type_uuid,
+                                                 provider_uuid=provider_uuid,
+
+                                                 obs=obs)
+
+        death_date = request.POST.get('obs__a89df3d6-1350-11df-a1f1-0026b9348838',None)
+        patient_status = request.POST.get('obs__7c579743-5ef7-4e2c-839f-5b95597cb01c',None)
+        cause_of_death = request.POST.get('obs__a89df750-1350-11df-a1f1-0026b9348838',None)
+
+        
+        if death_date and cause_of_death and patient_status=='a89335d6-1350-11df-a1f1-0026b9348838': 
+            result = Person.set_dead(patient_uuid,death_date,cause_of_death)
 
 
-        #dc = DefaulterCohort.objects.get(location_id=1)
-        my_defaulter_list = json.loads(request.session.get('my_defaulter_list',''))
-        for d in my_defaulter_list :
-            if d['uuid'] == patient_uuid : 
-                print 'defaulter list length: ' + str(len(my_defaulter_list))
-                my_defaulter_list.remove(d)
-                print 'removed element. defaulter list length: ' + str(len(my_defaulter_list))
+        vals = json.dumps({'patient_uuid':patient_uuid,
+                           'encounter_datetime':encounter_datetime,
+                           'location_uuid':location_uuid,
+                           'encounter_type_uuid':encounter_type_uuid,
+                           'provider_uuid':provider_uuid,
+                           'obs':obs})
 
-
-        request.session['my_defaulter_list'] = json.dumps(my_defaulter_list, cls=DjangoJSONEncoder)
-
+        enc_uuid = result.get('uuid',None)
+        if enc_uuid is not None :
+            enc_uuid = result['uuid']
+        else: enc_uuid = None
 
         log = OutreachFormSubmissionLog(patient_uuid=patient_uuid,
                                         location_uuid=location_uuid,
                                         defaulter_cohort_uuid = dc.cohort_uuid,
                                         creator=request.user.id,                                        
+                                        values=vals,
+                                        enc_uuid=enc_uuid,
                                         )
         log.save()
 
-        type = request.session.pop('type',None)
 
+        
         if type is not None and type == 'retrospective':
             location = Location.get_location_by_uuid_db(location_uuid)
-            return HttpResponseRedirect('/ltfu/retrospective_data_entry?location_id=' + location['location_id'])
+            return HttpResponseRedirect('/ltfu/retrospective_data_entry?location_id=' + str(location['location_id']))
         
         else :
+            my_defaulter_list = json.loads(request.session.get('my_defaulter_list',''))
+            for d in my_defaulter_list :
+                if d['uuid'] == patient_uuid : 
+                    print 'defaulter list length: ' + str(len(my_defaulter_list))
+                    my_defaulter_list.remove(d)
+                    print 'removed element. defaulter list length: ' + str(len(my_defaulter_list))
+            request.session['my_defaulter_list'] = json.dumps(my_defaulter_list, cls=DjangoJSONEncoder)
             return HttpResponseRedirect('/ltfu/outreach_worker_defaulter_list')
-        #return render(request,'ltfu/close_tab.html',{}) 
     
     
 
 @login_required
 def outreach_worker(request):
-    dcs = DefaulterCohort.objects.all()
+    dcs = DefaulterCohort.objects.all().order_by('name')
     return render(request,'ltfu/outreach_worker.html',
                   {'defaulter_cohorts':dcs,
                    })
@@ -675,7 +706,7 @@ def retrospective_data_entry(request):
     elif location_id : location_ids = (location_id,)
     else : HttpResponseRedirect('/ltfu/outreach_worker')
 
-    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all'],list(location_ids)) :        
+    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker'],list(location_ids)) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
 
@@ -719,18 +750,15 @@ def retrospective_data_entry(request):
                 else : per_day[days_since_rtc] = 1
 
 
-        dcs = DefaulterCohort.objects.all()
+        dcs = DefaulterCohort.objects.all().order_by('name')
+        dc = DefaulterCohort.objects.get(location_id=location_id)
         return render(request,'ltfu/retrospective_data_entry.html',
                       {'ltfu_by_range':table,
                        'defaulter_cohorts':dcs,
+                       'defaulter_cohort':dc,
                        'location':location,
                        'location_group':g,                       
-                       'start_range':start_range,
-                       'end_range':end_range,
-                       'start_range_high_risk':start_range_high_risk,
-                       'limit':limit,
                        'counts':counts,
-                       'per_day':per_day,
                        }
                       )
     else :
@@ -741,13 +769,9 @@ def retrospective_data_entry(request):
 
     
 def test(request):
-    if not Authorize.authorize(request.user,['superuser']) :
-        return HttpResponseRedirect('/amrs_user_validation/access_denied')
-
-    amrs_url='https://10.50.80.45:8443/amrs'
-    headers = {'content-type': 'application/json'}    
-    url = amrs_url + '/ws/rest/v1/cohort'
-
-    result = res.text
+    patient_uuid = '30c35c6e-edca-44bf-b0eb-05434485e3fb'
+    cause_of_death = 'a89de2d8-1350-11df-a1f1-0026b9348838'
+    #result = Person.set_dead(patient_uuid,'2014-08-01',cause_of_death)
+    result = ''
     return render(request,'ltfu/test.html',{'result':result})
 

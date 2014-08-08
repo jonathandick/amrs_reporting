@@ -32,7 +32,7 @@ class DefaulterCohort(models.Model):
                 url = amrs_settings.amrs_url + '/ws' + split[1]
                 req = requests.delete(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
                 try : 
-                    vals = json.loads(req.text)
+                    vals = '' #json.loads(req.text)
                     if 'error' in vals:
                         print url
                         print 'error deleting member'
@@ -123,10 +123,19 @@ class DefaulterCohort(models.Model):
     
     @staticmethod
     def update_defaulter_cohorts():
-        location_ids = [1,13,14,15]
+        import time
+        location_ids = [1,2,3,4,7,8,9,11,12,13,14,15,17,19,20,23,24,25,26,27,28,31,50,54,55,64,65,69,70,72,73,78,82,83,100,130,135]
+        #location_ids = [1,2,3]
         cohorts = []
         for location_id in location_ids :
             location = Location.get_location(location_id)
+            last_datetime = Encounter.get_last_date_created_db(location_id)
+            '''
+            if last_datetime :
+                last_datetime = time.strptime(last_datetime,"%Y-%m-%d %H:%M:%S")
+            '''
+                
+
             dcs = DefaulterCohort.objects.filter(location_id=location_id)
             if dcs.count() > 0:
                 dc = dcs[0]
@@ -136,8 +145,18 @@ class DefaulterCohort(models.Model):
                 name = location['name'] + ' Defaulter List'
                 description = location['name'] + ' Defaulter List'
                 dc = DefaulterCohort(name=name,description=description,location_id=location_id,location_uuid=location['uuid'])
-            dc.update_defaulter_cohort()
-            cohorts.append(dc)
+
+            print str(location_id) + ' last encounter: ' + str(last_datetime)
+            print 'dc last update: ' + str(dc.date_updated)
+
+            import pytz
+            import datetime
+            utc=pytz.UTC
+
+            if dc.date_updated is None or dc.date_updated <= utc.localize(last_datetime):
+                dc.update_defaulter_cohort()
+                cohorts.append(dc)
+
         return cohorts
 
 
@@ -149,4 +168,6 @@ class OutreachFormSubmissionLog(models.Model):
     defaulter_cohort_uuid = models.CharField(max_length=500)
     date_submitted = models.DateTimeField(auto_now=True,db_index=True)
     creator = models.IntegerField(null=True)
+    values = models.CharField(max_length=10000)
+    enc_uuid = models.CharField(max_length=100,null=True,blank=True)
         

@@ -1,5 +1,6 @@
 {% extends "ltfu/base.html" %}
 {% load staticfiles %}
+{% load ltfu_filters %}
 {% block content %}
 
 <script type="text/javascript" src="{% static 'js/jquery-validation-1.13.0/dist/jquery.validate.min.js'%}"></script>  
@@ -130,11 +131,22 @@
         return value != '';
      }
      else { return true; }
-     }, "* Must provide transfer location"
+     }, "* Must provide phone number"
   );
   
 
-  
+  jQuery.validator.addMethod("needs_death_info", function(value, element) {
+     if($("#patient_status option:selected").text().toLowerCase() === 'patient dead') {
+        return value != '';
+     }
+     else { return true; }
+     }, "* Must provide death date and cause for death"
+  );
+
+
+
+
+  $("#provider_uuid").rules("add",{required:true});  
   $("#encounter_datetime").rules("add",{required:true});
   $("#missed_return_visit_date").rules("add",{required:true});
   $("#patient_status").rules("add",{required:true});
@@ -144,19 +156,9 @@
   $("#likelihood_of_return").rules("add",{needs_likelihood_of_return:true});
   $("#transfer_location").rules("add",{needs_transfer_location:true});
   $("#phone_number").rules("add",{needs_phone_number:true});
+  $("#date_of_death").rules("add",{needs_death_info:true});
+  $("#cause_for_death").rules("add",{needs_death_info:true});
   
-
-  /*
-  $("#submit_button").click(function(event){ 
-       if(($("#contacted_by_phone option:selected").text().toLowerCase() === 'yes' || 
-           $("#contacted_in_field option:selected").text().toLowerCase() === 'yes'))
-       {
-           $("#date_found").attr("required","required");
-       }
-       $("#outreach_form").submit();
-  });
-  */
-
  });
 
 
@@ -170,50 +172,113 @@
       <h3>Demographics</h3>
       <div class="form-group">
         <input class="form-control" id="patient_uuid"
-               name="patient_uuid" type="hidden" value='{{patient.uuid}}'/>
+	       name="patient_uuid" type="hidden" value='{{patient.uuid}}'/>
       </div>
       
-      <div class="form-group">
-        <label for="patient.medical_record_number">AMRS ID Number:</label>
-        <input class="form-control" id="patient.medical_record_number"
-               name="patient.medical_record_number" type="text" value = "{{patient.identifier}}" readonly/>
-      </div>
-      
-      <div class="form-group">
-        <label for="patient.family_name">Family Name:</label>
-        <input class="form-control" id="patient.family_name" name="patient.family_name" type="text"
-               readonly="readonly" value="{{patient.family_name}}"/>
-      </div>
-      <div class="form-group">
-        <label for="patient.given_name">Given Name:</label>
-        <input class="form-control" id="patient.given_name" name="patient.given_name" type="text"
-               readonly="readonly" value="{{patient.given_name}}"/>
-      </div>
-      <div class="form-group">
-        <label for="patient.middle_name">Middle Name:</label>
-        <input class="form-control" id="patient.middle_name" name="patient.middle_name" type="text"
-               readonly="readonly" value="{{patient.middlen_name}}"/>
-      </div>
-      
-      <div class="form-group">
-        <label for="patient.sex">Gender:</label>
-        <!--select class="form-control" id="patient.sex" name="patient.sex" readonly="readonly">
-        <option value="">...</option>
-        <option value="M">Male</option>
-        <option value="F">Female</option>
-        </select-->
-	<input type='text' name='patient.sex' value="{{patient.gender}}" readonly="readonly"/>
-	
-      </div>
-      <div class="form-group">
-        <label for="patient.birthdate">Date Of Birth:</label>
-        <input id="patient.birthdate" name="patient.birthdate" type="text"
-               readonly="readonly" value="{{patient.birthdate}}"/>
-      </div>
+      <table>
+	<tr>	  
+	  <div class="form-group">
+	    <td>
+              <label for="patient.medical_record_number">AMRS ID Number:</label>
+	    </td>
+	    <td>
+              <input class="form-control" id="patient.medical_record_number"
+		     name="patient.medical_record_number" type="text" value = "{{patient.identifier}}" readonly/>
+	    </td>
+	  </div>
+	  </tr>
+	<tr>
+	  <div class="form-group">
+            <td><label for="patient.family_name">Family Name:</label></td>
+            <td><input class="form-control" id="patient.family_name" name="patient.family_name" type="text"
+		       readonly="readonly" value="{{patient.family_name}}"/>
+	    </td>
+	  </div>
+	</tr>
+	<tr>
+	  <div class="form-group">
+	    <td>
+              <label for="patient.given_name">Given Name:</label>
+	    </td>
+	    <td>
+              <input class="form-control" id="patient.given_name" name="patient.given_name" type="text"
+		     readonly="readonly" value="{{patient.given_name}}"/>
+	    </td>
+	  </div>
+	</tr>
+	<tr>
+	  <div class="form-group">
+            <td>
+	      <label for="patient.middle_name">Middle Name:</label>
+            </td>
+	    <td>
+	      <input class="form-control" id="patient.middle_name" name="patient.middle_name" type="text"
+		     readonly="readonly" value="{{patient.middlen_name}}"/>
+	    </td>
+	  </div>
+	</tr>
+	<tr>      
+	  <div class="form-group">        
+	    <td>
+	      <label for="patient.sex">Gender:</label>
+	    </td>
+	    <td>
+	      <input type='text' name='patient.sex' value="{{patient.gender}}" readonly="readonly"/>
+	    </td>	
+	  </div>
+	</tr>
+	<tr>
+	  <div class="form-group">
+            <td>
+	      <label for="patient.birthdate">Date Of Birth:</label>
+            </td>
+	    <td>
+	      <input id="patient.birthdate" name="patient.birthdate" type="text"
+               readonly="readonly" value='{{patient.birthdate}}'/>
+	    </td>	    
+	  </div>
+	</tr>
+	<tr>
+	   <div class="form-group">
+	     <td>
+               <label for="phone_number">Phone:</label>
+             </td>
+	     <td>
+	       <input class="form-control phoneNumber" id="phone_number" name="attr__72a759a8-1359-11df-a1f1-0026b9348838" type="text" value="{{patient.phone_number}}"/>
+	     </td>	     
+	   </div>
+	</tr>
+      </table>
       
     </div>
+
     <div class="section">
-      <h3>Encounter Details</h3>
+      <h3>Missed Encounter Details</h3>
+      <table>
+	<tr>
+	  <div class="form-group">	   
+            <td><label for="prev_encounter_datetime">Last Encounter Date:</label></td>
+            <td><input value='{{last_encounter.encounter_datetime|date:"Y-m-d"}}' type="text" readonly/></td>
+	  </div>
+	</tr>
+	<tr>
+	  <div class="form-group">
+            <td><label for="prev_encounter_type">Last Encounter Type:</label></td>
+            <td><input value='{{last_encounter.encounter_type}}' type="text" readonly size='50'/></td>
+	  </div>
+	</tr>
+	<tr>
+	  <div class="form-group">
+            <td><label for="missed_return_visit_date">Missed appointment date:</label></td>
+            <td><input data-concept="1592^MISSED RETURN VISIT DATE^99DCT" id="missed_return_visit_date" 
+	       name="obs__a89e3896-1350-11df-a1f1-0026b9348838" value='{{last_encounter.rtc_date|date:"Y-m-d"}}' type="text"/></td>
+	  </div>
+	</tr>
+      </table>      
+    </div>
+
+    <div class="section">
+      <h3>Current Encounter Details</h3>
       
       <!--div class="form-group">
         <label for="encounter.location_id">Name of Clinic:<span class="required">*</span></label>
@@ -226,37 +291,28 @@
 
       <input type='hidden' name='encounter_type_uuid' value='{{encounter_type.uuid}}'/>
       <input type='hidden' name='location_uuid' value='{{location.uuid}}'/>
-      Clinic: {{location.name}}<br/>
-
-      
-      <!--div class="form-group">
-        <label for="encounter.provider_id_select">Provider ID:</label>
-        <input class="form-control" id="encounter.provider_id_select" type="text" placeholder="Start typing something...">
-        <input class="form-control" name="encounter.provider_id_select" type="hidden">
+      <div class="form-group">
+        <label for="prev_encounter_datetime">Clinic:</label>
+        <input value='{{location.name}}' type="text" readonly/>
       </div>
 
-      <div class="form-group show_provider_id_text">
-        <label for="encounter.provider_id">Enter provider's system-id:<span class="required">*</span></label>
-        <input class="form-control checkDigit" id="encounter.provider_id" name="encounter.provider_id"
-               type="text" required>
-      </div-->
+      
+      <div class="form-group">
+        <label for="provider_uuid">Provider</label>
+	<select name='provider_uuid' id='provider_uuid'>
+	  <option/>
+	  {% for provider in providers %}
+	  <option value='{{provider.uuid}}'>{{provider.given_name}} {{provider.family_name}}</option>
+	  {%endfor%}
+	</select>
+      </div>
 
       <div class="form-group">
         <label for="encounter_datetime">Encounter Date:</label>
         <input id="encounter_datetime" name="encounter_datetime" type="text"/>
       </div>
 
-
-      <div class="form-group">
-        <label for="missed_return_visit_date">Missed appointment date:</label>
-        <input data-concept="1592^MISSED RETURN VISIT DATE^99DCT" id="missed_return_visit_date" 
-	       name="obs__a89e3896-1350-11df-a1f1-0026b9348838" type="text"/>
-      </div>
       
-      <div class="form-group">
-        <label for="phone_number">Phone:</label>
-        <input class="form-control phoneNumber" id="phone_number" name="attr__72a759a8-1359-11df-a1f1-0026b9348838" type="text" value="{{patient.phone_number}}"/>
-      </div>
     </div>
     <div class="section">
       <h3>Phone Follow-up</h3>
@@ -522,17 +578,27 @@
 	</tr>
 	<tr>
 	  <td>            	
-            <table><tr><td>
-		  <div class="form-group"> 
-        	    <label for="date_of_death">If patient is deceased: Death date:</label>
+            <table>
+	      <tr>
+		<div class="form-group"> 		    
+		  <td>
+        	    If patient is deceased: 
+		  </td>
+		  <td>
+		    <label for="date_of_death">Death date:</label>
+		  </td>
+		  <td>
 		    <input class="form-control datepicker" data-concept="1570^DATE OF DEATH^99DCT" id="date_of_death" 
 			   name="obs__a89df3d6-1350-11df-a1f1-0026b9348838" type="text">               
-		  </div>
-            </td>
-		<td>
-		  <div class="form-group">
-		    <label for="obs.cause_for_death">Cause of death:</label>
-		    <select class="form-control" id="obs.cause_for_death" name="obs__a89df750-1350-11df-a1f1-0026b9348838" 
+		  </td>	
+		</div>
+	      </tr>
+	      <tr>
+		<td/>
+		<div class="form-group">
+		  <td><label for="cause_for_death">Cause of death:</label></td>
+		  <td>
+		    <select class="form-control" id="cause_for_death" name="obs__a89df750-1350-11df-a1f1-0026b9348838" 
 			    data-concept="1573^CAUSE FOR DEATH^99DCT">
 		      <option value="">...</option>
                       <option value="a89de2d8-1350-11df-a1f1-0026b9348838" oldvalue="1548^HEALTH ISSUES^99DCT">Illness</option>
@@ -542,11 +608,16 @@
 		      <option value="a899b50a-1350-11df-a1f1-0026b9348838" oldvalue="1067^UNKNOWN^99DCT">Unknown</option>
 	              <option value="a8aaf3e2-1350-11df-a1f1-0026b9348838" oldvalue="5622^OTHER NON-CODED^99DCT">Other</option>
 	    	    </select>
-		  </div>
-		</td>
-		<td>
-		  <div class="form-group">
-		    <label for="obs.death_reported_by">Cause of death:</label>
+		  </td>
+		</div>
+	      </tr>
+	      <tr>
+		<td/>
+		<div class="form-group">
+		  <td>		
+		    <label for="obs.death_reported_by">Reported by:</label>
+		  </td>
+		  <td>
 		    <select class="form-control" id="obs.death_reported_by" name="obs__a89ef1f0-1350-11df-a1f1-0026b9348838" 
 			    data-concept="1734^DEATH REPORTED BY^99DCT">
 		      <option value="">...</option>
@@ -561,8 +632,10 @@
 		      <option value="a89cd352-1350-11df-a1f1-0026b9348838" oldvalue="1411^NEIGHBOR^99DCT">Neighbor</option>
 	              <option value="a8aaf3e2-1350-11df-a1f1-0026b9348838" oldvalue="5622^OTHER NON-CODED^99DCT">Other</option>		      
 	    	    </select>
-		  </div>
-	    </td></tr></table>
+		  </td>
+		</div>		
+	      </tr>
+	    </table>
 	  </td>
 	</tr>
 	<tr>
@@ -587,29 +660,32 @@
 	</tr>
       </table>
     </div>
-    
+    <hr/>
     <div class="section">
-      <b>Patient Status</b>
-      <select id='patient_status' name="obs__7c579743-5ef7-4e2c-839f-5b95597cb01c" data-concept="9082^PATIENT CARE STATUS^99DCT">
-	<option/>
-	<option value="a8af5018-1350-11df-a1f1-0026b9348838" oldvalue='6101^CONTINUE^99DCT'>Patient wishes to remain in care at AMPATH</option>
-	<option value="a89335d6-1350-11df-a1f1-0026b9348838" oldvalue='159^DECEASED^99DCT'>Patient Dead</option>
-	<option value="a89c2f42-1350-11df-a1f1-0026b9348838" oldvalue='1286^AMPATH^99DCT'> Transfer out - to AMPATH AMRS alinic</option>  
-	<option value="6daff4ce-bce7-41f5-9141-17e694155180" oldvalue='9083^SELF DISENGAGED FROM CARE^99DCT'>Patient self-disengaged from care</option>
-	<option value="7e381b07-81d5-4425-be84-f188b61b4bd1" oldvalue='9068^AMPATH, NON-AMRS^99DCT'>Transfer out - to AMPATH non-AMRS clinic</option>
-	<option value="636b7246-51f7-4985-9430-431b09d39bea" oldvalue='9036^HIV NEGATIVE, NO LONGER AT RISK^99DCT'>Patient HIV negative</option>
-	<option value="a89c301e-1350-11df-a1f1-0026b9348838" oldvalue='1287^NON-AMPATH^99DCT'>Transfer out - to non-AMPATH clinic</option>
-	<option value="bea9c288-0650-4b42-a324-1d6d51591c72" oldvalue='9079^UNTRACEABLE^99DCT>
-	  Outreach worker does not believe patient can be traced
-	</option>
-	<option value="07c536bc-19f2-4296-9c4a-edd85f070095" oldvalue='9080^PROCESS OF BEING TRACED^99DCT'>Patient in process of being traced</option>
-      </select>
+      <h3>Patient Status</h3>
+      <div class="form-group">
+	<label for='patient_status'>What's the patients clinical status?</label>
+	<select id='patient_status' name="obs__7c579743-5ef7-4e2c-839f-5b95597cb01c" data-concept="9082^PATIENT CARE STATUS^99DCT">
+	  <option/>
+	  <option value="a8af5018-1350-11df-a1f1-0026b9348838" oldvalue='6101^CONTINUE^99DCT'>Patient wishes to remain in care at AMPATH</option>
+	  <option value="a89335d6-1350-11df-a1f1-0026b9348838" oldvalue='159^DECEASED^99DCT'>Patient Dead</option>
+	  <option value="a89c2f42-1350-11df-a1f1-0026b9348838" oldvalue='1286^AMPATH^99DCT'> Transfer out - to AMPATH AMRS alinic</option>  
+	  <option value="6daff4ce-bce7-41f5-9141-17e694155180" oldvalue='9083^SELF DISENGAGED FROM CARE^99DCT'>Patient self-disengaged from care</option>
+	  <option value="7e381b07-81d5-4425-be84-f188b61b4bd1" oldvalue='9068^AMPATH, NON-AMRS^99DCT'>Transfer out - to AMPATH non-AMRS clinic</option>
+	  <option value="636b7246-51f7-4985-9430-431b09d39bea" oldvalue='9036^HIV NEGATIVE, NO LONGER AT RISK^99DCT'>Patient HIV negative</option>
+	  <option value="a89c301e-1350-11df-a1f1-0026b9348838" oldvalue='1287^NON-AMPATH^99DCT'>Transfer out - to non-AMPATH clinic</option>
+	  <option value="bea9c288-0650-4b42-a324-1d6d51591c72" oldvalue='9079^UNTRACEABLE^99DCT'>
+	    Outreach worker does not believe patient can be traced
+	  </option>
+	  <option value="07c536bc-19f2-4296-9c4a-edd85f070095" oldvalue='9080^PROCESS OF BEING TRACED^99DCT'>Patient in process of being traced</option>
+	</select>
+      </div>
       
-      <br/>
-      If patient plans to return to clinic, RTC Date: 
-      <input class="form-control datepicker checkFutureDate" data-concept="5096^RETURN VISIT DATE^99DCT" id="return_visit_date" 
-	     name="obs__a8a666ba-1350-11df-a1f1-0026b9348838" type="text">
-      <br/>
+      <div class="form-group">
+	<label for='return_visit_date'>If patient plans to return to clinic, RTC Date:</label> 
+	<input class="form-control datepicker checkFutureDate" data-concept="5096^RETURN VISIT DATE^99DCT" id="return_visit_date" 
+	       name="obs__a8a666ba-1350-11df-a1f1-0026b9348838" type="text">
+      </div>
       <div class="form-group"> 
         <label for="likelihood_of_return">Do you think the patient will return to clinic?</label>                 
 	<select class="form-control" id="likelihood_of_return" 
@@ -619,14 +695,15 @@
 	  <option value="7a260efe-bd7e-4926-87d9-b9e008956873" oldvalue="9078^VERY HIGH^99DCT">Yes</option>
 	</select>
       </div>
-      <br/>
-      If patient transferred to another AMPATH clinic, clinic name:      
-      <select name='attr__8d87236c-c2cc-11de-8d13-0010c6dffd0f' id='transfer_location'>
-	<option/>
-	{% for l in locations %}
-	<option value='{{l.uuid}}'>{{l.name}}</option>
-	{%endfor%}
-      </select>
+      <div class="form-group">
+	<label for='transfer_location'>If patient transferred to another AMPATH clinic, clinic name:</label>
+	<select name='attr__8d87236c-c2cc-11de-8d13-0010c6dffd0f' id='transfer_location'>
+	  <option/>
+	  {% for l in locations %}
+	  <option value='{{l.uuid}}'>{{l.name}}</option>
+	  {%endfor%}
+	</select>
+      </div>
       
       <div class="form-group text-center">
 	<input id="submit_button" type="submit" value="Submit"/>

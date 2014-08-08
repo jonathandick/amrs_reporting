@@ -82,7 +82,7 @@ function view_defaulter_list() {
 <br/>
 <div id='datatable_wrapper'>
 <h3> Retrospective Data Entry: {% if location_group%}{{location_group.name}}{%else%}{{location.name}}{%endif%} </h3>
-
+Cohort Last Updated: {{defaulter_cohort.date_updated}}
 
 <table id='report' class="displays">
   <thead>

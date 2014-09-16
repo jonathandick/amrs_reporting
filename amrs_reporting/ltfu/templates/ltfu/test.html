@@ -231,7 +231,7 @@ $('#form_tabs').tabs()
       </div>
       <div class="form-group">
 	<label for="phone_number">Phone:</label>
-	<input class="form-control phoneNumber" id="phone_number" name="attr__72a759a8-1359-11df-a1f1-0026b9348838" type="text" value="{{patient.phone_number}}"/>
+	<input class="form-control phoneNumber" id="phone_number" name="attr__72a759a8-1359-11df-a1f1-0026b9348838" type="tel" value="{{patient.phone_number}}"/>
       </div>   
       <div class="form-group">
         <label for="clinic_name">Clinic:</label>
@@ -240,7 +240,7 @@ $('#form_tabs').tabs()
 
       <div class="form-group">	   
         <label for="prev_encounter_datetime">Last Encounter Date:</label>
-        <input value='{{last_encounter.encounter_datetime|date:"Y-m-d"}}' type="text" readonly/>
+        <input value='{{last_encounter.encounter_datetime|date:"Y-m-d"}}' type="date" readonly/>
       </div>
       <div class="form-group">
         <label for="prev_encounter_type">Last Encounter Type:</label>
@@ -249,7 +249,7 @@ $('#form_tabs').tabs()
       <div class="form-group">
         <label for="missed_return_visit_date">Missed appointment date:</label>
         <input data-concept="1592^MISSED RETURN VISIT DATE^99DCT" id="missed_return_visit_date" 
-	       name="obs__a89e3896-1350-11df-a1f1-0026b9348838" value='{{last_encounter.rtc_date|date:"Y-m-d"}}' type="text"/>
+	       name="obs__a89e3896-1350-11df-a1f1-0026b9348838" value='{{last_encounter.rtc_date|date:"Y-m-d"}}' type="date"/>
       </div>
     </div>
 
@@ -334,7 +334,7 @@ $('#form_tabs').tabs()
       <div class="form-group"> 
 	<label for="date_found">Date Found:</label>
         <input class="form-control datepicker" data-concept="1568^DATE FOUND^99DCT" id="date_found" 
-	       name="obs__a89df246-1350-11df-a1f1-0026b9348838" type="text"/>
+	       name="obs__a89df246-1350-11df-a1f1-0026b9348838" type="date"/>
       </div>
       <div class="form-group">
         <label for="location_of_contact">Location of contact:</label>
@@ -434,7 +434,7 @@ $('#form_tabs').tabs()
 	  <div class="form-group"> 		    
 	    <label for="date_of_death">Death date:</label>
 	    <input class="form-control datepicker" data-concept="1570^DATE OF DEATH^99DCT" id="date_of_death" 
-		   name="obs__a89df3d6-1350-11df-a1f1-0026b9348838" type="text"/>               
+		   name="obs__a89df3d6-1350-11df-a1f1-0026b9348838" type="date"/>               
 	    
 	  </div>
 	  <div class="form-group">
@@ -508,7 +508,7 @@ $('#form_tabs').tabs()
       <div class="form-group">
 	<label for='return_visit_date'>If patient plans to return to clinic, RTC Date:</label> 
 	<input class="form-control datepicker checkFutureDate" data-concept="5096^RETURN VISIT DATE^99DCT" id="return_visit_date" 
-	       name="obs__a8a666ba-1350-11df-a1f1-0026b9348838" type="text">
+	       name="obs__a8a666ba-1350-11df-a1f1-0026b9348838" type="date">
       </div>
       <div class="form-group"> 
         <label for="likelihood_of_return">Do you think the patient will return to clinic?</label>                 

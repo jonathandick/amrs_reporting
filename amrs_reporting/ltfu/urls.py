@@ -23,6 +23,7 @@ urlpatterns = patterns('',
                        url(r'^' + app_name + '/outreach_worker_defaulter_list/?$',views.outreach_worker_defaulter_list),
                        url(r'^' + app_name + '/outreach_worker/?$',views.outreach_worker),
                        url(r'^' + app_name + '/retrospective_data_entry/?$',views.retrospective_data_entry),
-
+                       url(r'^' + app_name + '/download_ltfu_list/?$',views.download_ltfu_list),
+                       url(r'^' + app_name + '/view_data_entry_stats/?$',views.view_data_entry_stats),
                        url(r'^' + app_name + '/test/?$',views.test),
                        )

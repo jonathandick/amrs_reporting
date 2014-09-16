@@ -27,7 +27,15 @@ def index(request):
     if not Authorize.authorize(request.user) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
+
     locations = Location.get_locations()
+    foo = []
+    outreach_location_ids = (1,2,3,4,7,8,9,11,12,13,14,15,17,19,20,23,24,25,26,27,28,31,54,55,64,65,69,70,71,72,73,78,82,83,100,130,135)
+    for l in locations:
+        if l['location_id'] in outreach_location_ids:
+            foo.append(l)
+    locations = foo
+
     location_groups = DerivedGroup.objects.filter(base_class='Location').order_by('name')
 
     key_indicators = {}
@@ -321,6 +329,92 @@ def ltfu_get_defaulter_list(request):
             #sheet.write(cur_row,1,str(row['encounter_datetime']) + ' (' + row['name'] + ') /\n' + str(row['rtc_date']) + ' (' + str(row['days_from_rtc_date']) + ')'
             #            ,cell_style)
             sheet.write(cur_row,2,risk_categories[str(row['risk_category'])],cell_style)
+            sheet.write(cur_row,3,row['person_name'],cell_style)
+            sheet.write(cur_row,4,row['identifier'],cell_style)
+            sheet.write(cur_row,5,row['phone_number'],cell_style)
+            sheet.write(cur_row,6,'',cell_style)
+            sheet.write(cur_row,7,'',cell_style)
+
+            cur_row += 1
+
+        response = HttpResponse(mimetype="application/ms-excel")
+        response['Content-Disposition'] = 'attachment; filename=%s' % new_file
+            
+        book.save(response)
+        
+        return response
+
+
+
+@login_required
+def download_ltfu_list(request):
+    location_id = get_var_from_request(request,'location_id')
+    location_group_id = get_var_from_request(request,'location_group_id')
+    g = None
+    if location_group_id :
+        g = DerivedGroup.objects.get(id=location_group_id)
+        location_ids = tuple(g.get_member_ids())
+    else : location_ids = (location_id,)
+
+    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all'],list(location_ids)) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
+    limit = get_var_from_request(request,'limit')
+    locations = Location.get_locations()
+    location = Location.get_location(location_id)
+    location_groups = DerivedGroup.objects.filter(base_class='Location').order_by('name')
+
+    if location_ids:
+        rt = ReportTable.objects.filter(name='ltfu_list')[0]
+        parameter_values = (location_ids,location_ids)
+        table = rt.run_report_table(parameter_values=parameter_values,as_dict=True,limit=limit)['rows']
+        if location_id : location_name = location['name']
+        else : location_name = g.name
+        
+        date = datetime.today()        
+        template_dir = '/home/amrs_reporting/amrs_reporting/amrs_reporting/ltfu/'
+        template_file = 'outreach_registers.xls'
+        new_file = location_name + '_defaulters_list_' + date.strftime('%Y_%m_%d') + '.xls'
+
+        template = open_workbook(template_dir + template_file,formatting_info=True)
+        
+        book = copy(template)
+        sheet = book.get_sheet(2)
+
+        cur_row = 2
+        risk_categories = {'0':'Being Traced','1':'high','2':'medium','3':'low','4':'LTFU','5':'no rtc date','6':'untraceable'}
+
+        row_style = easyxf('font : height 400;')        
+        cell_style = easyxf('borders: left thin, right thin, top thin, bottom thin;'
+                            'alignment: wrap 1;')
+        
+        sheet.row(0).set_style(row_style)
+        sheet.write(0,0,'General Defaulters List v1.0 : ' + location_name,easyxf('font : height 350, bold true;' 
+                                                                            'borders: left thin, right thin, top thin, bottom thin;'))
+        sheet.write(0,7,date.strftime('DATE CREATED:\n%d/%m/%Y'),
+                    easyxf('font : height 175, bold true;'
+                           'alignment: horizontal left, wrap 1;'
+                           'borders: left thin, right thin, top thin, bottom thin;'))
+
+        for row in table :
+            sheet.row(cur_row).set_style(row_style)
+            sheet.write(cur_row,0,cur_row-1,cell_style)
+            print row
+            s = str(get_val_from_row(row,'encounter_datetime')) 
+            s += ' (' + str(get_val_from_row(row,'name')) + ') /\n' 
+            s += str(get_val_from_row(row,'rtc_date')) + ' (' 
+            s += str(get_val_from_row(row,'days_since_rtc')) + ')'
+
+            sheet.write(cur_row,1,s,cell_style)
+
+            #sheet.write(cur_row,1,str(row['encounter_datetime']) + ' (' + row['name'] + ') /\n' + str(row['rtc_date']) + ' (' + str(row['days_from_rtc_date']) + ')'
+            #            ,cell_style)
+            try :
+                sheet.write(cur_row,2,risk_categories[str(row['risk_category'])],cell_style)
+            except Exception, e:
+                sheet.write(cur_row,2,'unknown',cell_style)
+                print "Risk category raised exception: " + str(row['risk_category'])
+      
             sheet.write(cur_row,3,row['person_name'],cell_style)
             sheet.write(cur_row,4,row['identifier'],cell_style)
             sheet.write(cur_row,5,row['phone_number'],cell_style)
@@ -764,6 +858,14 @@ def retrospective_data_entry(request):
     else :
         return HttpResponseRedirect('/ltfu/outreach_worker')    
 
+
+def view_data_entry_stats(request):
+    rt = ReportTable.objects.filter(name='retention_data_entry_stats')[0]    
+    table = rt.run_report_table(as_dict=True)['rows']
+    return render(request,'ltfu/retention_data_entry_stats.html',
+                  {'data_entry_stats':table}
+                  )
+        
 
     
 

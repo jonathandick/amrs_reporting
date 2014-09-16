@@ -1,0 +1,49 @@
+{% extends "ltfu/base.html" %}
+{% load staticfiles %}
+{% load ltfu_filters %}
+
+{% block content %}
+
+<script>
+  $(document).ready(function() {
+
+  $('#stats_by_clinic').dataTable( {
+  "sScrollY": "300px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+});
+
+</script>
+
+<a href='/ltfu/index'>Return to Retention Home</a>
+<table id='stats_by_clinic'>
+  <thead>
+    <tr>
+      <th>Clinic</th>
+      <th>Year</th>
+      <th>Month</th>
+      <th># of forms</th>
+      <th>Date of last encounter</th>
+      <th>Date last form entered</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in data_entry_stats %}
+    <tr>
+      <td>{{row.clinic}}</td>
+      <td>{{row.year}}</td>
+      <td>{{row.month}}</td>
+      <td>{{row.total}}</td>
+      <td>{{row.last_of_month|date:"Y/m/d G:i"}}</td>
+      <td>{{row.last_date_entered|date:"Y/m/d G:i"}}</td>
+    </tr>
+    {%endfor%}
+  </tbody>
+</table>
+
+{% endblock%}

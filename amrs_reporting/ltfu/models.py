@@ -71,7 +71,7 @@ class DefaulterCohort(models.Model):
         start_range_high_risk = 8
         start_range = 30
         end_range = 89
-        limit = 40
+        limit = 100
         print 'uuids in use total: ' + str(len(uuids_in_use))
         uuids = OutreachFormSubmissionLog.objects.filter(date_submitted__gte=self.date_updated).values_list('patient_uuid',flat=True)
         rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
@@ -81,7 +81,7 @@ class DefaulterCohort(models.Model):
         defaulters = []
         
         for row in table:
-            if row['uuid'] not in uuids and row['uuid'] not in uuids_in_use:
+            if row['uuid'] not in uuids and row['uuid'] not in uuids_in_use and row['risk_category'] != 0:
                 defaulters.append(row)
         
         return defaulters

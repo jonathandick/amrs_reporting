@@ -149,6 +149,55 @@ class Person():
 class Patient():
 
     @staticmethod
+    def get_patients(search_string):
+        headers = {'content-type': 'application/json','Connection':'close'}
+        url = amrs_settings.amrs_url + '/ws/rest/v1/patient?v=default&limit=20&q=' + search_string
+        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+        data = json.loads(res.text)['results']
+        patients = []
+        for p in data:
+            ids = p['identifiers']
+            identifiers = ''
+            for i in ids:
+                parts = i['display'].split(' = ')
+                identifiers += parts[1] + '; '
+            patient_uuid = p['uuid']
+            names = p['person']['display']
+            split = names.split(' ')
+            num_names = len(split)
+            given_name = split[0]
+            family_name = split[-1]
+            middle_name = ''
+            for x in range(1,num_names-1):
+                middle_name += ' ' + split[x]
+        
+            gender = p['person']['gender']
+            birthdate = p['person']['birthdate']
+            birthdate = birthdate.split('T')[0]
+            phone_number = ''
+            
+            for a in p['person']['attributes']:
+                if a['display'].startswith('Contact Phone Number'):
+                    split = a['display'].split(' = ')
+                    phone_number += split[1] + ' '
+                
+            
+
+            patient = {'given_name':given_name,
+                       'middle_name':middle_name,
+                       'family_name':family_name,
+                       'identifier':identifiers,
+                       'gender':gender,
+                       'birthdate':birthdate,
+                       'uuid':patient_uuid,
+                       'phone_number':phone_number
+                       }
+            patients.append(patient)
+
+        return patients
+        
+
+    @staticmethod
     def get_patient_by_uuid(patient_uuid):
         headers = {'content-type': 'application/json'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/patient/' + patient_uuid
@@ -359,6 +408,27 @@ class Encounter():
         return encounter['date_created']
 
         
+    @staticmethod
+    def get_encounters(patient_uuid):
+        headers = {'content-type': 'application/json','Connection':'close'}
+        url = amrs_settings.amrs_url + '/ws/rest/v1/encounter?patient=' + patient_uuid
+        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+        data = json.loads(res.text)['results']
+        encounters = []
+        for r in data:
+            parts = r['display'].split(' ')
+            d = parts[1].split('/')           
+            encounter = {'encounter_date':d[2]+'/'+d[1]+'/'+d[0],
+                         'encounter_type':parts[0],
+                         }
+            encounters.append(encounter)
+            
+        return list(reversed(encounters))
+            
+            
+
+        
+
 
 
 class PersonAttribute():

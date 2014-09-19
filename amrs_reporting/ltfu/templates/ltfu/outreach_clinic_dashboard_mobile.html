@@ -1,0 +1,23 @@
+{% extends "ltfu/base_mobile.html" %}
+{% load staticfiles %}
+{% load ltfu_filters %}
+
+{% block content %}
+
+<script>
+
+
+</script>
+
+
+<h3> {{location.name}} : Outreach Dashboard</h3>
+
+<ul data-role="listview">
+  <li>
+    <a href='ltfu/view_defaulter_list?location_uuid={{location.uuid}}'>
+      View Defaulter List ({{defaulter_cohort.get_total_active}}/{{defaulter_list.get_total}})
+    </a>
+  </li>
+  <li><a href='ltfu/view_master_defaulter_list?location_uuid={{location.uuid}}'>View Master List</a></li>
+</ul>  
+{% endblock %}

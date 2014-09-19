@@ -1,0 +1,35 @@
+{% extends "ltfu/base_mobile.html" %}
+{% load staticfiles %}
+{% load ltfu_filters %}
+
+{% block content %}
+
+<script>
+function viewClinic() {
+  var clinic_uuid = $('#clinic_uuid').val();
+  
+  var link = '/ltfu/view_defaulter_cohort?location_uuid=' + clinic_uuid;
+  if(clinic_uuid != '') {
+      window.location = link;
+  }
+  else { alert('You must first select a clinic'); }
+}
+
+
+</script>
+
+<h3>Outreach Worker Dashboard</h3>
+
+
+<label for='clinic_uuid'>Choose Clinic: </label>
+<select name='clinic_uuid' id='clinic_uuid'>
+  {% for l in clinics %}
+  <option value='{{l.uuid}}'>{{l.name}}</option>
+  {%endfor%}
+</select>
+<input type='button' onClick='viewClinic()' value='Go!'/>
+<hr/>
+<ul data-role="listview">
+  <li><a href='#'>Patient Search</a></li>
+</ul>
+{% endblock %}

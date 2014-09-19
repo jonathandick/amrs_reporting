@@ -10,18 +10,28 @@ import json
 class DefaulterCohortMember(models.Model):
     defaulter_cohort_id = models.IntegerField()
     patient_uuid = models.CharField(max_length=500)
-    cohort_uuid = models.CharField(max_length=500)
+    
+    retired = models.BooleanField(default=False)
+    date_retired = models.DateTimeField(null=True)
+
 
 
 class DefaulterCohort(models.Model):
     name = models.CharField(max_length=500)
     description = models.CharField(max_length=500)
-    cohort_uuid = models.CharField(max_length=500)
+    cohort_uuid = models.CharField(max_length=500,null=True)
     location_id = models.IntegerField()
     location_uuid = models.CharField(max_length=500)
+
     date_created = models.DateTimeField(auto_now_add=True)
-    retired = models.BooleanField(default=True)
+    retired = models.BooleanField(default=False)
     date_retired = models.DateTimeField(null=True)
+
+    
+    @staticmethod
+    def get_outreach_locations():
+        location_ids = [1,2,3,4,7,8,9,11,12,13,14,15,17,19,20,23,24,25,26,27,28,31,50,54,55,64,65,69,70,72,73,78,82,83,100,130,135]
+        return Location.get_locations(location_ids=location_ids)
 
 
     def set_self(self,args):
@@ -29,21 +39,12 @@ class DefaulterCohort(models.Model):
         self.description = args['description']
         self.location_id = args['location_id']
         self.location_uuid = args['location_uuid']
-        
+        self.save()
+        self.set_members()
 
 
-    def set_members(self):
-        patient_uuids = self.get_current_defaulter_uuids()
-        Cohort.update_cohort_members(self.cohort_uuid,patient_uuids)
-        
-        for patient_uuid in patient_uuids :
-            c = DefaulterCohortMember(defaulter_cohort_id = self.id,
-                                      patient_uuid = patient_uuid,
-                                      cohort_uuid = self.cohort_uuid)
-            c.save()
-
-
-    def get_defaulter_list_uuids():
+    # get first 100 patients currently meeting criteria as a defaulter
+    def set_members(limit = 100):
         location_ids = (self.location_id,)
         start_range_high_risk = 14
         start_range = 30
@@ -51,20 +52,31 @@ class DefaulterCohort(models.Model):
 
         rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
         parameter_values = (start_range_high_risk,start_range,end_range,location_ids,location_ids)
-        table = rt.run_report_table(parameter_values=parameter_values,as_dict=True)['rows']
-    
-        patient_uuids = []
+        table = rt.run_report_table(parameter_values=parameter_values,as_dict=True,limit=limit)['rows']    
         for row in table:
-            patient_uuids.append(str(row['uuid']))
-        return patient_uuids
-
-
+            patient_uuid = str(row['uuid'])
+            c = DefaulterCohortMember(defaulter_cohort_id = self.id,
+                                      patient_uuid = patient_uuid)
+            c.save()
+            
 
     def delete_self(self):
         DefaulterCohortMember.objects.filter(defaulter_cohort_id=self.id).delete()
         self.delete()
 
-            
+
+    def retire(self):
+        import datetime
+        self.retired=1
+        self.date_retired = datetime.datetime.today()
+
+
+    def get_total_active(self):
+        return DefaulterCohortMember.objects.filter(defaulter_cohort_id=self.id,retired=False).count()
+
+    def get_total(self):
+        return DefaulterCohortMember.objects.filter(defaulter_cohort_id=self.id).count()
+
                 
     def get_cohort_stats(self):
         risk_categories = {0:'Being Traced',1:'high',2:'medium',3:'low',4:'LTFU',5:'no_rtc_date',6:'untraceable'}                

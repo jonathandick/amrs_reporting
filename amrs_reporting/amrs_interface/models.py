@@ -56,12 +56,18 @@ class Location(models.Model):
 
 
 
+
     @staticmethod
-    def get_locations(retired=0):
+    def get_locations(location_ids=None):
         locations = {}
         con = None
         try :
-            sql = 'select location_id, name,uuid from amrs.location where retired=' + str(retired) + ' order by name'
+            sql = 'select location_id, name,uuid from amrs.location'
+            if location_ids : 
+                location_ids = ','.join(str(x) for x in location_ids)
+                sql += ' where location_id in (' + location_ids + ')'
+            sql += ' order by name'
+            print sql
             con = mdb.connect(Location.HOST,Location.USER,Location.PASSWORD,Location.DATABASE)
             cur = con.cursor(mdb.cursors.DictCursor)
             cur.execute(sql)

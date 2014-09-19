@@ -22,6 +22,58 @@ from django.core.serializers.json import DjangoJSONEncoder
 # Create your views here.
 
 
+
+@login_required
+def outreach_dashboard(request):
+    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+    
+    clinics = DefaulterCohort.get_outreach_locations()
+    return render(request,'ltfu/outreach_dashboard_mobile.html',{'clinics':clinics})
+
+
+@login_required
+def outreach_clinic(request):
+    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
+    location_uuid = request.GET['location_uuid']
+    location = Location.get_location(location_uuid)
+    defaulter_cohort = DefaulterCohort.objects.filter(location_uuid=location_uuid,retired=0)[0]
+    return render(request,'ltfu/outreach_clinic_dashboard_mobile.html',{'location':location,
+                                                                        'defaulter_cohort':defaulter_cohort})
+    
+    
+
+@login_required
+def view_defaulter_cohort(request):
+    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+    location_uuid = request.GET['location_uuid']
+    dc = DefaulterCohort.objects.filter(location_uuid=location_uuid,retired=0)[0]
+    patients = dc.get_patients()
+    return render(request,'ltfu/view_defaulter_list_mobile.html',
+                  {'defaulter_cohort':dc,
+                   'patients':patients}
+                  )
+
+@login_required
+def update_defaulter_list(request):
+    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+    location_uuid = request.GET['location_uuid']
+
+
+@login_required
+def view_master_defaulter_list(request):
+    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+    location_uuid = request.GET['location_uuid']
+
+
+
+    
+
 @login_required
 def index(request):
     if not Authorize.authorize(request.user) :        
@@ -873,6 +925,7 @@ def test(request):
     
 
 
+@login_required
 def ajax_patient_search(request):
     print request.POST
     search_string = request.POST['search_string']
@@ -887,6 +940,7 @@ def ajax_patient_search(request):
     return HttpResponse(data,content_type='application/json')
 
 
+@login_required
 def ajax_encounter_search(request):
     patient_uuid = request.POST['patient_uuid']
     #encounters = {'response':'nice work'}

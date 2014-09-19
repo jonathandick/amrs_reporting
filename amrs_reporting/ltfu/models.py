@@ -6,6 +6,13 @@ from amrs_interface.models import *
 import requests
 import json
 
+
+class DefaulterCohortMember(models.Model):
+    defaulter_cohort_id = models.IntegerField()
+    patient_uuid = models.CharField(max_length=500)
+    cohort_uuid = models.CharField(max_length=500)
+
+
 class DefaulterCohort(models.Model):
     name = models.CharField(max_length=500)
     description = models.CharField(max_length=500)
@@ -13,18 +20,77 @@ class DefaulterCohort(models.Model):
     location_id = models.IntegerField()
     location_uuid = models.CharField(max_length=500)
     date_created = models.DateTimeField(auto_now_add=True)
+    retired = models.BooleanField(default=True)
+    date_retired = models.DateTimeField(null=True)
+
 
     def set_self(self,args):
         self.name = args['name']
         self.description = args['description']
         self.location_id = args['location_id']
         self.location_uuid = args['location_uuid']
-        patient_uuids = args['patient_uuids']
         
-        self.cohort_uuid = Cohort.create_cohort(args['name'],args['description'],patient_uuids)
-        self.save()    
 
+
+    def set_members(self):
+        patient_uuids = self.get_current_defaulter_uuids()
+        Cohort.update_cohort_members(self.cohort_uuid,patient_uuids)
+        
+        for patient_uuid in patient_uuids :
+            c = DefaulterCohortMember(defaulter_cohort_id = self.id,
+                                      patient_uuid = patient_uuid,
+                                      cohort_uuid = self.cohort_uuid)
+            c.save()
+
+
+    def get_defaulter_list_uuids():
+        location_ids = (self.location_id,)
+        start_range_high_risk = 14
+        start_range = 30
+        end_range = 89
+
+        rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
+        parameter_values = (start_range_high_risk,start_range,end_range,location_ids,location_ids)
+        table = rt.run_report_table(parameter_values=parameter_values,as_dict=True)['rows']
+    
+        patient_uuids = []
+        for row in table:
+            patient_uuids.append(str(row['uuid']))
+        return patient_uuids
+
+
+
+    def delete_self(self):
+        DefaulterCohortMember.objects.filter(defaulter_cohort_id=self.id).delete()
+        self.delete()
+
+            
                 
+    def get_cohort_stats(self):
+        risk_categories = {0:'Being Traced',1:'high',2:'medium',3:'low',4:'LTFU',5:'no_rtc_date',6:'untraceable'}                
+        parameter_values = (int(start_range_high_risk),int(start_range),int(end_range),location_ids,location_ids)
+        table = rt.run_report_table(parameter_values=parameter_values,as_dict=True,limit=limit)['rows']
+        
+        counts = {'tracing':0,'high':0,'medium':0,'low':0,'LTFU':0,'total':0,'no_rtc_date':0,'untraceable':0,'on_list_two_weeks':0}
+        total = 0
+        per_day = {}
+        for row in table:
+            if row['risk_category'] >= 0 :
+                
+                if row['risk_category'] == 0 : counts['tracing'] += 1
+                else : counts[risk_categories[row['risk_category']]] +=1            
+                counts['total'] +=1
+
+                if row['days_since_rtc'] : days_since_rtc = int(row['days_since_rtc'])
+                else : days_since_rtc = (date.today() - row['encounter_datetime']).days
+
+                if (row['risk_category'] == 1 and days_since_rtc >= 22) or days_since_rtc >=44 : counts['on_list_two_weeks'] += 1 
+
+                if days_since_rtc < 30 : days_since_rtc -= 8
+                else : days_since_rtc -= 30
+                if days_since_rtc in per_day : per_day[days_since_rtc] += 1
+                else : per_day[days_since_rtc] = 1
+
         
     def update_defaulter_cohort(self):
         headers = {'content-type': 'application/json'}
@@ -102,23 +168,6 @@ class DefaulterCohort(models.Model):
         
 
 
-
-    @staticmethod
-    def get_defaulter_uuids(location_id):
-        location_ids = (location_id,)
-        start_range_high_risk = 8
-        start_range = 30
-        end_range = 89
-        limit = 200
-
-        rt = ReportTable.objects.filter(name='ltfu_by_range')[0]
-        parameter_values = (start_range_high_risk,start_range,end_range,location_ids,location_ids)
-        table = rt.run_report_table(parameter_values=parameter_values,as_dict=True,limit=limit)['rows']
-    
-        patient_ids = []
-        for row in table:
-            patient_ids.append(str(row['uuid']))
-        return patient_ids
 
     
     

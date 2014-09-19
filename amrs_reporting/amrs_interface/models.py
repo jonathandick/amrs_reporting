@@ -115,7 +115,7 @@ class Location(models.Model):
 
     @staticmethod
     def get_location_by_uuid(location_uuid):
-        headers = {'content-type': 'application/json'}
+        headers = {'content-type': 'application/json','Connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/location/' + location_uuid
         location = ''
         try:
@@ -133,7 +133,7 @@ class Person():
     @staticmethod
     def set_dead(person_uuid,death_date,cause_of_death):
         try:
-            headers = {'content-type': 'application/json'}
+            headers = {'content-type': 'application/json','Connection':'close'}
             url = amrs_settings.amrs_url + '/ws/rest/v1/person/' + person_uuid    
             payload = {'deathDate':death_date,
                        'dead':'true',
@@ -199,7 +199,7 @@ class Patient():
 
     @staticmethod
     def get_patient_by_uuid(patient_uuid):
-        headers = {'content-type': 'application/json'}
+        headers = {'content-type': 'application/json','Connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/patient/' + patient_uuid
         res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
         data = json.loads(res.text)
@@ -299,7 +299,7 @@ class EncounterType():
 
     @staticmethod
     def get_encounter_type_by_uuid(uuid):
-        headers = {'content-type': 'application/json'}
+        headers = {'content-type': 'application/json','Connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/encountertype/' + uuid
         res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
         data = json.loads(res.text)
@@ -315,7 +315,7 @@ class EncounterType():
 class Encounter():
     @staticmethod
     def create_encounter_rest(patient_uuid=None, encounter_datetime=None,encounter_type_uuid=None,provider_uuid=None,location_uuid=None,obs=[]):
-        headers = {'content-type': 'application/json'}
+        headers = {'content-type': 'application/json','Connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/encounter'    
         payload = {'patient':patient_uuid,
                    'encounterDatetime':encounter_datetime,               
@@ -333,7 +333,7 @@ class Encounter():
 
     @staticmethod
     def get_last_encounter(patient_uuid):
-        headers = {'content-type': 'application/json'}
+        headers = {'content-type': 'application/json','Connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/encounter?patient=' + patient_uuid + '&limit=1'
         res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
         vals = json.loads(res.text)['results'][0]
@@ -438,7 +438,7 @@ class PersonAttribute():
 
     @staticmethod
     def create_person_attribute_rest(person_uuid=None,person_attribute_type_uuid=None,value=None,void_existing=True):
-        headers = {'content-type': 'application/json'}
+        headers = {'content-type': 'application/json','Connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/person/' + person_uuid + '/attribute'    
 
         if void_existing :
@@ -482,8 +482,8 @@ class Cohort(models.Model):
         return vals['uuid']
 
     @staticmethod
-    def remove_members(cohort_uuid):
-        headers = {'content-type': 'application/json'}
+    def delete_cohort_members(cohort_uuid):
+        headers = {'content-type': 'application/json','Connection':'close'}
         if cohort_uuid is not None and cohort_uuid != '':
             Cohort.url_cohort += cohort_uuid + '/member'
             req = requests.get(url_cohort + '?v=ref', auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
@@ -506,7 +506,7 @@ class Cohort(models.Model):
     @staticmethod
     # this removes all current members of a cohort and adds the provided patient_uuids
     def update_cohort_members(cohort_uuid=None,patient_uuids=None):
-        headers = {'content-type': 'application/json'}
+        headers = {'content-type': 'application/json','Connection':'close'}
         Cohort.remove_members(patient_uuids)
         for uuid in patient_uuids:
             payload = {'patient':uuid}
@@ -518,8 +518,84 @@ class Cohort(models.Model):
     @staticmethod
     def delete_cohort(cohort_uuid):
         url = Cohort.url_cohort + '/' + cohort_uuid
-        headers = {'content-type': 'application/json'}
+        headers = {'content-type': 'application/json','Connection':'close'}
         req = requests.delete(url, auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+        
+
+    @staticmethod
+    def delete_cohort_member(cohort_uuid,patient_uuid):
+        headers = {'content-type': 'application/json','Connection':'close'}
+        if cohort_uuid is not None and cohort_uuid != '':
+            url = Cohort.url_cohort + '/' + cohort_uuid + '/member/' + patient_uuid
+            req = requests.delete(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+                   
+
+
+    @staticmethod
+    def get_member_uuids(cohort_uuid):
+        headers = {'content-type': 'application/json','Connection':'close'}
+        uuids = []
+        if cohort_uuid is not None and cohort_uuid != '':
+            Cohort.url_cohort += cohort_uuid + '/member'
+            req = requests.get(url_cohort + '?v=ref', auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+            vals = json.loads(req.text)
+
+            for member in vals['results']:                
+                parts = member['links'][0]['uri'].split('member/')
+                uuids.append(parts[1])
+        return uuids
+
+
+
+
+    @staticmethod
+    def get_patients(cohort_uuid):
+        headers = {'content-type': 'application/json','Connection':'close'}
+        url = amrs_settings.amrs_url + '/ws/rest/v1/cohort/' + cohort_uuid + '/member?v=full'
+        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+        data = json.loads(res.text)['results']
+        patients = []
+        for member in data:
+            p = member['patient']
+
+            ids = p['identifiers']
+            identifiers = ''
+            for i in ids:
+                parts = i['display'].split(' = ')
+                identifiers += parts[1] + '; '
+            patient_uuid = p['uuid']
+            names = p['person']['display']
+            split = names.split(' ')
+            num_names = len(split)
+            given_name = split[0]
+            family_name = split[-1]
+            middle_name = ''
+            for x in range(1,num_names-1):
+                middle_name += ' ' + split[x]
+        
+            gender = p['person']['gender']
+            birthdate = p['person']['birthdate']
+            birthdate = birthdate.split('T')[0]
+            phone_number = ''
+            
+            for a in p['person']['attributes']:
+                if a['display'].startswith('Contact Phone Number'):
+                    split = a['display'].split(' = ')
+                    phone_number += split[1] + ' '
+                
+            
+
+            patient = {'given_name':given_name,
+                       'middle_name':middle_name,
+                       'family_name':family_name,
+                       'identifier':identifiers,
+                       'gender':gender,
+                       'birthdate':birthdate,
+                       'uuid':patient_uuid,
+                       'phone_number':phone_number
+                       }
+            patients.append(patient)
+        return patient
         
         
 

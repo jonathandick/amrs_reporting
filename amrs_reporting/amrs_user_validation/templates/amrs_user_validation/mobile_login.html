@@ -1,0 +1,30 @@
+{% extends "amrs_user_validation/base_mobile.html" %}
+{% load staticfiles %}
+
+<link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_layout.css'%}" />
+
+{% block content %}
+
+<h3>Please login below:</h3>
+<br/>
+<form method='post' action='/amrs_user_validation/login'>
+  {%csrf_token%}
+  <div class="form-group">
+    <label for="username">Username:</label>
+    <input id="username" name="username" type="text"/>
+  </div>
+
+  <div class="form-group">
+    <label for="password">Password:</label>
+    <input id="password" name="password" type="password"/>
+  </div>
+
+  <div class="form-group">
+    <input type='submit' value='Login'/>
+  </div>
+
+</form>
+
+<hr/>
+<b>Mobile version 1.0</b>
+{% endblock %}

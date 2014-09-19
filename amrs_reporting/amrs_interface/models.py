@@ -417,8 +417,11 @@ class Encounter():
         encounters = []
         for r in data:
             parts = r['display'].split(' ')
-            d = parts[1].split('/')           
-            encounter = {'encounter_date':d[2]+'/'+d[1]+'/'+d[0],
+            d = parts[1].split('/')
+            if len(d) == 3 :
+                encounter_date = d[2]+'/'+d[1]+'/'+d[0]
+            else : encounter_date = ''
+            encounter = {'encounter_date': encounter_date,
                          'encounter_type':parts[0],
                          }
             encounters.append(encounter)
@@ -457,6 +460,68 @@ class PersonAttribute():
 
 
 
+class Cohort(models.Model):
+
+    url_cohort = amrs_settings.amrs_url + '/ws/rest/v1/cohort/' 
+
+
+    @staticmethod
+    def create_cohort(name=None,description=None,patient_uuids=[]):
+        
+        payload = {'name': self.name,
+                   'description': self.description,
+                   'memberIds':patient_uuids,
+                   }
+        data = json.dumps(payload)
+        req = requests.post(Cohort.url_cohort, data, auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+        vals = json.loads(req.text)
+        if 'error' in vals:
+            print 'error creating new cohort'
+            return 'error'
+            
+        return vals['uuid']
+
+    @staticmethod
+    def remove_members(cohort_uuid):
+        headers = {'content-type': 'application/json'}
+        if cohort_uuid is not None and cohort_uuid != '':
+            Cohort.url_cohort += cohort_uuid + '/member'
+            req = requests.get(url_cohort + '?v=ref', auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+            vals = json.loads(req.text)
+            # delete all members currently in cohort
+            for member in vals['results']:                
+                split = member['links'][0]['uri'].split('/ws')
+                url = amrs_settings.amrs_url + '/ws' + split[1]
+                req = requests.delete(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+                try : 
+                    vals = '' #json.loads(req.text)
+                    if 'error' in vals:
+                        print url
+                        print 'error deleting member'
+                except:
+                    pass
+        
+
+
+    @staticmethod
+    # this removes all current members of a cohort and adds the provided patient_uuids
+    def update_cohort_members(cohort_uuid=None,patient_uuids=None):
+        headers = {'content-type': 'application/json'}
+        Cohort.remove_members(patient_uuids)
+        for uuid in patient_uuids:
+            payload = {'patient':uuid}
+            data = json.dumps(payload)
+            req = requests.post(Cohort.url_cohort, data, auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+        
+   
+    
+    @staticmethod
+    def delete_cohort(cohort_uuid):
+        url = Cohort.url_cohort + '/' + cohort_uuid
+        headers = {'content-type': 'application/json'}
+        req = requests.delete(url, auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+        
+        
 
 class DerivedGroup(models.Model):
     

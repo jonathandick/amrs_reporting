@@ -16,7 +16,7 @@ def index(request):
     if not Authorize.authorize(request.user,['admin']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
-    return render(request,'amrs_user_validation/index.html',{})
+    return my_login(request) #render(request,'amrs_user_validation/index.html',{})
 
 
 def my_login(request):
@@ -27,7 +27,7 @@ def my_login(request):
         if user is not None:
             if user.is_active: 
                 login(request,user)
-                request.session.set_expiry(1800)
+                request.session.set_expiry(3600)
                 return HttpResponseRedirect('../')
             else : error = 'User is not active.'
         else : error = 'Username and password do not match'
@@ -36,7 +36,9 @@ def my_login(request):
                       )
 
     else :
-        return render(request,'amrs_user_validation/login.html',{})
+        device = get_device(request)
+        if device['is_mobile']: return render(request,'amrs_user_validation/mobile_login.html',{})            
+        else : return render(request,'amrs_user_validation/mobile_login.html',{})
 
 
 @login_required

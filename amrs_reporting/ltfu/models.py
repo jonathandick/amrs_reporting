@@ -12,20 +12,32 @@ class DefaulterCohort(models.Model):
     cohort_uuid = models.CharField(max_length=500)
     location_id = models.IntegerField()
     location_uuid = models.CharField(max_length=500)
-    date_updated = models.DateTimeField(auto_now=True)
+    date_created = models.DateTimeField(auto_now_add=True)
 
+    def set_self(self,args):
+        self.name = args['name']
+        self.description = args['description']
+        self.location_id = args['location_id']
+        self.location_uuid = args['location_uuid']
+        patient_uuids = args['patient_uuids']
+        
+        self.cohort_uuid = Cohort.create_cohort(args['name'],args['description'],patient_uuids)
+        self.save()    
 
+                
+        
     def update_defaulter_cohort(self):
         headers = {'content-type': 'application/json'}
         url_cohort = amrs_settings.amrs_url + '/ws/rest/v1/cohort/' 
         patient_uuids = self.get_defaulter_uuids(self.location_id)
 
         if self.cohort_uuid is not None and self.cohort_uuid != '':
-            print 'cohort_uuid: ' + self.cohort_uuid
+
             url_cohort += self.cohort_uuid + '/member'
             req = requests.get(url_cohort + '?v=ref', auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
             vals = json.loads(req.text)
 
+            # delete all members currently in cohort
             for member in vals['results']:
                 
                 split = member['links'][0]['uri'].split('/ws')
@@ -58,6 +70,8 @@ class DefaulterCohort(models.Model):
             self.save()
 
 
+        # Rebuild cohort: add new members now qualifying. 
+        # Remember this is a dynamic list and patients will qualify and disqualify on a daily basis
         for uuid in patient_uuids:
             payload = {'patient':uuid}
             data = json.dumps(payload)

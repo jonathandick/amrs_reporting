@@ -83,7 +83,7 @@ function getCookie(name) {
             alert('failed');
         },
         error : function(xhr,errmsg,err) {
-                                alert(xhr.status + ": " + xhr.responseText);
+                                $('#error').text(xhr.responseText);
                             }
         });
    }
@@ -92,6 +92,7 @@ function getCookie(name) {
      patients_table.clear().draw();
      encounters_table.clear().draw();
      $('#patient_name').text('');
+     $('#error').text('');
 
      for(var i=0; i<response.length;i++) {
          var row =  response[i];
@@ -122,7 +123,11 @@ function getCookie(name) {
 
    $('#patients').on("click","tr",function(e) {
         encounterSearch($(this).attr('patient_uuid'));
-        $('#patient_name').text($(this).find('td').eq(1).text());
+        var given_name = $(this).find('td').eq(0).text();
+	var family_name = $(this).find('td').eq(1).text();
+	var middle_name = $(this).find('td').eq(2).text();
+
+        $('#patient_name').text(given_name + ' ' + middle_name + ' ' + family_name);
     });
 
 
@@ -167,4 +172,6 @@ function getCookie(name) {
     <tbody/>
   </table>
 
+
+<span id='error'></span>
 {%endblock%}

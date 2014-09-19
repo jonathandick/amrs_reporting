@@ -16,16 +16,18 @@ import ast
 # from weasyprint import HTML, default_url_fetcher, CSS
 from amrs_user_validation.models import Authorize
 from ltfu.models import DefaulterCohort
-
+import utilities as u
 # Admin *********************************************************************************
 
 @login_required
 def index(request):
     if not Authorize.authorize(request.user) :
         return HttpResponseRedirect('amrs_user_validation/access_denied')
-    defaulter_cohorts = DefaulterCohort.objects.all().order_by('name')
-    return render(request, "amrs_reports/index.html",
-                  {'defaulter_cohorts':defaulter_cohorts})
+    device = u.get_device(request)
+
+    if device['is_mobile']: return render(request, "amrs_reports/index_mobile.html",{})
+    else : return render(request, "amrs_reports/index_mobile.html",{})
+                         
 
 
 

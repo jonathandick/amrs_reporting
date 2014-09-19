@@ -782,7 +782,7 @@ def outreach_form2(request):
 @login_required
 def outreach_worker(request):
     dcs = DefaulterCohort.objects.all().order_by('name')
-    return render(request,'ltfu/outreach_worker.html',
+    return render(request,'ltfu/outreach_worker_mobile.html',
                   {'defaulter_cohorts':dcs,
                    })
 
@@ -890,6 +890,7 @@ def ajax_patient_search(request):
 def ajax_encounter_search(request):
     patient_uuid = request.POST['patient_uuid']
     #encounters = {'response':'nice work'}
+
     encounters  = Encounter.get_encounters(patient_uuid)
     data = json.dumps(encounters)
     return HttpResponse(data,content_type='application/json')
@@ -926,7 +927,7 @@ def outreach_form(request):
                 'providers':providers,
                 }
         #return render(request,'ltfu/OutreachForm.html',args)
-        return render(request,'ltfu/test.html',args)
+        return render(request,'ltfu/outreach_form_mobile.html',args)
                 
 
 

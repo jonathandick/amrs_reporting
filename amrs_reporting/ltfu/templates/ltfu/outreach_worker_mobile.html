@@ -1,0 +1,81 @@
+{% extends "ltfu/base_mobile.html" %}
+{% load staticfiles %}
+{% load ltfu_filters %}
+
+{% block content %}
+
+<script>
+function view_defaulter_list() {
+  var select = document.getElementById('defaulter_list_select');
+  var value = select.options[select.selectedIndex].value;
+  var link = '/ltfu/outreach_worker_defaulter_list?defaulter_cohort_uuid=' + value;
+  if(value != '') {
+      window.location = link;
+  }
+  else { alert('You must first select a clinic'); }
+}
+
+
+function view_retro_defaulter_list() {
+  var select = document.getElementById('retro_defaulter_list_select');
+  var value = select.options[select.selectedIndex].value;
+  var link = '/ltfu/retrospective_data_entry?location_id=' + value;
+  if(value != '') {
+      window.location = link;
+  }
+  else { alert('You must first select a clinic'); }
+
+}
+
+
+</script>
+
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/plugins/datatables.percent.js'%}"></script>
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.js'%}"></script>
+
+  <style type="text/css" title="currentStyle">
+    @import "{% static 'js/DataTables-1.10.0/extensions/TableTools/css/dataTables.tableTools.css'%}";
+    @import "{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.css' %}";
+  </style>
+
+<h3>Outreach Worker Control Panel</h3>
+
+<table>
+  <tr>
+    <form>
+      <td>
+	<b>Real Time Data Entry:</b>
+      </td>
+      <td>
+	<select name='defaulter_cohort_uuid' id='defaulter_list_select'>
+	  <option value=''>Choose Clinic...</option>
+	  {% for dc in defaulter_cohorts %}
+	  <option value='{{dc.cohort_uuid}}'>{{dc.name}}</option>
+	  {%endfor%}
+	</select>
+      </td>
+      <td>
+	<input type='button' onClick='view_defaulter_list()' value='Go!'/>
+      </td>
+    </form>
+  </tr>
+  
+  <tr>
+    <form>
+      <td><b>Retrospective Data Entry:</b></td>
+      <td>
+	<select name='location_id' id='retro_defaulter_list_select'>
+	  <option value=''>Choose Clinic...</option>
+	  {% for dc in defaulter_cohorts %}
+	  <option value='{{dc.location_id}}'>{{dc.name}}</option>
+	  {% endfor %}
+	</select>
+      </td>
+      <td><input type='button' onClick='view_retro_defaulter_list()'  value='View'/></td>
+    </form>    
+  </tr>
+</table>
+
+
+<hr>
+{% endblock %}

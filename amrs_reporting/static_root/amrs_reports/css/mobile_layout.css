@@ -1,13 +1,9 @@
-input[type=text], input[type=url], input[type=email], input[type=password], input[type=tel], input[type=date] {
-  -webkit-appearance: none; -moz-appearance: none;
-  display: block;
-  margin: 0;
-  width: 100%; height: 100px;
-  line-height: 50px; font-size: 40px;
-  border: 1px solid #bbb;
+.ui-listview li a {
+    font-size: -webkit-xxx-large;
 }
 
-.ui-mobile label {
+
+.ui-mobile label, label {
     text-decoration: none;
     font-size: -webkit-xxx-large;
     font-weight:bold;
@@ -23,7 +19,7 @@ div.ui-controlgroup-label {
 .ui-field-contain .ui-controlgroup-label {
     float:left;
     width:10%;
-    margin:.5em 2% 0 0
+    margin:.5em 2% 0 0;
 }
 
 
@@ -35,12 +31,23 @@ div.ui-controlgroup-label {
     border-right-width: 0;
 }
 
-
+ 
 .ui-select .ui-btn-corner-all, .ui-btn.ui-corner-all, .ui-slider-track.ui-corner-all, .ui-flipswitch.ui-corner-all, .ui-li-count{
     font-size: -webkit-xxx-large;
     line-height: 35px;
     font-family: sans-serif;
-)
+}
+
+input[type=text], input[type=url], input[type=email], input[type=password], input[type=tel], input[type=date] {
+  -webkit-appearance: none; -moz-appearance: none;
+  display: block;
+  margin: 0;
+  width: 100%; height: 100px;
+  line-height: 50px; font-size: 40px;
+  border: 1px solid #bbb;
+}
+
+
 
 a {
 	text-decoration: none;
@@ -48,6 +55,7 @@ a {
 	font-size: 10px;
 	font-weight:bold;
 }
+
 
 a:hover { text-decoration: underline; }
 
@@ -92,7 +100,7 @@ a:hover { text-decoration: underline; }
 
 #wordmark img
 {   
-    width: 150px;
+    width: 85%;
     color: #007733;
 }
 

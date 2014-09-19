@@ -9,18 +9,26 @@
 <head>
   <title>AMRS Retention v1.0</title>
   
+
+
   <script type="text/javascript" src="{% static 'js/jquery-1.10.2.min.js'%}"></script>  
+  <script type="text/javascript" src="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.min.js'%}"></script>  
 
-  <script type="text/javascript" src="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.js'%}"></script>  
-  <link rel="stylesheet" type="text/css" href="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.css'%}" />     
+  <!--style type="text/css" title="currentStyle">
+    @import "{% static 'js/jquery.mobile.custom/jquery.mobile.custom.structure.min.css'%}"
+    @import "{% static 'js/jquery.mobile.custom/jquery.mobile.custom.theme.min.css'%}"
+  </style-->
 
-  <script type="text/javascript" src="{% static 'js/jquery-validation-1.13.0/dist/jquery.validate.min.js'%}"></script>  
-  
+  <style type="text/css" title="currentStyle">
+    @import "{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.min.css'%}"
+  </style>
   <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_layout.css'%}" />
 
 
+{% block alert_style %}{% endblock %}
 
-<script>
+<script type="text/javascript" src="{% static 'js/jquery-validation-1.13.0/dist/jquery.validate.min.js'%}"></script>  
+<script type="text/javascript">
 $(document).ready(function() {
 $('#form_tabs').tabs()
 
@@ -75,10 +83,9 @@ $('#form_tabs').tabs()
 
 
   $("#outreach_form").validate({
-      debug: false,
-      submitHandler: function(form) {
-             alert('submitting form');
-             form.submit(); //alert("submitted! (skipping validation for cancel button)");
+      debug: true,
+      submitHandler: function() {
+             document.submit(); //alert("submitted! (skipping validation for cancel button)");
       },
   });
 
@@ -159,7 +166,7 @@ $('#form_tabs').tabs()
   $("#phone_number").rules("add",{needs_phone_number:true});
   $("#date_of_death").rules("add",{needs_death_info:true});
   $("#cause_for_death").rules("add",{needs_death_info:true});
-  $("#provider_uuid").rules("add",{required:true});
+  $("#provider_uuid").rules("add",{required:true});  
   $("#encounter_datetime").rules("add",{required:true});
 
 } );
@@ -172,7 +179,7 @@ $('#form_tabs').tabs()
 <body>
 
 
-<form id="outreach_form" name="outreach_form" method='post' action='/ltfu/outreach_form'>
+<form id="outreach_form" name="outreach_form" method='post' action='/ltfu/'>
   {%csrf_token%}    
       <input class="form-control" id="patient_uuid"
 	     name="patient_uuid" type="hidden" value='{{patient.uuid}}'/>
@@ -187,7 +194,6 @@ $('#form_tabs').tabs()
 	<li><a href='#tabs-3' data-ajax="false">Field Follow-up</a></li>
 	<li><a href='#tabs-4' data-ajax="false">If Found</a></li>
 	<li><a href='#tabs-5' data-ajax="false">Finish</a></li>
-	<li/>
       </ul>
     </div>
     <div id="tabs-1">

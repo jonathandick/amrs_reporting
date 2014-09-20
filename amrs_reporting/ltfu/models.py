@@ -45,6 +45,8 @@ class DefaulterCohortMember(models.Model):
         patient['next_encounter_type'] = self.next_encounter_type
         patient['retired'] = self.retired
         patient['risk_category'] = self.risk_category
+        patient['defaulter_cohort_member_id'] = self.id
+
         if self.last_rtc_date and self.next_encounter_date is None :
             patient['days_since_rtc_date'] = (datetime.date.today() - self.last_rtc_date).days
         else : patient['days_since_rtc_date'] = None
@@ -95,6 +97,7 @@ class DefaulterCohort(models.Model):
                                       patient_uuid = patient_uuid,
                                       last_encounter_id = row['encounter_id'],
                                       last_encounter_date = row['encounter_datetime'],
+                                      last_encounter_type = row['name'],
                                       last_rtc_date = row['rtc_date'],
                                       risk_category = row['risk_category']
                                       )
@@ -181,8 +184,7 @@ class DefaulterCohort(models.Model):
         patients = []
         d = {}
         for member in members:
-            p = Patient.get_patient_by_uuid(member.patient_uuid)
-            p['retired'] = member.retired
+            p = member.get_patient_info()
             d[p['family_name']] = p
 
         for key in sorted(d.iterkeys()):
@@ -423,3 +425,11 @@ class OutreachFormSubmissionLog(models.Model):
         log.save()
     
 
+        id = args['defaulter_cohort_member_id']
+        member = DefaulterCohortMember.objects.get(id=id)
+
+        member.retired = 1
+        member.next_encounter_date = encounter_datetime
+        member.next_encounter_type = 'OUTREACHFIELDFU'
+        member.date_retired = datetime.date.today()
+        member.save()

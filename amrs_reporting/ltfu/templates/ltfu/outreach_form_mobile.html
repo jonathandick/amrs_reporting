@@ -7,7 +7,7 @@
 
 
 <head>
-  <title>AMRS Retention v1.0</title>
+  <title>AMPATH+ Outreach v1.0</title>
   
   <script type="text/javascript" src="{% static 'js/jquery-1.10.2.min.js'%}"></script>  
 
@@ -18,12 +18,61 @@
   
   <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_layout.css'%}" />
 
-
-
 <script>
-$(document).ready(function() {
-$('#form_tabs').tabs()
 
+$(document).ready(function() {
+      $("#tabs-1").show();
+      $("#tabs-2").hide();
+      $("#tabs-3").hide();
+      $("#tabs-4").hide();
+      $("#tabs-5").hide();
+
+  
+  $("#tabs-1-link").click(function() { 
+      $("#tabs-1").show();
+      $("#tabs-2").hide();
+      $("#tabs-3").hide();
+      $("#tabs-4").hide();
+      $("#tabs-5").hide();
+  });
+
+
+$("#tabs-2-link").click(function() { 
+      $("#tabs-2").show();
+      $("#tabs-1").hide();
+      $("#tabs-3").hide();
+      $("#tabs-4").hide();
+      $("#tabs-5").hide();
+  });
+
+
+$("#tabs-3-link").click(function() { 
+      $("#tabs-3").show();
+      $("#tabs-1").hide();
+      $("#tabs-2").hide();
+      $("#tabs-4").hide();
+      $("#tabs-5").hide();
+  });
+
+
+$("#tabs-4-link").click(function() { 
+      $("#tabs-4").show();
+      $("#tabs-1").hide();
+      $("#tabs-2").hide();
+      $("#tabs-3").hide();
+      $("#tabs-5").hide();
+  });
+
+
+$("#tabs-5-link").click(function() { 
+      $("#tabs-5").show();
+      $("#tabs-1").hide();
+      $("#tabs-2").hide();
+      $("#tabs-3").hide();
+      $("#tabs-4").hide();
+  });
+
+  
 
   $("#contacted_by_phone").change(function () {
      if($("#contacted_by_phone option:selected").text().toLowerCase() === 'yes') {
@@ -167,6 +216,23 @@ $('#form_tabs').tabs()
 
 
 </script>
+<script type='text/javascript'>
+
+(function()
+{
+  if( window.localStorage )
+  {
+    if( !localStorage.getItem( 'firstLoad' ) )
+    {
+      localStorage[ 'firstLoad' ] = true;
+      window.location.reload();
+    }  
+    else
+      localStorage.removeItem( 'firstLoad' );
+  }
+})();
+
+</script>
 </head>
 
 <body>
@@ -179,14 +245,13 @@ $('#form_tabs').tabs()
   <input type='hidden' name='encounter_type_uuid' value='{{encounter_type.uuid}}'/>
   <input type='hidden' name='location_uuid' value='{{location.uuid}}'/>
   
-  <div data-role="tabs" id='form_tabs'>
     <div data-role="navbar">
       <ul>
-	<li><a href='#tabs-1' data-ajax="false">Demographics</a></li>
-	<li><a href='#tabs-2' data-ajax="false">Phone Follow-up</a></li>
-	<li><a href='#tabs-3' data-ajax="false">Field Follow-up</a></li>
-	<li><a href='#tabs-4' data-ajax="false">If Found</a></li>
-	<li><a href='#tabs-5' data-ajax="false">Finish</a></li>
+	<li><a href='#tabs-1' data-ajax="false" id='tabs-1-link'>Demographics</a></li>
+	<li><a href='#tabs-2' data-ajax="false" id='tabs-2-link'>Phone Follow-up</a></li>
+	<li><a href='#tabs-3' data-ajax="false" id='tabs-3-link'>Field Follow-up</a></li>
+	<li><a href='#tabs-4' data-ajax="false" id='tabs-4-link'>If Found</a></li>
+	<li><a href='#tabs-5' data-ajax="false" id='tabs-5-link'>Finish</a></li>
 	<li/>
       </ul>
     </div>
@@ -246,7 +311,7 @@ $('#form_tabs').tabs()
 	       name="obs__a89e3896-1350-11df-a1f1-0026b9348838" value='{{last_encounter.rtc_date|date:"Y-m-d"}}' type="date"/>
       </div>
     </div>
-
+    
     <div id="tabs-2">
       <div class="form-group">
 	<label for="obs.number_of_call_attempts">Number of call attempts:</label>
@@ -421,8 +486,9 @@ $('#form_tabs').tabs()
     	  <label for='obs.reason_for_missed_visit.refusal'>Other</label>  
 	  
         </fieldset>	
-	
+      </div>
 
+      <div data-role="fieldcontain">
 	<fieldset data-role="controlgroup">
 	  <legend>If deceased:</legend>
 	  <div class="form-group"> 		    
@@ -462,22 +528,22 @@ $('#form_tabs').tabs()
 	    </select>
 	  </div>
 	</fieldset>
-	<div class="form-group"> 
-          <label for="obs.reason_to_refuse_care">If refused care, reason: </label>                 
-	  <select class="form-control" id="obs.reason_to_refuse_care" name="obs__a89e3468-1350-11df-a1f1-0026b9348838" 
-		  data-concept="1588^REASON TO REFUSE CARE^99DCT">
-	    <option value=""></option>
-	    <option value="a89e30e4-1350-11df-a1f1-0026b9348838" 
-		    oldvalue="1584^FAMILY DISCRIMINATION^99DCT">Family Discrimination (disclosure issues)</option>
- 	    
-	    <option value="a89e3396-1350-11df-a1f1-0026b9348838" oldvalue="1587^HEALED BY FAITH^99DCT">Believes healed by faith</option>
-	    <option value="a89e3274-1350-11df-a1f1-0026b9348838" oldvalue="1586^DENIAL^99DCT">Denial</option>
-	    <option value="a89e31ac-1350-11df-a1f1-0026b9348838" oldvalue="1585^COMMUNITY DISCRIMINATION^99DCT">Community Discrimination</option>
-	    <option value="a8a097bc-1350-11df-a1f1-0026b9348838" oldvalue="1961^NO LONGER TAKING MEDICINE^99DCT">No longer taking medicines</option>
-	    <option value="a8aca1ce-1350-11df-a1f1-0026b9348838" oldvalue="5841^HERBAL TRADITIONAL MEDICATIONS^99DCT">Taking herbals</option>
-	    <option value="a8aaf3e2-1350-11df-a1f1-0026b9348838" oldvalue="5622^OTHER NON-CODED^99DCT">Other</option>
-	  </select>
-        </div>
+      </div>
+      <div class="form-group"> 
+        <label for="obs.reason_to_refuse_care">If refused care, reason: </label>                 
+	<select class="form-control" id="obs.reason_to_refuse_care" name="obs__a89e3468-1350-11df-a1f1-0026b9348838" 
+		data-concept="1588^REASON TO REFUSE CARE^99DCT">
+	  <option value=""></option>
+	  <option value="a89e30e4-1350-11df-a1f1-0026b9348838" 
+		  oldvalue="1584^FAMILY DISCRIMINATION^99DCT">Family Discrimination (disclosure issues)</option>
+ 	  
+	  <option value="a89e3396-1350-11df-a1f1-0026b9348838" oldvalue="1587^HEALED BY FAITH^99DCT">Believes healed by faith</option>
+	  <option value="a89e3274-1350-11df-a1f1-0026b9348838" oldvalue="1586^DENIAL^99DCT">Denial</option>
+	  <option value="a89e31ac-1350-11df-a1f1-0026b9348838" oldvalue="1585^COMMUNITY DISCRIMINATION^99DCT">Community Discrimination</option>
+	  <option value="a8a097bc-1350-11df-a1f1-0026b9348838" oldvalue="1961^NO LONGER TAKING MEDICINE^99DCT">No longer taking medicines</option>
+	  <option value="a8aca1ce-1350-11df-a1f1-0026b9348838" oldvalue="5841^HERBAL TRADITIONAL MEDICATIONS^99DCT">Taking herbals</option>
+	  <option value="a8aaf3e2-1350-11df-a1f1-0026b9348838" oldvalue="5622^OTHER NON-CODED^99DCT">Other</option>
+	</select>
       </div>
     </div>
     <div id='tabs-5'>
@@ -495,14 +561,14 @@ $('#form_tabs').tabs()
 	  <option value="bea9c288-0650-4b42-a324-1d6d51591c72" oldvalue='9079^UNTRACEABLE^99DCT'>
 	    Outreach worker does not believe patient can be traced
 	  </option>
-	  <option value="07c536bc-19f2-4296-9c4a-edd85f070095" oldvalue='9080^PROCESS OF BEING TRACED^99DCT'>Patient in process of being traced</option>
+	    <option value="07c536bc-19f2-4296-9c4a-edd85f070095" oldvalue='9080^PROCESS OF BEING TRACED^99DCT'>Patient in process of being traced</option>
 	</select>
       </div>
       
       <div class="form-group">
 	<label for='return_visit_date'>If patient plans to return to clinic, RTC Date:</label> 
-	<input class="form-control datepicker checkFutureDate" data-concept="5096^RETURN VISIT DATE^99DCT" id="return_visit_date" 
-	       name="obs__a8a666ba-1350-11df-a1f1-0026b9348838" type="date">
+	  <input class="form-control datepicker checkFutureDate" data-concept="5096^RETURN VISIT DATE^99DCT" id="return_visit_date" 
+		 name="obs__a8a666ba-1350-11df-a1f1-0026b9348838" type="date"/>
       </div>
       <div class="form-group"> 
         <label for="likelihood_of_return">Do you think the patient will return to clinic?</label>                 
@@ -531,13 +597,13 @@ $('#form_tabs').tabs()
 	  {%endfor%}
 	</select>
       </div>      
-
+      
       <div class="form-group text-center">
 	<input id="submit_button" type="submit" value="Submit"/>
       </div>
-
+      
     </div>    
-  </div>
+  </div>	
 </form>
 </body>
 </html>

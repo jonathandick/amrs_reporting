@@ -1,3 +1,7 @@
+.large-font {
+    font-size: -webkit-xxx-large;
+}
+
 .ui-listview li a {
     font-size: -webkit-xxx-large;
 }

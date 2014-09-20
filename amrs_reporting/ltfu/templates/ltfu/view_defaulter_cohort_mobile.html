@@ -1,0 +1,33 @@
+{% extends "ltfu/base_mobile.html" %}
+{% load staticfiles %}
+{% load ltfu_filters %}
+
+{% block content %}
+<script>
+
+  function createDefaulterCohort(location_uuid) {
+     if(confirm('This will retire the current list. Are you sure you want to create a new defaulter list?')) {
+         window.location = '/ltfu/create_defaulter_cohort?location_uuid=' + location_uuid;
+     }
+  }
+</script>
+
+
+<h3>{{defaulter_cohort.name}}</h3>
+Date Created: {{defaulter_cohort.date_created}}</br>
+Remaining to be traced: <b>{{defaulter_cohort.get_total_active}} out of {{defaulter_cohort.get_total}}</b></br>
+
+<input type='button' name='create_defaulter_cohort' id='create_defaulter_cohort' value='Get New list' onClick='createDefaulterCohort("{{defaulter_cohort.location_uuid}}")'/>
+
+<ul data-role="listview" data-filter="true">
+  {%for p in patients%}
+  <li {%if p.retired%}class='retired'{%endif%}>
+    <a href='/ltfu/view_patient?patient_uuid={{p.uuid}}&defaulter_cohort_id={{defaulter_cohort.id}}'>
+	  {{p.family_name}}, {{p.given_name}} {{p.middle_name}}<br/>
+	  {{p.identifier}}<br/>
+	  Phone: {% if p.phone_number %}{{p.phone_number}}{%else%}Unknown{%endif%}
+    </a>    
+  </li>
+  {%endfor%}
+</ul>
+{% endblock %}

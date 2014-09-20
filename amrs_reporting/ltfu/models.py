@@ -10,9 +10,45 @@ import json
 class DefaulterCohortMember(models.Model):
     defaulter_cohort_id = models.IntegerField()
     patient_uuid = models.CharField(max_length=500)
-    
+
+    last_encounter_id = models.IntegerField()
+    last_encounter_date = models.CharField(max_length=500)
+    last_rtc_date = models.DateField(null=True)
+    last_encounter_type = models.CharField(max_length=500)
+    risk_category = models.IntegerField()    
+
+    next_encounter_date = models.DateField(null=True)
+    next_encounter_type = models.CharField(max_length=200,null=True)
+    next_rtc_date = models.DateField(null=True)
     retired = models.BooleanField(default=False)
     date_retired = models.DateTimeField(null=True)
+
+    def update_status(self,encounter=None):
+        import datetime
+
+        if encounter is None :
+            encounter = RetentionDataset.get_encounter(self.last_encounter_id)
+        self.next_encounter_date = encounter['next_appt_date']
+        self.next_encounter_type = encounter['next_encounter_type']
+        if self.next_encounter_date is not None:
+            self.retired=True
+            self.date_retired = datetime.datetime.today()            
+        self.save()
+
+    def get_patient_info(self):
+        import datetime
+        patient = Patient.get_patient_by_uuid(self.patient_uuid)
+        patient['last_encounter_date'] = self.last_encounter_date
+        patient['last_encounter_type'] = self.last_encounter_type
+        patient['last_rtc_date'] = self.last_rtc_date
+        patient['next_encounter_date'] = self.next_encounter_date
+        patient['next_encounter_type'] = self.next_encounter_type
+        patient['retired'] = self.retired
+        patient['risk_category'] = self.risk_category
+        if self.last_rtc_date and self.next_encounter_date is None :
+            patient['days_since_rtc_date'] = (datetime.date.today() - self.last_rtc_date).days
+        else : patient['days_since_rtc_date'] = None
+        return patient
 
 
 
@@ -44,7 +80,7 @@ class DefaulterCohort(models.Model):
 
 
     # get first 100 patients currently meeting criteria as a defaulter
-    def set_members(limit = 100):
+    def set_members(self,limit = 100):
         location_ids = (self.location_id,)
         start_range_high_risk = 14
         start_range = 30
@@ -56,9 +92,63 @@ class DefaulterCohort(models.Model):
         for row in table:
             patient_uuid = str(row['uuid'])
             c = DefaulterCohortMember(defaulter_cohort_id = self.id,
-                                      patient_uuid = patient_uuid)
+                                      patient_uuid = patient_uuid,
+                                      last_encounter_id = row['encounter_id'],
+                                      last_encounter_date = row['encounter_datetime'],
+                                      last_rtc_date = row['rtc_date'],
+                                      risk_category = row['risk_category']
+                                      )
             c.save()
             
+    @staticmethod
+    def init():
+        DefaulterCohort.objects.all().delete()
+        DefaulterCohortMember.objects.all().delete()
+        locations = DefaulterCohort.get_outreach_locations()
+        for l in locations: 
+            dc = DefaulterCohort(name=l['name'] + ' Defaulter Cohort',
+                                 description = 'Defaulter list for ' + l['name'],
+                                 location_id = l['location_id'],
+                                 location_uuid = l['uuid'])
+            dc.save()
+            dc.set_members()
+
+            
+
+
+    @staticmethod
+    def update_defaulter_cohorts():
+        
+        members = DefaulterCohortMember.objects.filter(retired=0)
+        encounter_ids = members.values_list('last_encounter_id',flat=True)
+        encounters = RetentionDataset.get_encounters(encounter_ids)
+        d = {}
+        for encounter in encounters:
+            if encounter['next_appt_date'] is not None :
+                d[encounter['encounter_id']] = encounter
+
+        for member in members:
+            if member.last_encounter_id in d:
+                encounter = d[member.last_encounter_id]
+                member.update_status(encounter)
+            
+
+
+    @staticmethod
+    def create_defaulter_cohort(location_uuid):
+        dcs = DefaulterCohort.objects.filter(location_uuid=location_uuid,retired=False)
+        for dc in dcs :
+            dc.retire()
+        dc = dcs[0]
+        new_dc = DefaulterCohort(name=dc.name,
+                                 description = dc.description,
+                                 location_id = dc.location_id,
+                                 location_uuid = dc.location_uuid)
+        new_dc.save()
+        new_dc.set_members()
+        return new_dc
+        
+
 
     def delete_self(self):
         DefaulterCohortMember.objects.filter(defaulter_cohort_id=self.id).delete()
@@ -77,6 +167,30 @@ class DefaulterCohort(models.Model):
     def get_total(self):
         return DefaulterCohortMember.objects.filter(defaulter_cohort_id=self.id).count()
 
+    def get_members(self):
+        return DefaulterCohortMember.objects.filter(defaulter_cohort_id=self.id)
+
+
+    def get_active_members(self):
+        return DefaulterCohortMember.objects.filter(defaulter_cohort_id=self.id,retired=False)
+
+
+
+    def get_patients(self):
+        members = DefaulterCohortMember.objects.filter(defaulter_cohort_id=self.id).order_by('retired')
+        patients = []
+        d = {}
+        for member in members:
+            p = Patient.get_patient_by_uuid(member.patient_uuid)
+            p['retired'] = member.retired
+            d[p['family_name']] = p
+
+        for key in sorted(d.iterkeys()):
+            patients.append(d[key])
+                    
+            
+        return patients
+    
                 
     def get_cohort_stats(self):
         risk_categories = {0:'Being Traced',1:'high',2:'medium',3:'low',4:'LTFU',5:'no_rtc_date',6:'untraceable'}                
@@ -197,7 +311,7 @@ class DefaulterCohort(models.Model):
 
     
     @staticmethod
-    def update_defaulter_cohorts():
+    def update_defaulter_cohorts_2():
         import time
         location_ids = [1,2,3,4,7,8,9,11,12,13,14,15,17,19,20,23,24,25,26,27,28,31,50,54,55,64,65,69,70,72,73,78,82,83,100,130,135]
         #location_ids = [1,2,3]
@@ -246,3 +360,66 @@ class OutreachFormSubmissionLog(models.Model):
     values = models.CharField(max_length=10000)
     enc_uuid = models.CharField(max_length=100,null=True,blank=True)
         
+    @staticmethod
+    def process_outreach_form(args):        
+        patient_uuid = args['patient_uuid']        
+        location_uuid = args['location_uuid']
+        #location_uuid = '08feae7c-1352-11df-a1f1-0026b9348838'
+        dc = DefaulterCohort.objects.get(location_uuid=location_uuid,retired=0)
+
+        #provider_uuid = '5b6ee21a-1359-11df-a1f1-0026b9348838' 
+        provider_uuid = args['provider_uuid']
+        encounter_type_uuid = args['encounter_type_uuid']
+        encounter_datetime = args['encounter_datetime']
+        obs = []
+
+        for key,value in args.iteritems():
+            if key.startswith('obs__') and value.strip() != '':
+                question_uuid = key[5:]
+                l = args.getlist(key)
+                for val in l:
+                    obs.append({'concept':question_uuid,'value':val})
+                
+
+
+            if key.startswith('attr__') and value.strip() != '':
+                attr_type_uuid = key[6:]       
+                result = PersonAttribute.create_person_attribute_rest(person_uuid=patient_uuid,person_attribute_type_uuid=attr_type_uuid,value=value)
+                
+        result = Encounter.create_encounter_rest(patient_uuid=patient_uuid,
+                                                 encounter_datetime=encounter_datetime,
+                                                 location_uuid=location_uuid,
+                                                 encounter_type_uuid=encounter_type_uuid,
+                                                 provider_uuid=provider_uuid,
+                                                 obs=obs)
+
+        death_date = args.get('obs__a89df3d6-1350-11df-a1f1-0026b9348838',None)
+        patient_status = args.get('obs__7c579743-5ef7-4e2c-839f-5b95597cb01c',None)
+        cause_of_death = args.get('obs__a89df750-1350-11df-a1f1-0026b9348838',None)
+        
+        if death_date and cause_of_death and patient_status=='a89335d6-1350-11df-a1f1-0026b9348838': 
+            result = Person.set_dead(patient_uuid,death_date,cause_of_death)
+
+
+        vals = json.dumps({'patient_uuid':patient_uuid,
+                           'encounter_datetime':encounter_datetime,
+                           'location_uuid':location_uuid,
+                           'encounter_type_uuid':encounter_type_uuid,
+                           'provider_uuid':provider_uuid,
+                           'obs':obs})
+
+        enc_uuid = result.get('uuid',None)
+        if enc_uuid is not None :
+            enc_uuid = result['uuid']
+        else: enc_uuid = None
+        
+        log = OutreachFormSubmissionLog(patient_uuid=patient_uuid,
+                                        location_uuid=location_uuid,
+                                        defaulter_cohort_uuid = dc.cohort_uuid,
+                                        creator=request.user.id,                                        
+                                        values=vals,
+                                        enc_uuid=enc_uuid,
+                                        )
+        log.save()
+    
+

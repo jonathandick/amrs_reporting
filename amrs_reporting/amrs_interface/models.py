@@ -155,7 +155,7 @@ class Person():
 class Patient():
 
     @staticmethod
-    def get_patients(search_string):
+    def search_patients(search_string):
         headers = {'content-type': 'application/json','Connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/patient?v=default&limit=20&q=' + search_string
         res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
@@ -175,7 +175,7 @@ class Patient():
             family_name = split[-1]
             middle_name = ''
             for x in range(1,num_names-1):
-                middle_name += ' ' + split[x]
+                middle_name += split[x] + ' '
         
             gender = p['person']['gender']
             birthdate = p['person']['birthdate']
@@ -212,11 +212,11 @@ class Patient():
         names = data['person']['display']
         split = names.split(' ')
         num_names = len(split)
-        given_name = split[0]
-        family_name = split[num_names-1]
+        given_name = split[0].title()
+        family_name = split[num_names-1].title()
         middle_name = ''
-        for x in range(1,num_names-2):
-            middle_name += ' ' + names[x]
+        for x in range(1,num_names-1):
+            middle_name += ' ' + split[x].title()
         
         identifier = data['identifiers'][0]['display']
         split = identifier.split(' = ')
@@ -436,7 +436,45 @@ class Encounter():
             
             
 
+class RetentionDataset():
+    
+    @staticmethod
+    def get_encounter(encounter_id):
+        encounter = {}
+        con = None
+        try :
+            sql = 'select * from flat_retention_data where encounter_id = %s'
+            con = mdb.connect(settings.HOST,settings.USER,settings.PASSWORD,settings.DATABASE)
+            cur = con.cursor(mdb.cursors.DictCursor)
+            cur.execute(sql,(encounter_id,))
+            encounter = cur.fetchone()
+        except Exception, e:
+            print e
+
+        finally:
+            if con : con.close()
+
+        return encounter
         
+
+    @staticmethod
+    def get_encounters(encounter_ids=[]):
+        encounters = []
+        con = None
+        try :
+            sql = 'select * from flat_retention_data where encounter_id in %s'
+            con = mdb.connect(settings.HOST,settings.USER,settings.PASSWORD,settings.DATABASE)
+            cur = con.cursor(mdb.cursors.DictCursor)
+            cur.execute(sql,(tuple(encounter_ids),))
+            encounters = cur.fetchall()
+        except Exception, e:
+            print e
+
+        finally:
+            if con : con.close()
+
+        return encounters
+
 
 
 

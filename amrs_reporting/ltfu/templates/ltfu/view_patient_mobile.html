@@ -1,0 +1,27 @@
+{% extends "ltfu/base_mobile.html" %}
+{% load staticfiles %}
+{% load ltfu_filters %}
+
+{% block content %}
+<script>
+
+  function createDefaulterCohort(location_uuid) {
+     if(confirm('This will retire the current list. Are you sure you want to create a new defaulter list?')) {
+         window.location = '/ltfu/create_defaulter_cohort?location_uuid=' + location_uuid;
+     }
+  }
+</script>
+
+
+<h3>{{patient.given_name}} {{patient.middle_name}} {{patient.family_name}}</h3>
+Phone: {{patient.phone_number}}<br/>
+Last Encounter : {{patient.last_encounter_date}} : {{patient.last_encounter_type}} <br/>
+Last RTC Date : {{patient.last_rtc_date}} ({{patient.days_since_rtc_date}} days since last RTC date)<br/>
+{% if patient.next_encounter_date %}
+<b>This patient had a {{patient.next_encounter_type}} encounter on {{patient.next_encounter_date}}</b>
+{%endif%}
+
+<ul data-role="listview">
+  <li><a href='/ltfu/outreach_form?patient_uuid={{patient.uuid}}&location_uuid={{location_uuid}}'>Enter Outreach Form</a></li>
+</ul>
+{% endblock %}

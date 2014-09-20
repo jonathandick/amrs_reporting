@@ -6,8 +6,10 @@ from django.conf import settings
 app_name = 'ltfu'
 urlpatterns = patterns('',
                        url(r'^' + app_name + '/outreach_dashboard/?$',views.outreach_dashboard),
-                       url(r'^' + app_name + '/outreach_clinic/?$',views.outreach_clinic),
+                       url(r'^' + app_name + '/outreach_defaulter_cohorts/?$',views.outreach_clinic_dashboard),
                        url(r'^' + app_name + '/view_defaulter_cohort/?$',views.view_defaulter_cohort),
+                       url(r'^' + app_name + '/view_patient/?$',views.view_patient),
+                       url(r'^' + app_name + '/create_defaulter_cohort/?$',views.create_defaulter_cohort),
                        url(r'^' + app_name + '/index/?$',views.index),
                        url(r'^' + app_name + '/ltfu_ampath/?$',views.ltfu_ampath),
                        url(r'^' + app_name + '/ltfu_clinics/?$',views.ltfu_clinics),

@@ -2,6 +2,10 @@
     font-size: -webkit-xxx-large;
 }
 
+.ui-listview li.retired a {
+    background-color: gray;
+}
+
 
 .ui-mobile label, label {
     text-decoration: none;
@@ -22,7 +26,9 @@ div.ui-controlgroup-label {
     margin:.5em 2% 0 0;
 }
 
-
+.ui-page-theme-a.retired  .ui-btn {
+    background-color:red;
+}
 
 .ui-navbar li .ui-btn {
     font-size: 40px;

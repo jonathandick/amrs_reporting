@@ -21,59 +21,8 @@
 <script>
 
 $(document).ready(function() {
-      $("#tabs-1").show();
-      $("#tabs-2").hide();
-      $("#tabs-3").hide();
-      $("#tabs-4").hide();
-      $("#tabs-5").hide();
 
   
-  $("#tabs-1-link").click(function() { 
-      $("#tabs-1").show();
-      $("#tabs-2").hide();
-      $("#tabs-3").hide();
-      $("#tabs-4").hide();
-      $("#tabs-5").hide();
-  });
-
-
-$("#tabs-2-link").click(function() { 
-      $("#tabs-2").show();
-      $("#tabs-1").hide();
-      $("#tabs-3").hide();
-      $("#tabs-4").hide();
-      $("#tabs-5").hide();
-  });
-
-
-$("#tabs-3-link").click(function() { 
-      $("#tabs-3").show();
-      $("#tabs-1").hide();
-      $("#tabs-2").hide();
-      $("#tabs-4").hide();
-      $("#tabs-5").hide();
-  });
-
-
-$("#tabs-4-link").click(function() { 
-      $("#tabs-4").show();
-      $("#tabs-1").hide();
-      $("#tabs-2").hide();
-      $("#tabs-3").hide();
-      $("#tabs-5").hide();
-  });
-
-
-$("#tabs-5-link").click(function() { 
-      $("#tabs-5").show();
-      $("#tabs-1").hide();
-      $("#tabs-2").hide();
-      $("#tabs-3").hide();
-      $("#tabs-4").hide();
-  });
-
-  
-
   $("#contacted_by_phone").change(function () {
      if($("#contacted_by_phone option:selected").text().toLowerCase() === 'yes') {
          $("#refer_for_field_follow_up").removeAttr('required').attr('disabled','disabled').val('');
@@ -211,28 +160,65 @@ $("#tabs-5-link").click(function() {
   $("#provider_uuid").rules("add",{required:true});
   $("#encounter_datetime").rules("add",{required:true});
 
+
+
+  $("#tabs-1").show();
+  $("#tabs-2").hide();
+  $("#tabs-3").hide();
+  $("#tabs-4").hide();
+  $("#tabs-5").hide();
+
+  
+  $("#tabs-1-link").click(function() { 
+      $("#tabs-1").show();
+      $("#tabs-2").hide();
+      $("#tabs-3").hide();
+      $("#tabs-4").hide();
+      $("#tabs-5").hide();
+  });
+
+
+$("#tabs-2-link").click(function() { 
+      $("#tabs-2").show();
+      $("#tabs-1").hide();
+      $("#tabs-3").hide();
+      $("#tabs-4").hide();
+      $("#tabs-5").hide();
+  });
+
+
+$("#tabs-3-link").click(function() { 
+      $("#tabs-3").show();
+      $("#tabs-1").hide();
+      $("#tabs-2").hide();
+      $("#tabs-4").hide();
+      $("#tabs-5").hide();
+  });
+
+
+$("#tabs-4-link").click(function() { 
+      $("#tabs-4").show();
+      $("#tabs-1").hide();
+      $("#tabs-2").hide();
+      $("#tabs-3").hide();
+      $("#tabs-5").hide();
+  });
+
+
+$("#tabs-5-link").click(function() { 
+      $("#tabs-5").show();
+      $("#tabs-1").hide();
+      $("#tabs-2").hide();
+      $("#tabs-3").hide();
+      $("#tabs-4").hide();
+  });
+
 } );
 
 
 
 </script>
-<script type='text/javascript'>
 
-(function()
-{
-  if( window.localStorage )
-  {
-    if( !localStorage.getItem( 'firstLoad' ) )
-    {
-      localStorage[ 'firstLoad' ] = true;
-      window.location.reload();
-    }  
-    else
-      localStorage.removeItem( 'firstLoad' );
-  }
-})();
-
-</script>
 </head>
 
 <body>

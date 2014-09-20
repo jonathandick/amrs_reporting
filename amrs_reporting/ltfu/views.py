@@ -144,6 +144,7 @@ def outreach_form(request):
                 'providers':providers,
                 'defaulter_cohort_member_id':member.id,
                 }
+#        return render(request,'ltfu/test.html',{})
         return render(request,'ltfu/outreach_form_mobile.html',args)
                 
 
@@ -1019,7 +1020,14 @@ def view_data_entry_stats(request):
 
 @login_required    
 def test(request):
-    DefaulterCohort.init()
+
+    location = Location.get_location_by_uuid_db('090090d4-1352-11df-a1f1-0026b9348838')
+    print 'finisehd getting location'
+    locations = Location.get_locations()
+    print 'finished getting locations'
+    providers = Provider.get_outreach_providers()
+    print 'finished getting providers'
+
     return render(request,'ltfu/test.html',{})
     
 

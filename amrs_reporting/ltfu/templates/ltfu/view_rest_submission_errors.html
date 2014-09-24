@@ -1,0 +1,111 @@
+{% extends "ltfu/base.html" %}
+{% load staticfiles %}
+{% load ltfu_filters %}
+
+{% block content %}
+
+<script>
+
+</script>
+
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/plugins/datatables.percent.js'%}"></script>
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.js'%}"></script>
+<script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.10.0/extensions/TableTools/js/dataTables.tableTools.js'%}"></script>
+
+  <style type="text/css" title="currentStyle">
+    @import "{% static 'js/DataTables-1.10.0/extensions/TableTools/css/dataTables.tableTools.css'%}";
+    @import "{% static 'js/DataTables-1.10.0/plugins/datatables.columnfilter.css' %}";
+  </style>
+
+
+<script type="text/javascript">
+
+  
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+  }
+
+   function resubmitForm(id) {
+        var d = {outreach_form_submission_log_id:id};
+        $.ajax({
+        type: "POST",
+        url: "/ltfu/ajax_resubmit_outreach_form",
+        data: d,
+        dataType: "json",
+        success: onSuccessResubmitForm,
+        failure: function() {
+            alert('failed');
+        },
+        error : function(xhr,errmsg,err) {
+                                alert(xhr.status + ": " + xhr.responseText);
+                            }
+        });
+   }
+
+   function onSuccessResubmitForm(response) {
+       alert(response);
+   } 
+
+
+  $(document).ready(function() {
+   var csrftoken = getCookie('csrftoken');
+   $.ajaxSetup({
+        headers: { "X-CSRFToken": csrftoken }
+   });
+
+
+  
+  $('#submission_errors').dataTable( {
+  "sScrollY": "300px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth": false } );
+
+  
+
+  });
+
+  
+</script>
+
+<h3>View Rest Submission Errors</h3>
+
+<table id='submission_errors'>
+  <thead>
+    <tr>
+      <th>Id</th>
+      <th>Date Submitted</th>
+      <th>Patient</th>
+      <th>Resubmit</th>
+      <th>Delete</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for r in errors %}
+    <tr>
+      <td>{{r.id}}</td>
+      <td>{{r.date_submitted|date:"Y-m-d H:i"}}</td>
+      <td>{{r.get_patient_name}}</td>
+      <td><a href='#' outreach_submission_form_log_id='{{r.id}}' onClick='resubmitForm("{{r.id}}")'>Resubmit</a></td>
+      <td><a href="/ltfu/delete_outreach_form_submission_log?id={{r.id}}">Delete</a></td>
+    </tr>
+    {%endfor%}
+  </tbody>
+</table>
+{% endblock %}

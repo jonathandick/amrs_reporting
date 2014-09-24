@@ -35,6 +35,7 @@ class DefaulterCohortMember(models.Model):
             self.date_retired = datetime.datetime.today()            
         self.save()
 
+
     def get_patient_info(self):
         import datetime
         patient = Patient.get_patient_by_uuid(self.patient_uuid)
@@ -356,25 +357,27 @@ class DefaulterCohort(models.Model):
 class OutreachFormSubmissionLog(models.Model):
     patient_uuid = models.CharField(max_length=500)
     location_uuid = models.CharField(max_length=500)
-    defaulter_cohort_uuid = models.CharField(max_length=500)
+    defaulter_cohort_member_id = models.IntegerField(null=True)
     date_submitted = models.DateTimeField(auto_now=True,db_index=True)
     creator = models.IntegerField(null=True)
     values = models.CharField(max_length=10000)
     enc_uuid = models.CharField(max_length=100,null=True,blank=True)
+
+
+    def get_patient_name(self):
+        p = Patient.get_patient_by_uuid(self.patient_uuid)
+        name = p['given_name'] + ' ' + p['family_name']
+        return name
         
     @staticmethod
-    def process_outreach_form(args):        
+    def process_outreach_form(args,user_id):        
         patient_uuid = args['patient_uuid']        
-        location_uuid = args['location_uuid']
-        #location_uuid = '08feae7c-1352-11df-a1f1-0026b9348838'
-        dc = DefaulterCohort.objects.get(location_uuid=location_uuid,retired=0)
-
-        #provider_uuid = '5b6ee21a-1359-11df-a1f1-0026b9348838' 
+        location_uuid = args['location_uuid']        
         provider_uuid = args['provider_uuid']
         encounter_type_uuid = args['encounter_type_uuid']
         encounter_datetime = args['encounter_datetime']
         obs = []
-
+        
         for key,value in args.iteritems():
             if key.startswith('obs__') and value.strip() != '':
                 question_uuid = key[5:]
@@ -387,13 +390,29 @@ class OutreachFormSubmissionLog(models.Model):
             if key.startswith('attr__') and value.strip() != '':
                 attr_type_uuid = key[6:]       
                 result = PersonAttribute.create_person_attribute_rest(person_uuid=patient_uuid,person_attribute_type_uuid=attr_type_uuid,value=value)
-                
+
+        #patient_uuid = '5ead308a-1359-11df-a1f1-0026b9348838' #BF test 2
+        #location_uuid = '08feae7c-1352-11df-a1f1-0026b9348838' #MTRH 1
+        #provider_uuid = '5cbf8d90-1359-11df-a1f1-0026b9348838' # Romano person_uuid
+        #encounter_type_uuid = '5ead308a-1359-11df-a1f1-0026b9348838' # Outreach
+        #obs = []        
+        '''
+        print 'patient_uuid: ' + str(patient_uuid)
+        print 'location_uuid: ' + str(location_uuid)
+        print 'encounter_datetime: ' + str(encounter_datetime)
+        print 'encounter_type_uuid: ' + str(encounter_type_uuid)
+        print 'provider_id: ' + str(provider_uuid)
+        print 'obs: ' + str(obs)
+        '''
+
         result = Encounter.create_encounter_rest(patient_uuid=patient_uuid,
                                                  encounter_datetime=encounter_datetime,
                                                  location_uuid=location_uuid,
                                                  encounter_type_uuid=encounter_type_uuid,
                                                  provider_uuid=provider_uuid,
                                                  obs=obs)
+
+        if result.get('error',None) : print 'REST Error: ' + str(result['error']['message'])
 
         death_date = args.get('obs__a89df3d6-1350-11df-a1f1-0026b9348838',None)
         patient_status = args.get('obs__7c579743-5ef7-4e2c-839f-5b95597cb01c',None)
@@ -415,21 +434,55 @@ class OutreachFormSubmissionLog(models.Model):
             enc_uuid = result['uuid']
         else: enc_uuid = None
         
+        dcm_id = args.get('defaulter_cohort_member_id',None)
+
         log = OutreachFormSubmissionLog(patient_uuid=patient_uuid,
                                         location_uuid=location_uuid,
-                                        defaulter_cohort_uuid = dc.cohort_uuid,
-                                        creator=request.user.id,                                        
+                                        creator=user_id,
                                         values=vals,
                                         enc_uuid=enc_uuid,
                                         )
         log.save()
-    
+        if dcm_id is not None and dcm_id != '' and dcm_id != 'None':
+            log.defaulter_cohort_member_id = dcm_id
+            log.save()
+            
+            print 'Defaulter_cohort_member_id: ' + str(dcm_id)
+            member = DefaulterCohortMember.objects.get(id=dcm_id)
+            args = {'next_appt_date':encounter_datetime,
+                    'next_encounter_type':"OUTREACHFIELDFU",
+                    }
+            member.update_status(args)
 
-        id = args['defaulter_cohort_member_id']
-        member = DefaulterCohortMember.objects.get(id=id)
 
-        member.retired = 1
-        member.next_encounter_date = encounter_datetime
-        member.next_encounter_type = 'OUTREACHFIELDFU'
-        member.date_retired = datetime.date.today()
-        member.save()
+
+    def resubmit_form(self):
+        print self.values
+        data = json.loads(self.values)
+        
+        result = Encounter.create_encounter_rest(**data)
+        print result
+        has_error = False
+        if 'error' in result: 
+            s = "ERROR: FORM NOT SUBMITTED"
+        else : 
+            enc_uuid = result.get('uuid',None)
+            self.enc_uuid = enc_uuid
+            self.save()
+            s = "SUCCESS: FORM SUBMITTED"
+            
+        return s
+
+
+
+    def obs_check(self):
+        values = json.loads(self.values)
+        obs = values['obs']
+        errors = ''
+        for o in obs:
+            concept_id = o['concept']
+            value = o['value']
+            if not Concept.is_valid_concept_uuid(concept_id): errors += 'INVALID CONCEPT_UUID: ' + concept_id + '\n'
+            if not Concept.is_valid_concept_uuid(value): errors += 'INVALID CONCEPT_UUID: ' + value + '\n'
+            
+        return errors

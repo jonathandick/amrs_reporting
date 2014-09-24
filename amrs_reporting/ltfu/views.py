@@ -96,10 +96,18 @@ def view_patient(request):
     if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
-    defaulter_cohort_member_id = request.GET['defaulter_cohort_member_id']    
-    member = DefaulterCohortMember.objects.get(id=defaulter_cohort_member_id)
-    p = member.get_patient_info()
-    
+    dcm_id = request.GET.get('defaulter_cohort_member_id',None)
+    patient_uuid = request.GET.get('patient_uuid',None)
+    if dcm_id is not None :        
+        member = DefaulterCohortMember.objects.get(id=dcm_id)        
+        p = member.get_patient_info()    
+    else : 
+        qs = DefaulterCohortMember.objects.filter(patient_uuid=patient_uuid,retired=0)
+        if qs.count() > 0 :
+            member = qs[0]
+            p = member.get_patient_info()    
+        else :
+            p = Patient.get_patient_by_uuid(patient_uuid)
     return render(request,'ltfu/view_patient_mobile.html',
                   {'patient':p,}
                   )
@@ -115,19 +123,32 @@ def view_master_defaulter_list(request):
 
 
 
+@login_required
+def patient_search(request):
+    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :        
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+
+    return render(request,'ltfu/patient_search_mobile.html',{})
+
+
+
 
 @login_required
 def outreach_form(request):
-    if not Authorize.authorize(request.user,['superuser']) :
+    if not Authorize.authorize(request.user,['superuser']):
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
     if request.method == 'GET':
-        id = request.GET['defaulter_cohort_member_id'] 
-        member = DefaulterCohortMember.objects.get(id=id)        
-        patient_uuid = member.patient_uuid
-        
-        dc = DefaulterCohort.objects.get(id=member.defaulter_cohort_id)
-        location_uuid = dc.location_uuid
+        dcm_id = request.GET.get('defaulter_cohort_member_id',None)
+        if dcm_id is not None and dcm_id != '':
+            member = DefaulterCohortMember.objects.get(id=dcm_id)
+            patient_uuid = member.patient_uuid
+        else :
+            patient_uuid = request.GET.get('patient_uuid',None)
+
+
+        location_id = RetentionDataset.get_last_clinic_location_id(patient_uuid)
+        location_uuid = Location.get_location(location_id)['uuid']
 
         patient = Patient.get_patient_by_uuid(patient_uuid)
         location = Location.get_location_by_uuid_db(location_uuid)
@@ -142,36 +163,66 @@ def outreach_form(request):
                 'locations':locations,
                 'last_encounter': last_enc,
                 'providers':providers,
-                'defaulter_cohort_member_id':member.id,
+                'defaulter_cohort_member_id':dcm_id,
                 }
-#        return render(request,'ltfu/test.html',{})
+
         return render(request,'ltfu/outreach_form_mobile.html',args)
                 
 
 
 
     elif request.method == 'POST':
-        OutreachFormSubmissionLog.process_outreach_form(request.POST)
+        OutreachFormSubmissionLog.process_outreach_form(request.POST,request.user.id)
         location_uuid = request.POST['location_uuid']
-        defaulter_cohort_member_id = request.POST['defaulter_cohort_member_id']
+
+        defaulter_cohort_member_id = request.POST.get('defaulter_cohort_member_id',None)        
+        #member status is updated during process_outreach_form()
+        if defaulter_cohort_member_id is not None and defaulter_cohort_member_id != '' and defaulter_cohort_member_id != 'None':
+            member = DefaulterCohortMember.objects.get(id=defaulter_cohort_member_id) 
+            patients = json.loads(request.session.get(location_uuid,None))        
+            for p in patients: 
+                if p['uuid'] == member.patient_uuid : 
+                    patients.remove(p)
+                    print 'removed patient'
+
+            patients.append(member.get_patient_info())
+            request.session[location_uuid]=json.dumps(patients, cls=DjangoJSONEncoder)
         
-        member = DefaulterCohortMember.objects.get(id=defaulter_cohort_member_id) 
-
-        patients = request.session['location_uuid']
-
-        for p in patients: 
-            if p['uuid'] == patient_uuid : patients.remove(p)                        
-
-        patients.append(member.get_patient_info())
-        request.session[location_uuid]=json.dumps(patients, cls=DjangoJSONEncoder)
+            dc = DefaulterCohort.objects.get(id=member.defaulter_cohort_id)
         
-        return render(request,'ltfu/view_defaulter_cohort_mobile.html',
-                      {'defaulter_cohort':dc,
-                       'patients':patients}
-                      )
+            return render(request,'ltfu/view_defaulter_cohort_mobile.html',
+                          {'defaulter_cohort':dc,
+                           'patients':patients}
+                          )
+        else :
+            clinics = DefaulterCohort.get_outreach_locations()
+            return render(request,'ltfu/outreach_dashboard_mobile.html',{'clinics':clinics})
 
 
+@login_required
+def view_rest_submission_errors(request):
     
+    qs = OutreachFormSubmissionLog.objects.filter(enc_uuid=None)
+    errors = []
+    return render(request,'ltfu/view_rest_submission_errors.html',{'errors':qs})
+
+
+@login_required
+def ajax_resubmit_outreach_form(request):
+    log_id = request.POST['outreach_form_submission_log_id']
+    print 'LOG ID: ' + str(log_id)
+    log = OutreachFormSubmissionLog.objects.get(id=log_id)
+    result = log.resubmit_form()
+    return HttpResponse(result,content_type='application/json')
+
+
+
+@login_required
+def delete_outreach_form_submission_log(request):
+    id = int(request.GET['id'])
+    OutreachFormSubmissionLog.objects.get(id=id).delete()
+    return HttpResponseRedirect('/ltfu/view_rest_submission_errors')
+
 
 @login_required
 def index(request):
@@ -717,11 +768,6 @@ def view_reason_missed_appt(request):
                   )
 
 
-def update_defaulter_cohorts(request):
-    cohorts = DefaulterCohort.update_defaulter_cohorts()
-    return render(request,'ltfu/update_cohorts.html',{'num_cohorts':len(cohorts)})
-
-
 @login_required
 def manage_defaulter_cohorts(request):    
     if not Authorize.authorize(request.user,['superuser']) :
@@ -1020,30 +1066,25 @@ def view_data_entry_stats(request):
 
 @login_required    
 def test(request):
-
-    location = Location.get_location_by_uuid_db('090090d4-1352-11df-a1f1-0026b9348838')
-    print 'finisehd getting location'
-    locations = Location.get_locations()
-    print 'finished getting locations'
-    providers = Provider.get_outreach_providers()
-    print 'finished getting providers'
-
-    return render(request,'ltfu/test.html',{})
+    
+    qs = OutreachFormSubmissionLog.objects.filter(enc_uuid=None)
+    for o in qs:
+        print o.obs_check()
+    
+    #print Concept.is_valid_concept_uuid('adfasd')
+    return render(request,'ltfu/patient_search_mobile.html',{})
     
 
 
 @login_required
 def ajax_patient_search(request):
-    print request.POST
     search_string = request.POST['search_string']
-    print search_string
 
     patients = ''
     if len(search_string) >= 3 :
-        patients = Patient.get_patients(search_string)
+        patients = Patient.search_patients(search_string)
     data = json.dumps(patients)
-    print data[0:100]
-    print 'returning ajax data'
+    print 'returning ajax patient search'
     return HttpResponse(data,content_type='application/json')
 
 

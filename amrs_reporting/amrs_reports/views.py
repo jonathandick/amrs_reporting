@@ -26,7 +26,7 @@ def index(request):
     device = u.get_device(request)
 
     if device['is_mobile']: return render(request, "amrs_reports/index_mobile.html",{})
-    else : return render(request, "amrs_reports/index_mobile.html",{})
+    else : return render(request, "amrs_reports/index.html",{})
                          
 
 

@@ -9,7 +9,14 @@ $(document).ready(function () {
 
   //For unclear reason the a href was not working directly has the following
   $('#form_link').click(function() {
-     window.location = '/ltfu/outreach_form?defaulter_cohort_member_id=' + $('#form_link').attr('d_id');
+     var d_id = $('#form_link').attr('d_id');
+     var p_id = $('#form_link').attr('p_id');
+     if(d_id != "") {
+         window.location = '/ltfu/outreach_form?defaulter_cohort_member_id=' + d_id;
+     }
+     else {
+         window.location = '/ltfu/outreach_form?patient_uuid=' + p_id;
+     }
   });
 });
 
@@ -27,6 +34,6 @@ Last RTC Date : {{patient.last_rtc_date}} ({{patient.days_since_rtc_date}} days 
 {%endif%}
 
 <ul data-role="listview">
-  <li><a id="form_link" d_id="{{patient.defaulter_cohort_member_id}}" href="#">Enter</a></li>
+  <li><a id="form_link" d_id="{{patient.defaulter_cohort_member_id}}" p_id="{{patient.uuid}}" href="#">Enter Outreach Form</a></li>
 </ul>
 {% endblock %}

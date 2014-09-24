@@ -38,7 +38,7 @@ def my_login(request):
     else :
         device = get_device(request)
         if device['is_mobile']: return render(request,'amrs_user_validation/mobile_login.html',{})            
-        else : return render(request,'amrs_user_validation/mobile_login.html',{})
+        else : return render(request,'amrs_user_validation/login.html',{})
 
 
 @login_required

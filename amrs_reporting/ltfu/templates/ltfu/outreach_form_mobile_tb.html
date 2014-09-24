@@ -7,31 +7,45 @@
 
 
 <head>
-  <title>AMPATH+ Outreach v1.0</title>
+  <title>AMRS Retention v1.0</title>
   
   <script type="text/javascript" src="{% static 'js/jquery-1.10.2.min.js'%}"></script>  
 
-
-
-  <script type="text/javascript" src="{% static 'js/jquery-ui-1.10.3.custom/js/jquery-ui-1.10.3.custom.min.js'%}"></script>  
-  <link rel="stylesheet" type="text/css" href="{% static 'js/jquery-ui-1.10.3.custom/css/smoothness/jquery-ui-1.10.3.custom.min.css'%}" />     
-
   <script type="text/javascript" src="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.js'%}"></script>  
-  <link rel="stylesheet" type="text/css" href="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.css'%}" />     
+  <link rel="stylesheet" type="text/css" href="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.css'%}"/>     
 
+  <script type="text/javascript" src="{% static 'js/bootstrap/js/bootstrap.min.js'%}"></script>  
+  <link rel="stylesheet" type="text/css" href="{% static 'js/bootstrap/css/bootstrap.min.css'%}">     
+  
+  
   <script type="text/javascript" src="{% static 'js/jquery-validation-1.13.0/dist/jquery.validate.min.js'%}"></script>  
   
-  <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_layout.css'%}" />
-  <meta content='initial-scale=0.01, maximum-scale=0.01,  name='viewport' /> 
-<script>
+  <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_layout.css'%}"/>
 
- $( document ).bind( "mobileinit", function(){
-    $.mobile.page.prototype.options.degradeInputs.date = true;
-  });
+
+
+
+
+<script>
 
 $(document).ready(function() {
 
-  
+//The following reloads the patient once. This is a temporary fix to a bug with jquery mobile tabs widget.
+
+$('#tabs-1 a').click(function (e) {
+  e.preventDefault()
+  $(this).tab('show')
+})
+$('#tabs-2 a').click(function (e) {
+  e.preventDefault()
+  $(this).tab('show')
+})
+$('#tabs-3 a').click(function (e) {
+  e.preventDefault()
+  $(this).tab('show')
+})
+
+
   $("#contacted_by_phone").change(function () {
      if($("#contacted_by_phone option:selected").text().toLowerCase() === 'yes') {
          $("#refer_for_field_follow_up").removeAttr('required').attr('disabled','disabled').val('');
@@ -79,15 +93,7 @@ $(document).ready(function() {
      
   });
   
-  $("#contacted_by_phone").change(function() {
-      if($("#contacted_by_phone option:selected").text() == "Yes") {
-           $("#date_found").val($("#encounter_datetime").val());
-           $("#location_of_contact").val("a89de832-1350-11df-a1f1-0026b9348838");
-           $("#location_of_contact").trigger("chosen:updated"); 
-      }
 
-  });
- 
 
   $("#outreach_form").validate({
       debug: false,
@@ -177,73 +183,28 @@ $(document).ready(function() {
   $("#provider_uuid").rules("add",{required:true});
   $("#encounter_datetime").rules("add",{required:true});
 
-
-
-  $("#tabs-1").show();
-  $("#tabs-2").hide();
-  $("#tabs-3").hide();
-  $("#tabs-4").hide();
-  $("#tabs-5").hide();
-
-  
-  $("#tabs-1-link").click(function() { 
-      $("#tabs-1").show();
-      $("#tabs-2").hide();
-      $("#tabs-3").hide();
-      $("#tabs-4").hide();
-      $("#tabs-5").hide();
-  });
-
-
-$("#tabs-2-link").click(function() { 
-      $("#tabs-2").show();
-      $("#tabs-1").hide();
-      $("#tabs-3").hide();
-      $("#tabs-4").hide();
-      $("#tabs-5").hide();
-  });
-
-
-$("#tabs-3-link").click(function() { 
-      $("#tabs-3").show();
-      $("#tabs-1").hide();
-      $("#tabs-2").hide();
-      $("#tabs-4").hide();
-      $("#tabs-5").hide();
-  });
-
-
-$("#tabs-4-link").click(function() { 
-      $("#tabs-4").show();
-      $("#tabs-1").hide();
-      $("#tabs-2").hide();
-      $("#tabs-3").hide();
-      $("#tabs-5").hide();
-  });
-
-
-$("#tabs-5-link").click(function() { 
-      $("#tabs-5").show();
-      $("#tabs-1").hide();
-      $("#tabs-2").hide();
-      $("#tabs-3").hide();
-      $("#tabs-4").hide();
-  });
-
-$("#return_to_dashboard").click(function() {
-    if(confirm("Do you want to return to this patient's dashboard? (The form will not be submitted)")) {
-         window.location = '/ltfu/view_patient?patient_uuid={{patient.uuid}}';
-    }
-});
-    
-
-
 } );
 
 
 
 </script>
+<script type='text/javascript'>
 
+(function()
+{
+  if( window.localStorage )
+  {
+    if( !localStorage.getItem( 'firstLoad' ) )
+    {
+      localStorage[ 'firstLoad' ] = true;
+      window.location.reload();
+    }  
+    else
+      localStorage.removeItem( 'firstLoad' );
+  }
+})();
+
+</script>
 </head>
 
 <body>
@@ -255,32 +216,23 @@ $("#return_to_dashboard").click(function() {
 	     name="patient_uuid" type="hidden" value='{{patient.uuid}}'/>
   <input type='hidden' name='encounter_type_uuid' value='{{encounter_type.uuid}}'/>
   <input type='hidden' name='location_uuid' value='{{location.uuid}}'/>
-  <input type='hidden' name='defaulter_cohort_member_id' value='{{defaulter_cohort_member_id}}'/>
-
   
-    <div data-role="navbar">
-      <ul>
-	<li><a href='#tabs-1' data-ajax="false" id='tabs-1-link'>Demographics</a></li>
-	<li><a href='#tabs-2' data-ajax="false" id='tabs-2-link'>Phone Follow-up</a></li>
-	<li><a href='#tabs-3' data-ajax="false" id='tabs-3-link'>Field Follow-up</a></li>
-	<li><a href='#tabs-4' data-ajax="false" id='tabs-4-link'>If Found</a></li>
-	<li><a href='#tabs-5' data-ajax="false" id='tabs-5-link'>Finish</a></li>
-	<li><a href="#" data-ajax="false" id="return_to_dashboard">Patient Dashboard</a></li>
-      </ul>
-    </div>
-    <div id="tabs-1">
+  <ul class="nav nav-tabs" role="tablist">
+    <li class="active"><a href='#tabs-1' role="tab" data-toggle="tab">Demographics</a></li>
+    <li><a href='#tabs-2' role="tab" data-toggle="tab">Phone Follow-up</a></li>
+    <li><a href='#tabs-3' role="tab" data-toggle="tab">Field Follow-up</a></li>
+    <li><a href='#tabs-4' role="tab" data-toggle="tab">If Found</a></li>
+    <li><a href='#tabs-5' role="tab" data-toggle="tab">Finish</a></li>
+    <li><a href='#'role="tab" data-toggle="tab"/></li>
+  </ul>
+  
+  <div class="tab-content">
+    <div id="tabs-1" class="tab-pane">
       <div class="form-group">
         <label for="encounter_datetime">Encounter Date:</label>
-        <input id="encounter_datetime" name="encounter_datetime" type="date"/>
+        <input id="encounter_datetime" name="encounter_datetime" type="date" data-role="date"/>
       </div>
-      <div class="form-group">
-	<label for="phone_number">Phone:</label>
-	<input class="form-control phoneNumber" id="phone_number" name="attr__72a759a8-1359-11df-a1f1-0026b9348838" type="tel" value="{{patient.phone_number}}"/>
-      <div class="form-group">
-        <label for="missed_return_visit_date">Missed appointment date:</label>
-        <input data-concept="1592^MISSED RETURN VISIT DATE^99DCT" id="missed_return_visit_date" 
-	       name="obs__a89e3896-1350-11df-a1f1-0026b9348838" value='{{last_encounter.rtc_date|date:"Y-m-d"}}' type="date"/>
-      </div>
+
       <label for="patient.medical_record_number">AMRS ID Number:</label>
       <input class="form-control" id="patient.medical_record_number"
 	     name="patient.medical_record_number" type="text" value = "{{patient.identifier}}" readonly/>
@@ -308,6 +260,9 @@ $("#return_to_dashboard").click(function() {
 	<input id="patient.birthdate" name="patient.birthdate" type="text"
 	       readonly="readonly" value='{{patient.birthdate}}'/>
       </div>
+      <div class="form-group">
+	<label for="phone_number">Phone:</label>
+	<input class="form-control phoneNumber" id="phone_number" name="attr__72a759a8-1359-11df-a1f1-0026b9348838" type="tel" value="{{patient.phone_number}}"/>
       </div>   
       <div class="form-group">
         <label for="clinic_name">Clinic:</label>
@@ -322,20 +277,17 @@ $("#return_to_dashboard").click(function() {
         <label for="prev_encounter_type">Last Encounter Type:</label>
         <input value='{{last_encounter.encounter_type}}' type="text" readonly size='50'/>
       </div>	
+      <div class="form-group">
+        <label for="missed_return_visit_date">Missed appointment date:</label>
+        <input data-concept="1592^MISSED RETURN VISIT DATE^99DCT" id="missed_return_visit_date" 
+	       name="obs__a89e3896-1350-11df-a1f1-0026b9348838" value='{{last_encounter.rtc_date|date:"Y-m-d"}}' type="date"/>
+      </div>
     </div>
     
-    <div id="tabs-2">
+    <div id="tabs-2" class="tab-pane">
       <div class="form-group">
 	<label for="obs.number_of_call_attempts">Number of call attempts:</label>
-	<select id="obs.number_of_call_attempts" type="text" name="obs__e6c52d7e-3e25-4a83-8f9c-55a03bdc653a">
-	  <option/>
-	  <option>1</option>
-	  <option>2</option>
-	  <option>3</option>
-	  <option>4</option>
-	  <option>5</option>
-	  <option value=6>More than 5</option>
-	</select>
+	<input id="number_of_call_attempts" type="text" name="obs__e6c52d7e-3e25-4a83-8f9c-55a03bdc653a"></input>	          
       </div>
       <div class="form-group">	
 	<label for="contacted_by_phone">Was the patient contacted by phone?</label>
@@ -362,7 +314,7 @@ $("#return_to_dashboard").click(function() {
 	</select>
       </div>
       <div class="form_group">
-	<label for='refor_for_field_follow_up'>If not contacted, refer for field follow-up?</label>
+	<label>If not contacted, refer for field follow-up?</label>
         <select class="form-control" id='refer_for_field_follow_up' name="obs__3cef9756-ae0e-4b35-9ee2-b0fb96556971"
 		data-concept="9067^REFER FOR FIELD FOLLOW-UP^99DCT">
 	  <option/>
@@ -375,7 +327,7 @@ $("#return_to_dashboard").click(function() {
       </div>
     </div>
 
-    <div id='tabs-3'>
+    <div id='tabs-3' class="tab-pane">
       <div class="form-group">
         <label for="contacted_in_field">Was the patient found?:</label>
 	<select class="form-control" id="contacted_in_field" name="obs__3cef9756-ae0e-4b35-9ee2-b0fb96556971">
@@ -405,11 +357,11 @@ $("#return_to_dashboard").click(function() {
       </div>	    
       <div class="form-group">
 	<label for="obs.number_of_days_of_remaining_arv_medication">Does the patient have medications remaining? If yes, # of days worth:</label>
-	<input id="obs.number_of_days_of_remaining_arv_medication" type="text" 
+	<input id="obs.number_of_days_of_remaining_arv_medication" type="text" oldname='1816'
 	       name="obs__a89fe006-1350-11df-a1f1-0026b9348838"/>
       </div>
     </div>
-    <div id='tabs-4'>
+    <div id='tabs-4' class="tab-pane">
       <div class="form-group"> 
 	<label for="date_found">Date Found:</label>
         <input class="form-control datepicker" data-concept="1568^DATE FOUND^99DCT" id="date_found" 
@@ -431,6 +383,7 @@ $("#return_to_dashboard").click(function() {
       <div data-role="fieldcontain">
 	<fieldset data-role="controlgroup">
 	  <legend>Reason for Missed Visit:</legend>
+
       	  <input name="obs__a89ef11e-1350-11df-a1f1-0026b9348838" id='obs.reason_for_missed_visit.deceased' 
 		 type='checkbox' value='a89335d6-1350-11df-a1f1-0026b9348838' oldvalue='159^DECEASED^99DCT' class="custom" data-mini="true"/>
     	  <label for='obs.reason_for_missed_visit.deceased'>Deceased </label>  
@@ -565,7 +518,7 @@ $("#return_to_dashboard").click(function() {
 	</select>
       </div>
     </div>
-    <div id='tabs-5'>
+    <div id='tabs-5' class="tab-pane">
       <div class="form-group">
 	<label for='patient_status'>What's the patients clinical status?</label>
 	<select id='patient_status' name="obs__7c579743-5ef7-4e2c-839f-5b95597cb01c" data-concept="9082^PATIENT CARE STATUS^99DCT">
@@ -622,7 +575,7 @@ $("#return_to_dashboard").click(function() {
       </div>
       
     </div>    
-  </div>	
+  </div>
 </form>
 </body>
 </html>

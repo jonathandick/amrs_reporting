@@ -29,7 +29,9 @@ def outreach_dashboard(request):
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
     
     clinics = DefaulterCohort.get_outreach_locations()
-    return render(request,'ltfu/outreach_dashboard_mobile.html',{'clinics':clinics})
+    device = get_device(request)
+    return render(request,'ltfu/outreach_dashboard_mobile.html',{'clinics':clinics,
+                                                                 'device':device,})
 
 
 @login_required
@@ -38,8 +40,10 @@ def outreach_clinic_dashboard(request):
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
     location = Location.get_location(location_uuid)
     defaulter_cohort = DefaulterCohort.objects.filter(location_uuid=location_uuid,retired=0)[0]
+    device = get_device(request)
     return render(request,'ltfu/outreach_clinic_dashboard_mobile.html',{'location':location,
-                                                                        'defaulter_cohort':defaulter_cohort})
+                                                                        'defaulter_cohort':defaulter_cohort,
+                                                                        'device':device})
     
     
 
@@ -57,11 +61,12 @@ def view_defaulter_cohort(request):
     else :
         patients = dc.get_patients()        
         request.session[dc.location_uuid] = json.dumps(patients, cls=DjangoJSONEncoder)
-
-
+        
+    device = get_device(request)
     return render(request,'ltfu/view_defaulter_cohort_mobile.html',
                   {'defaulter_cohort':dc,
-                   'patients':patients}
+                   'patients':patients,
+                   'device':device}
                   )
 
 
@@ -83,10 +88,11 @@ def create_defaulter_cohort(request):
     patients = dc.get_patients()
 
     request.session[dc.location_uuid]=json.dumps(patients, cls=DjangoJSONEncoder)
-
+    device = get_device(request)
     return render(request,'ltfu/view_defaulter_cohort_mobile.html',
                   {'defaulter_cohort':dc,
-                   'patients':patients}
+                   'patients':patients,
+                   'device':device}
                   )
     
     
@@ -108,8 +114,10 @@ def view_patient(request):
             p = member.get_patient_info()    
         else :
             p = Patient.get_patient_by_uuid(patient_uuid)
+    device = get_device(request)
     return render(request,'ltfu/view_patient_mobile.html',
-                  {'patient':p,}
+                  {'patient':p,
+                   'device':device}
                   )
     
 
@@ -128,14 +136,15 @@ def patient_search(request):
     if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
-    return render(request,'ltfu/patient_search_mobile.html',{})
+    device = get_device(request)
+    return render(request,'ltfu/patient_search_mobile.html',{'device':device})
 
 
 
 
 @login_required
 def outreach_form(request):
-    if not Authorize.authorize(request.user,['superuser']):
+    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']):
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
     if request.method == 'GET':
@@ -148,7 +157,11 @@ def outreach_form(request):
 
 
         location_id = RetentionDataset.get_last_clinic_location_id(patient_uuid)
-        location_uuid = Location.get_location(location_id)['uuid']
+        print 'locatoin: ' + str(location_id)
+        if location_id is not None and location_id != '':
+            location_uuid = Location.get_location(location_id)['uuid']
+        else : location_uuid = '08feae7c-1352-11df-a1f1-0026b9348838'
+
 
         patient = Patient.get_patient_by_uuid(patient_uuid)
         location = Location.get_location_by_uuid_db(location_uuid)
@@ -157,6 +170,8 @@ def outreach_form(request):
         encounter_type = EncounterType.get_encounter_type_by_uuid('df5547bc-1350-11df-a1f1-0026b9348838') #outreach
         last_enc = Encounter.get_last_encounter_db(patient_uuid)
 
+        device = get_device(request)
+                
         args = {'patient':patient,
                 'encounter_type':encounter_type,
                 'location':location,
@@ -164,6 +179,7 @@ def outreach_form(request):
                 'last_encounter': last_enc,
                 'providers':providers,
                 'defaulter_cohort_member_id':dcm_id,
+                'device':device,
                 }
 
         return render(request,'ltfu/outreach_form_mobile.html',args)

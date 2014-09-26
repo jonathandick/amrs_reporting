@@ -15,6 +15,7 @@ from report.models import Report, ReportTable, ReportTableParameter, ReportMembe
 import ast
 # from weasyprint import HTML, default_url_fetcher, CSS
 from amrs_user_validation.models import Authorize
+from amrs_interface.models import *
 from ltfu.models import DefaulterCohort
 import utilities as u
 # Admin *********************************************************************************
@@ -247,6 +248,12 @@ def get_system_time(request):
 
 def update_datasets(request):
     pass
+
+
+def view_sync_stats(request):
+    stats = RetentionDataset.get_sync_stats()
+    return render(request,'amrs_reports/view_sync_stats.html',{'stats':stats})
+
 
 
 # Utility Functions ********************************************************************************

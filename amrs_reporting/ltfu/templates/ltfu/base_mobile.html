@@ -17,8 +17,13 @@
   <script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.9.4/media/js/jquery.dataTables.js'%}"></script>
   <link type="text/css" rel="stylesheet" href="{% static 'js/DataTables-1.9.4/media/css/demo_table_jui.css'%}"/>
 
+
+{% if device.huawei %}
+  <meta content='initial-scale=0.25, maximum-scale=0.25, user-scalable=no' name='viewport' />   
+  <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_huawei.css'%}" />
+{% else %}
   <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_layout.css'%}" />
-  
+{%endif%}
 
 {% block alert_style %}{% endblock %}
 
@@ -32,13 +37,12 @@
 
 <body>
 <div id="wrapper" style="padding-top:10px;">
-  <br/><br />
   <div id="header">
     <table width='100%'>
       <tr>
-	<td><div id='wordmark'><img src='{% static "amrs_reports/images/ampath_logo.png" %}'/></div></td>	     
+	<td>{%if not device.huawei %}<div id='wordmark'><img src='{% static "amrs_reports/images/ampath_logo.png" %}'/>{%endif%}</div></td>	     
 	<td>
-	  <foo>&nbsp;&nbsp;<font size="+4">AMPATH+ Outreach</font></foo><small>mobile version 1.0 </small>
+	  <foo>&nbsp;&nbsp;AMPATH+ Outreach</font></foo><small>v1.0 </small>
 	</td>
 	<td valign='bottom'>
 	  <ul id='links'>

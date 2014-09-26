@@ -26,8 +26,8 @@ import re
 def get_device(request):
 
     device = {}
-    ua = request.META.get('HTTP_USER_AGENT', '').lower()    
-
+    ua = request.META.get('HTTP_USER_AGENT', '').lower()
+    print ua
     if ua.find("iphone") > 0:
         device['iphone'] = "iphone" + re.search("iphone os (\d)", ua).groups(0)[0]
 
@@ -45,6 +45,9 @@ def get_device(request):
 
     if ua.find("iemobile") > 0:
         device['winmo'] = "winmo"
+
+    if ua.find("huawei") >0 :
+        device['huawei'] = "huawei"
 
  
     # either desktop, or something we don't care about.

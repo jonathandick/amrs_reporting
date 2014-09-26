@@ -454,6 +454,40 @@ class Encounter():
 class RetentionDataset():
     
     @staticmethod
+    def get_sync_stats():
+        con = None
+        results = {}
+        try :
+            sql = 'select count(*) as retention_count, max(enc_date_created) as retention_max from reporting_JD.flat_retention_data'
+            con = mdb.connect(settings.HOST,settings.USER,settings.PASSWORD,settings.DATABASE)
+            cur = con.cursor(mdb.cursors.DictCursor)
+            cur.execute(sql)
+            row = cur.fetchone()
+            results['retention_max'] = row['retention_max']
+            results['retention_count'] = row['retention_count']
+
+            print results
+            sql = 'select count(*) as encounter_count, max(date_created) as encounter_max from amrs.encounter where voided=0'
+            sql += ' and encounter_type in (1,2,3,4,10,13,14,15,17,19,22,23,26,43,47,21)'            
+            con = mdb.connect(settings.HOST,settings.USER,settings.PASSWORD,settings.DATABASE)
+            cur = con.cursor(mdb.cursors.DictCursor)
+            cur.execute(sql)
+            row = cur.fetchone()
+            results['encounter_max'] = row['encounter_max']
+            results['encounter_count'] = row['encounter_count']
+            print results
+        except Exception, e:
+            print e
+
+        finally:
+            if con : con.close()
+
+        return results
+        
+
+
+
+    @staticmethod
     def get_encounter(encounter_id):
         encounter = {}
         con = None

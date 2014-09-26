@@ -187,7 +187,6 @@ class AMRSUser(models.Model):
     def get_location_privileges(self):
         return LocationPrivilege.objects.filter(user_id=self.id)
 
+
     def get_location_privilege_ids(self):
         return LocationPrivilege.objects.filter(user_id=self.id).values_list('location_id',flat=True)
-        
-                   

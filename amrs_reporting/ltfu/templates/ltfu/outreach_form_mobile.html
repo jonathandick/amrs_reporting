@@ -1,33 +1,17 @@
+{% extends "ltfu/base_mobile.html" %}
 {% load staticfiles %}
+{% load ltfu_filters %}
 
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+{% block content %}
 
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-
-
-<head>
-  <title>AMPATH+ Outreach v1.0</title>
-  
-  <script type="text/javascript" src="{% static 'js/jquery-1.10.2.min.js'%}"></script>  
+<script type="text/javascript" src="{% static 'js/jquery-validation-1.13.0/dist/jquery.validate.min.js'%}"></script>  
 
 
+  <script type="text/javascript" src="{% static 'js/jquery-ui-1.10.4.datepicker/js/jquery-ui-1.10.4.custom.min.js'%}"></script>  
+  <link rel="stylesheet" type="text/css" href="{% static 'js/jquery-ui-1.10.4.datepicker/css/ui-lightness/jquery-ui-1.10.4.custom.min.css'%}" />     
 
-  <script type="text/javascript" src="{% static 'js/jquery-ui-1.10.3.custom/js/jquery-ui-1.10.3.custom.min.js'%}"></script>  
-  <link rel="stylesheet" type="text/css" href="{% static 'js/jquery-ui-1.10.3.custom/css/smoothness/jquery-ui-1.10.3.custom.min.css'%}" />     
 
-  <script type="text/javascript" src="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.js'%}"></script>  
-  <link rel="stylesheet" type="text/css" href="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.css'%}" />     
-
-  <script type="text/javascript" src="{% static 'js/jquery-validation-1.13.0/dist/jquery.validate.min.js'%}"></script>  
-  
-  <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_layout.css'%}" />
-  <meta content='initial-scale=0.01, maximum-scale=0.01,  name='viewport' /> 
 <script>
-
- $( document ).bind( "mobileinit", function(){
-    $.mobile.page.prototype.options.degradeInputs.date = true;
-  });
 
 $(document).ready(function() {
 
@@ -237,18 +221,23 @@ $("#return_to_dashboard").click(function() {
 });
     
 
+var t = new Date()
+$("#encounter_datetime").val($.datepicker.formatDate('yy-mm-dd',new Date()));
+
+{%if device.huawei %}
+$("#encounter_datetime").datepicker({dateFormat:'yy-mm-dd'});
+$("#missed_return_visit_date").datepicker({dateFormat:'yy-mm-dd'});
+$("#date_found").datepicker({dateFormat:'yy-mm-dd'});
+$("#return_visit_date").datepicker({dateFormat:'yy-mm-dd'});
+$("#date_of_death").datepicker({dateFormat:'yy-mm-dd'});
+{% endif %} 
+
 
 } );
 
 
 
 </script>
-
-</head>
-
-<body>
-
-
 <form id="outreach_form" name="outreach_form" method='post' action='/ltfu/outreach_form'>
   {%csrf_token%}    
       <input class="form-control" id="patient_uuid"
@@ -271,7 +260,7 @@ $("#return_to_dashboard").click(function() {
     <div id="tabs-1">
       <div class="form-group">
         <label for="encounter_datetime">Encounter Date:</label>
-        <input id="encounter_datetime" name="encounter_datetime" type="date"/>
+        <input id="encounter_datetime" name="encounter_datetime" type="date" required/>
       </div>
       <div class="form-group">
 	<label for="phone_number">Phone:</label>
@@ -428,7 +417,7 @@ $("#return_to_dashboard").click(function() {
 	  <option value="a8aaf3e2-1350-11df-a1f1-0026b9348838" oldvalue="5622^OTHER NON-CODED^99DCT">Other</option>
 	</select>
       </div>
-      <div data-role="fieldcontain">
+      <div data-role="ui-field-contain">
 	<fieldset data-role="controlgroup">
 	  <legend>Reason for Missed Visit:</legend>
       	  <input name="obs__a89ef11e-1350-11df-a1f1-0026b9348838" id='obs.reason_for_missed_visit.deceased' 
@@ -496,13 +485,13 @@ $("#return_to_dashboard").click(function() {
 		 value="057dae68-3d6f-4d79-926c-ed75a0ce7fd5" oldvalue='6419^ADMITTED TO HOSPITAL^99DCT' class="custom" data-mini="true"/>
     	  <label for='obs.reason_for_missed_visit.admitted_to_hospital'>Patient was admitted</label>  
           
+	  <input name="obs__a89ef11e-1350-11df-a1f1-0026b9348838" id='obs.reason_for_missed_visit.refusal' type='checkbox' 
+		 value="a89d25fa-1350-11df-a1f1-0026b9348838" oldvalue='1504^REFUSAL^99DCT' class="custom" data-mini="true"/>
+    	  <label for='obs.reason_for_missed_visit.refusal'>Patient Refused</label>  
+	  
 	  <input name="obs__a89ef11e-1350-11df-a1f1-0026b9348838" id='obs.reason_for_missed_visit.other_non_coded' type='checkbox' 
 		 value="a8aaf3e2-1350-11df-a1f1-0026b9348838" oldvalue='5622^OTHER NON-CODED^99DCT' class="custom" data-mini="true"/>
     	  <label for='obs.reason_for_missed_visit.other_non_coded'>Other</label>  
-	  
-	  <input name="obs__a89ef11e-1350-11df-a1f1-0026b9348838" id='obs.reason_for_missed_visit.refusal' type='checkbox' 
-		 value="a89d25fa-1350-11df-a1f1-0026b9348838" oldvalue='1504^REFUSAL^99DCT' class="custom" data-mini="true"/>
-    	  <label for='obs.reason_for_missed_visit.refusal'>Other</label>  
 	  
         </fieldset>	
       </div>
@@ -624,5 +613,5 @@ $("#return_to_dashboard").click(function() {
     </div>    
   </div>	
 </form>
-</body>
-</html>
+
+{%endblock%}

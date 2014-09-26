@@ -20,12 +20,12 @@ urlpatterns = patterns('',
                        url(r'^amrs_reports/create_report_table/?$',views.create_report_table),                       
                        url(r'^amrs_reports/delete_report_table/?$',views.delete_report_table),                       
                        url(r'^amrs_reports/run_report_table/?$',views.run_report_table),
-
                        url(r'^amrs_reports/create_report/?$',views.create_report),                       
                        url(r'^amrs_reports/delete_report/?$',views.delete_report),                       
                        url(r'^amrs_reports/run_report/?$',views.run_report),
                        url(r'^amrs_reports/get_report_as_pdf/?$',views.get_report_as_pdf),
                        url(r'^amrs_reports/update_datasets/?$',views.update_datasets),
+                       url(r'^amrs_reports/view_sync_stats/?$',views.view_sync_stats),                       
                        ) 
 urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) 
 urlpatterns += amrs_user_validation_urls.urlpatterns 

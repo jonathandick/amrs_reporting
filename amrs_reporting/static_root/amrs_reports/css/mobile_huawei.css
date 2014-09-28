@@ -1,3 +1,14 @@
+h2 a.ui-btn {
+    font-size:28px;
+}
+
+.ui-header, .ui-title {
+   font-size: 24px;
+   background-color: #E9DEFF;
+   color: black;
+   margin: 0;
+}
+
 .large-font {
     font-size: large;
 }

@@ -3,7 +3,25 @@
 {% load ltfu_filters %}
 
 {% block content %}
+<link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/table_mobile.css'%}" />
 <script>
+
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 
 $(document).ready(function () {
 
@@ -17,23 +35,94 @@ $(document).ready(function () {
      else {
          window.location = '/ltfu/outreach_form?patient_uuid=' + p_id;
      }
-  });
+   });
+
+   var csrftoken = getCookie('csrftoken');
+   $.ajaxSetup({
+        headers: { "X-CSRFToken": csrftoken }
+   });
+
+   $("#update_phone_number_button").click(function() {
+       var num = $("#phone_number").val().trim();
+       if(num.length != 10) {
+            alert('This phone number has ' + num.length + ' digits. Phone number must be 10 digits and contain no spaces. For example: 0724123456.');
+       }
+       else {
+            if(confirm('Are you sure you want to update this phone number?')) {
+               var d = {phone_number:$("#phone_number").val().trim(),patient_uuid:$("#patient_uuid").val()};
+               $.ajax({
+                       type: "POST",
+                       url: "/ltfu/ajax_update_phone_number",
+                       data: d,
+                       dataType: "json",
+                       success: onSuccessUpdatePhoneNumber,
+                       error : function(xhr,errmsg,err) {
+                                alert(xhr.status + ": " + errmsg);
+                       }
+                });
+             }
+        }
+   });
+
+   function onSuccessUpdatePhoneNumber(response) { alert('Phone number updated');}
+  
+
 });
 
 </script>
 
 
-<span class='large-font'>
-{{patient.given_name}} {{patient.middle_name}} {{patient.family_name}}<br/>
-Phone: {{patient.phone_number}}<br/>
-Last Encounter : {{patient.last_encounter_date}} : {{patient.last_encounter_type}} <br/>
-Last RTC Date : {{patient.last_rtc_date}} ({{patient.days_since_rtc_date}} days since last RTC date)<br/>
-</span>
+<ul data-role="listview">
+  <li data-role="header">
+  Patient: {{patient.given_name}} {{patient.middle_name}} {{patient.family_name}}
+  </li>
+  <li style="font-size:large">Identifier(s): {{patient.identifier}}</li>
+  <li style="font-size:large">Birthdate: {{patient.birthdate|slice:":10"}}</li>
+  <li data-role="fieldcontain">
+    <div class='ui-grid-b'>
+      <div class='ui-block-a' style="font-size:large;width:12%;">Phone Number:</div>
+      <div class='ui-block-b' style="width:44%"><input name="phone_number" id="phone_number" type="tel" size='10' value="{{patient.phone_number}}"/></div>	
+      <div class='ui-block-c' style="width:44%">
+	<input type='hidden' id='patient_uuid' value='{{patient.uuid}}'/>
+	<input type="button" id="update_phone_number_button" value="Update"/>
+      </div>
+    </div>
+  </li>
+  
+</ul>
+
 {% if patient.next_encounter_date %}
 <b>This patient had a {{patient.next_encounter_type}} encounter on {{patient.next_encounter_date}}</b>
 {%endif%}
 
-<ul data-role="listview">
-  <li><a id="form_link" d_id="{{patient.defaulter_cohort_member_id}}" p_id="{{patient.uuid}}" href="#">Enter Outreach Form</a></li>
-</ul>
+
+<div data-role='collapsible'>
+  <h2>Encounters</h2>  
+  <div class="CSSTableGenerator">
+    <table>
+      <tr>
+	<td>Date</td>
+	<td>Type</td>
+	<td>Location</td>
+	<td>RTC Date</td>
+      </tr>
+      {% for e in encounters %}
+      <tr>
+	<td>{{e.encounter_datetime|date:"Y-m-d"}}</td>
+	<td>{{e.encounter_type_name}}</td>
+	<td>{{e.location_name}}</td>
+	<td>{{e.rtc_date|date:"Y-m-d"}}</td>
+      </tr>
+      {%endfor%}
+    </table>	
+  </div>
+</div>
+
+<div data-role='collapsible'>
+  <h2>Forms</h2>
+  <ul data-role="listview">
+    <li><a id="form_link" d_id="{{patient.defaulter_cohort_member_id}}" p_id="{{patient.uuid}}" href="#">Enter Outreach Form</a></li>
+  </ul>
+</div>
+
 {% endblock %}

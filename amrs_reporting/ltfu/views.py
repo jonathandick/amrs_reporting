@@ -106,7 +106,8 @@ def view_patient(request):
     patient_uuid = request.GET.get('patient_uuid',None)
     if dcm_id is not None :        
         member = DefaulterCohortMember.objects.get(id=dcm_id)        
-        p = member.get_patient_info()    
+        p = member.get_patient_info()
+        patient_uuid = p.patient_uuid
     else : 
         qs = DefaulterCohortMember.objects.filter(patient_uuid=patient_uuid,retired=0)
         if qs.count() > 0 :
@@ -115,12 +116,36 @@ def view_patient(request):
         else :
             p = Patient.get_patient_by_uuid(patient_uuid)
     device = get_device(request)
+    encounters = RetentionDataset.get_patient_encounters(patient_uuid)
+    encounter_types = EncounterType.get_encounter_types()
+    locations = Location.get_locations()
+    loc = {}
+    enc_types = {}
+    for l in locations :
+        loc[l['location_id']] = l
+    for e in encounter_types:
+        enc_types[e['encounter_type_id']] = e
+
+    for e in encounters :
+        e['location_name'] = loc[e['location_id']]['name']
+        e['encounter_type_name'] = enc_types[e['encounter_type']]['name']
+        
+
     return render(request,'ltfu/view_patient_mobile.html',
                   {'patient':p,
+                   'encounters':encounters,
                    'device':device}
                   )
     
 
+@login_required
+def ajax_update_phone_number(request):
+    phone_number = request.POST['phone_number']
+    patient_uuid = request.POST['patient_uuid']
+    attr_type_uuid = '72a759a8-1359-11df-a1f1-0026b9348838'
+    result = PersonAttribute.create_person_attribute_rest(person_uuid=patient_uuid,person_attribute_type_uuid=attr_type_uuid,value=phone_number)
+    result = json.dumps(result)
+    return HttpResponse(result,content_type='application/json')
     
 
 @login_required
@@ -1082,11 +1107,7 @@ def view_data_entry_stats(request):
 
 @login_required    
 def test(request):
-    
-    qs = OutreachFormSubmissionLog.objects.filter(enc_uuid=None)
-    for o in qs:
-        print o.obs_check()
-    
+    e = RetentionDataset.get_patient_encounters('30c131ae-a5fa-4fec-a02d-dd175a9da0d2')
     #print Concept.is_valid_concept_uuid('adfasd')
     return render(request,'ltfu/patient_search_mobile.html',{})
     

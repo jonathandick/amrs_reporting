@@ -22,7 +22,7 @@
   <meta content='initial-scale=0.25, maximum-scale=0.25, user-scalable=no' name='viewport' />   
   <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_huawei.css'%}" />
 {% else %}
-  <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_layout.css'%}" />
+  <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_huawei.css'%}" />
 {%endif%}
 
 {% block alert_style %}{% endblock %}
@@ -36,7 +36,7 @@
 
 
 <body>
-<div id="wrapper" style="padding-top:10px;">
+<!--div id="wrapper" style="padding-top:10px;">  
   <div id="header">
     <table width='100%'>
       <tr>
@@ -53,7 +53,15 @@
       </tr>
     </table>
   </div>
+</div-->
+
+<div data-role="header" data-theme='d'>
+  <h1>AMPATH+ Outreach</h1>
+  <a href="/ltfu/outreach_dashboard/" class="ui-btn-left" data-theme='b'>Home</a>
+  <a href='/amrs_user_validation/logout' class="ui-btn-right" data-theme='b'>Logout</a>
+
 </div>
+
 
 <div id="wrapper">
   {% block content %}{% endblock %}

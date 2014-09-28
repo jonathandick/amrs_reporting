@@ -1,0 +1,37 @@
+{% extends "amrs_reports/base.html" %}
+
+
+
+{% block content %}
+
+<script type="text/javascript">
+</script>
+
+<h4>Retention Dataset Sync Stats</h4>
+<table>
+  <thead>
+    <tr>
+      <th>Table</th>
+      <th>Last Date Created</th>
+      <th>Number of Encounters</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Encounter</td>
+      <td>{{stats.encounter_max}}</td>
+      <td>{{stats.encounter_count}}</td>
+    </tr>
+    <tr>
+      <td>Retention</td>
+      <td>{{stats.retention_max}}</td>
+      <td>{{stats.retention_count}}</td>
+    </tr>
+  </tbody>
+</table>
+      
+      
+    
+
+
+{% endblock %}

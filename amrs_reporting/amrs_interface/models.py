@@ -329,6 +329,27 @@ class EncounterType():
                 'description':description,
                 'uuid':uuid,
                 }
+
+
+    @staticmethod
+    def get_encounter_types():
+        encounter_types = {}
+        con = None
+        try :
+            sql = 'select * from amrs.encounter_type'
+            con = mdb.connect(settings.HOST,settings.USER,settings.PASSWORD,settings.DATABASE)
+            cur = con.cursor(mdb.cursors.DictCursor)
+            cur.execute(sql)
+            encounter_types = cur.fetchall()
+        except Exception, e:
+            print e
+
+        finally:
+            if con : con.close()
+
+        return encounter_types
+
+        
     
         
 
@@ -524,6 +545,32 @@ class RetentionDataset():
 
         return encounters
 
+
+    @staticmethod
+    def get_patient_encounters(patient_uuid=None,person_id=None,order_by='encounter_datetime desc'):
+        encounters = []
+        con = None
+        try :
+            sql = None
+            if patient_uuid :
+                id = patient_uuid
+                sql = 'select * from flat_retention_data where uuid=%s order by ' + order_by
+            elif person_id :
+                id = person_id
+                sql = 'select * from flat_retention_data where person_id=%s order by ' + order_by
+            if sql :
+                con = mdb.connect(settings.HOST,settings.USER,settings.PASSWORD,settings.DATABASE)
+                cur = con.cursor(mdb.cursors.DictCursor)
+                cur.execute(sql,(id,))
+                encounters = cur.fetchall()
+        except Exception, e:
+            print e
+
+        finally:
+            if con : con.close()
+
+        return encounters
+    
 
     @staticmethod
     def get_last_clinic_location_id(patient_uuid):

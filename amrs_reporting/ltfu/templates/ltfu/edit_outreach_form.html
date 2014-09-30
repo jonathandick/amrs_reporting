@@ -1,0 +1,67 @@
+{% extends "ltfu/base.html" %}
+{% load staticfiles %}
+{% load ltfu_filters %}
+
+{% block content %}
+
+<form action='/ltfu/edit_outreach_form' method='post'>
+{%csrf_token%}
+  <input type='hidden' name='outreach_form_submission_log_id' value='{{log.id}}'/>
+  <input type='hidden' name='patient_uuid' value='{{patient.uuid}}'/>
+  <input type='hidden' name='encounter_type_uuid' value='{{form_vals.encounter_type_uuid}}'/>
+
+<table>  
+  <tr>
+    <td>Patient</td>
+    <td>{{patient.given_name}} {{patient.family_name}}</td>
+  </tr>
+  <tr>
+    <td>Date Submitted</td>
+    <td>{{log.date_submitted|date:"Y-m-d"}}</td>
+  </tr>
+  <tr>
+    <td>Encounter Date</td>
+    <td><input type='text' name='encounter_datetime' value='{{form_vals.encounter_datetime}}'/></td>
+  </tr>
+  <tr>
+    <td>Provider</td>
+    <td>
+      <select name='provider_uuid'>
+	<option/>
+	{% for p in providers %}
+	<option value="{{p.uuid}}" {%if p.uuid == form_vals.provider_uuid %}selected{%endif%}>{{p.family_name}}, {{p.given_name}}</option>
+	{%endfor%}
+      </select>
+    </td>
+  </tr>
+  <tr>
+    <td>Location</td>
+    <td>
+      <select name='location_uuid'>
+	{% for l in locations %}
+	<option value="{{l.uuid}}" {%if l.uuid == form_vals.location_uuid %}selected{%endif%}>{{l.name}}</option>
+	{%endfor%}
+      </select>
+    </td>
+  </tr>
+  {% for o in form_vals.obs %}
+  <tr>
+    <td>{{o.name}}</td>
+    <td>
+      {% if o.datatype == 'Coded' %}
+      <select name="obs__{{o.uuid}}">
+	<option/>
+	{% for a in o.answers %}
+	<option value="{{a.uuid}}" {%if a.uuid == o.answer%}selected{%endif%}>{{a.name}}</option>
+	{%endfor%}
+      </select>
+      {% else %}
+      <input type='text' name="obs__{{o.uuid}}" value="{{o.answer}}"/>
+      {%endif%}
+    </td>
+  </tr>
+  {%endfor%}
+</table>
+<input type='submit'>
+</form>
+{%endblock%}

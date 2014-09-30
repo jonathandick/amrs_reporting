@@ -1,0 +1,151 @@
+{% extends "ltfu/base.html" %}
+{% load staticfiles %}
+{% load ltfu_filters %}
+
+{% block content %}
+
+
+  <script type="text/javascript" src="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.js'%}"></script>  
+  <link rel="stylesheet" type="text/css" href="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.css'%}" />     
+
+<script>
+function getCookie(name) {
+     var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+
+  $(document).ready(function() {
+
+			    
+   var csrftoken = getCookie('csrftoken');
+   $.ajaxSetup({
+        headers: { "X-CSRFToken": csrftoken }
+   });
+
+
+  function buildSchema() {   
+        var d = $("#schema_form").serialize();
+        $.ajax({
+        type: "POST",
+        url: "/ltfu/build_schema",
+        data: d,
+        dataType: "json",
+        success: onSuccessBuildSchema,
+        failure: function() {
+            alert('failed');
+        },
+        error : function(xhr,errmsg,err) {
+                                alert(xhr.status + ": " + xhr.responseText);
+                            }
+        });
+   }
+
+   function onSuccessBuildSchema(response) {
+      $('#concept_list').empty();
+      $('#search_string').val('');			    
+      $('#html_textarea').val(response);
+     
+   }
+
+
+   function conceptSearch() {
+        var d = {search_string:$("#search_string").val()};
+        $.ajax({
+        type: "POST",
+        url: "/ltfu/ajax_concept_search",
+        data: d,
+        dataType: "json",
+        success: OnSuccessConceptSearch,
+        failure: function() {
+            alert('failed');
+        },
+        error : function(xhr,errmsg,err) {
+                                alert(xhr.status + ": " + xhr.responseText);
+                            }
+        });
+   }
+
+
+
+   function OnSuccessConceptSearch(response) { 
+     $("#concept_list").empty();
+     for(var i=0; i<response.length;i++) {
+         var row =  response[i];                      
+         var html = "<li><a href='#' class='add_concept' concept_uuid='" + row['uuid'] + "'>"+ row['name'] + "</a></li>";
+         $("#concept_list").append(html).listview();
+     }
+  }
+
+
+   $('#search_string').on("keyup change",function() {
+      conceptSearch();
+   });
+
+ var schema_table =  $('#schema').DataTable( {
+  "width":"100%",
+  "sScrollY": "100px",
+  "bJQueryUI": true,
+  "bPaginate": false,
+  "bLengthChange": false,
+  "bFilter": true,
+  "bSort": true,
+  "bInfo": false,
+  "bAutoWidth" : false
+   } );
+  
+  
+  $(document).on('click','a.add_concept',function() {
+    var uuid = $(this).attr('concept_uuid');
+    var data = [$(this).html(),"<select name='input__" + uuid + "'><option>text</option><option>select</option><option>checkbox</option></select>"];
+    schema_table.row.add(data).draw();
+   });
+
+   $("#build_schema_button").click(function() {
+       buildSchema();
+   });
+					 
+});
+
+function addToSchema(e) {
+    var data = [$(e).html,''];
+    var i = $('#schema tbody tr').length -1;      
+    var node = $('#schema').dataTable().fnSettings().aoData[i].nTr;
+    node.setAttribute('concept_uuid',$(e).attr('concept_uuid'));
+}
+
+
+</script>
+
+<form id='schema_form'>
+<table id="schema">
+  <thead>
+    <tr>
+      <th>Concept</th>
+      <th>Input Type</th>
+    </tr>
+  </thead>
+  <tbody/>
+</table>
+<input type='button' id='build_schema_button' value='Get HTML'/><br/>
+</form>
+
+Search Concepts: <input type='text' name='search_string' id='search_string'/>
+<br/>
+<ul id="concept_list" data-role="listview">
+</ul>
+<div>
+<textarea id='html_textarea'>HTML will appear here...</textarea>
+</div>
+{%endblock%}

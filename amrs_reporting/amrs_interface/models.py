@@ -17,7 +17,6 @@ class Location(models.Model):
 
     @staticmethod
     def get_all(retired=0):
-        print 'get_all() .......'
         locations = {}
         con = None        
         try :
@@ -67,7 +66,6 @@ class Location(models.Model):
                 location_ids = ','.join(str(x) for x in location_ids)
                 sql += ' where location_id in (' + location_ids + ')'
             sql += ' order by name'
-            print sql
             con = mdb.connect(Location.HOST,Location.USER,Location.PASSWORD,Location.DATABASE)
             cur = con.cursor(mdb.cursors.DictCursor)
             cur.execute(sql)
@@ -147,7 +145,9 @@ class Person():
                        }
             data = json.dumps(payload)
             res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)        
-            return json.loads(res.text)
+            result = json.loads(res.text)
+            res.close()
+            return result
         except Exception, e:
             return 'error'
 
@@ -242,6 +242,7 @@ class Patient():
                    'uuid':patient_uuid,
                    'phone_number':phone_number
                    }
+        res.close()
         return patient
     
 
@@ -309,10 +310,53 @@ class Concept():
         url = amrs_settings.amrs_url + '/ws/rest/v1/concept/' + concept_uuid
         res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
         data = json.loads(res.text)
+        res.close()
         #print 'Error: ' + str('error' in data)        
         return ('error' not in data)
+
+
+    @staticmethod
+    def get_concept_info(concept_uuid):
+        headers = {'content-type': 'application/json','connection':'close'}
+        url = amrs_settings.amrs_url + '/ws/rest/v1/concept/' + concept_uuid
+        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+        data = json.loads(res.text)
+        concept = {}
+        concept['name'] = data['display']
+        concept['datatype'] = data['datatype']['display']
+        concept['uuid'] = data['uuid']
+
+        answers = []
+        for a in data['answers']:
+            answer = {'uuid':a['uuid'],
+                      'name':a['display'],
+                      }
+            answers.append(answer)
+
+        concept['answers'] = answers
+        res.close()
+        return concept
         
-        
+
+    @staticmethod
+    def search_concepts(search_string):
+        headers = {'content-type': 'application/json','connection':'close'}
+        url = amrs_settings.amrs_url + '/ws/rest/v1/concept?v=default&limit=50&q=' + search_string
+        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+        try :
+            data = json.loads(res.text)['results']
+            concepts = []
+            for c in data:
+                concept = {'name':c['display'].capitalize(),
+                           'uuid':c['uuid']}
+                concepts.append(concept)
+        except Exception, e:
+            print e
+
+        res.close()
+        return concepts
+
+    
 
 
 class EncounterType():
@@ -325,6 +369,7 @@ class EncounterType():
         data = json.loads(res.text)
         name = data['name']
         description = data['description']
+        res.close()
         return {'name':name,
                 'description':description,
                 'uuid':uuid,
@@ -357,7 +402,7 @@ class Encounter():
     @staticmethod
     def create_encounter_rest(patient_uuid=None, encounter_datetime=None,encounter_type_uuid=None,provider_uuid=None,location_uuid=None,obs=[]):
         import datetime
-        headers = {'content-type': 'application/json'}
+        headers = {'content-type': 'application/json','connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/encounter'    
         payload = {'patient':patient_uuid,
                    'encounterDatetime':encounter_datetime,               
@@ -369,7 +414,10 @@ class Encounter():
         data = json.dumps(payload)
         #print data
         res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
-        return json.loads(res.text)
+
+        result = json.loads(res.text)
+        res.close()
+        return result
 
 
 
@@ -402,6 +450,7 @@ class Encounter():
                'encounter_datetime':encounter_datetime,
                'obs':obs
                }
+        res.close()
         return enc
 
 
@@ -467,7 +516,7 @@ class Encounter():
                          'encounter_type':parts[0],
                          }
             encounters.append(encounter)
-            
+        res.close()
         return list(reversed(encounters))
             
             
@@ -614,7 +663,9 @@ class PersonAttribute():
                    }
         data = json.dumps(payload)
         res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
-        return json.loads(res.text)
+        result = json.loads(res.text)
+        res.close()
+        return result
 
 
 
@@ -631,12 +682,13 @@ class Cohort(models.Model):
                    'memberIds':patient_uuids,
                    }
         data = json.dumps(payload)
-        req = requests.post(Cohort.url_cohort, data, auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
-        vals = json.loads(req.text)
+        res = requests.post(Cohort.url_cohort, data, auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+        vals = json.loads(res.text)
         if 'error' in vals:
             print 'error creating new cohort'
             return 'error'
-            
+
+        res.close()
         return vals['uuid']
 
     @staticmethod
@@ -658,7 +710,7 @@ class Cohort(models.Model):
                         print 'error deleting member'
                 except:
                     pass
-        
+            req.close()
 
 
     @staticmethod

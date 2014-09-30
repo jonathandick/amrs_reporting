@@ -93,7 +93,9 @@
       <th>Date Submitted</th>
       <th>Patient</th>
       <th>Resubmit</th>
+      <th>Edit</th>
       <th>Delete</th>
+      <th>Set Dead</th>
     </tr>
   </thead>
   <tbody>
@@ -103,7 +105,9 @@
       <td>{{r.date_submitted|date:"Y-m-d H:i"}}</td>
       <td>{{r.get_patient_name}}</td>
       <td><a href='#' outreach_submission_form_log_id='{{r.id}}' onClick='resubmitForm("{{r.id}}")'>Resubmit</a></td>
+      <td><a href="/ltfu/edit_outreach_form?outreach_form_submission_log_id={{r.id}}">Edit</a></td>
       <td><a href="/ltfu/delete_outreach_form_submission_log?id={{r.id}}">Delete</a></td>
+      <td><a href="/ltfu/set_dead?id={{r.id}}">Set Dead</a></td>
     </tr>
     {%endfor%}
   </tbody>

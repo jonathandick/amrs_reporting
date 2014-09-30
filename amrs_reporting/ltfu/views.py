@@ -74,8 +74,13 @@ def view_defaulter_cohort(request):
 def update_defaulter_cohorts(request):
     if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
-
+    
+    print 'Updating cohorts .......................................'
+    start = datetime.today()
     DefaulterCohort.update_defaulter_cohorts()
+    t = datetime.today() - start
+    print 'Time to update cohorts: ' + str(t.seconds)
+
     return HttpResponseRedirect('/ltfu/outreach_dashboard')
 
 
@@ -107,7 +112,7 @@ def view_patient(request):
     if dcm_id is not None :        
         member = DefaulterCohortMember.objects.get(id=dcm_id)        
         p = member.get_patient_info()
-        patient_uuid = p.patient_uuid
+        patient_uuid = p['patient_uuid']
     else : 
         qs = DefaulterCohortMember.objects.filter(patient_uuid=patient_uuid,retired=0)
         if qs.count() > 0 :
@@ -182,17 +187,23 @@ def outreach_form(request):
 
 
         location_id = RetentionDataset.get_last_clinic_location_id(patient_uuid)
-        print 'locatoin: ' + str(location_id)
+
         if location_id is not None and location_id != '':
             location_uuid = Location.get_location(location_id)['uuid']
         else : location_uuid = '08feae7c-1352-11df-a1f1-0026b9348838'
 
 
+        print 'getting patient info...........'
         patient = Patient.get_patient_by_uuid(patient_uuid)
+        print 'getting location info...........'
         location = Location.get_location_by_uuid_db(location_uuid)
+        print 'getting locations...........'
         locations = Location.get_locations()
+        print 'getting providers...........'
         providers = Provider.get_outreach_providers()
+        print 'getting encounter_type...........'
         encounter_type = EncounterType.get_encounter_type_by_uuid('df5547bc-1350-11df-a1f1-0026b9348838') #outreach
+        print 'getting last encounter...........'
         last_enc = Encounter.get_last_encounter_db(patient_uuid)
 
         device = get_device(request)
@@ -206,7 +217,7 @@ def outreach_form(request):
                 'defaulter_cohort_member_id':dcm_id,
                 'device':device,
                 }
-
+        print 'rendering outreach form............'
         return render(request,'ltfu/outreach_form_mobile.html',args)
                 
 
@@ -216,7 +227,7 @@ def outreach_form(request):
         OutreachFormSubmissionLog.process_outreach_form(request.POST,request.user.id)
         location_uuid = request.POST['location_uuid']
 
-        defaulter_cohort_member_id = request.POST.get('defaulter_cohort_member_id',None)        
+        defaulter_cohort_member_id = request.POST.get('defaulter_cohort_member_id',None)
         #member status is updated during process_outreach_form()
         if defaulter_cohort_member_id is not None and defaulter_cohort_member_id != '' and defaulter_cohort_member_id != 'None':
             member = DefaulterCohortMember.objects.get(id=defaulter_cohort_member_id) 
@@ -265,6 +276,34 @@ def delete_outreach_form_submission_log(request):
     return HttpResponseRedirect('/ltfu/view_rest_submission_errors')
 
 
+
+def edit_outreach_form(request):
+    if request.method == "GET":
+        log_id = get_var_from_request(request,'outreach_form_submission_log_id')
+        #log_id = 563
+        log = OutreachFormSubmissionLog.objects.get(id=log_id)
+        form_vals = log.get_form_vals()
+        locations = Location.get_locations()
+        providers = Provider.get_outreach_providers()
+        patient = Patient.get_patient_by_uuid(log.patient_uuid)
+        device = get_device(request)
+        args = {'log':log,
+                'patient':patient,
+                'form_vals':form_vals,
+                'providers':providers,
+                'locations':locations,
+                'device':device,
+                }    
+        return render(request,'ltfu/edit_outreach_form.html',args)
+    else:
+        log_id = get_var_from_request(request,'outreach_form_submission_log_id')
+        log = OutreachFormSubmissionLog.objects.get(id=log_id)
+        log.reprocess_form(request.POST)
+        return HttpResponseRedirect('/ltfu/view_rest_submission_errors')
+
+
+        
+        
 @login_required
 def index(request):
     if not Authorize.authorize(request.user) :        
@@ -1105,9 +1144,10 @@ def view_data_entry_stats(request):
                   )
         
 
+
 @login_required    
 def test(request):
-    e = RetentionDataset.get_patient_encounters('30c131ae-a5fa-4fec-a02d-dd175a9da0d2')
+    
     #print Concept.is_valid_concept_uuid('adfasd')
     return render(request,'ltfu/patient_search_mobile.html',{})
     
@@ -1126,6 +1166,18 @@ def ajax_patient_search(request):
 
 
 @login_required
+def ajax_concept_search(request):
+    search_string = request.POST['search_string']
+
+    concepts = ''
+    if len(search_string) >= 3 :
+        concepts = Concept.search_concepts(search_string)
+    data = json.dumps(concepts)
+    print 'returning ajax concept search'
+    return HttpResponse(data,content_type='application/json')
+
+
+@login_required
 def ajax_encounter_search(request):
     patient_uuid = request.POST['patient_uuid']
     #encounters = {'response':'nice work'}
@@ -1137,3 +1189,42 @@ def ajax_encounter_search(request):
     
 
 
+def toHTML(concept_uuid,data_type):
+    concept = Concept.get_concept_info(concept_uuid)
+    s = ''    
+    id = concept['name'].lower().replace(' ','_')
+
+    if data_type == 'select':
+        s = "<label for='" + id + "'>" + concept['name'].capitalize() + "</label>\n"
+        s += "<select id='" + id + "' name='obs__" + concept_uuid + "'>\n"
+        for a in concept['answers'] :
+            s += "\t<option value='" + a['uuid'] + "'>" + a['name'].capitalize() + "</option>\n"
+        s += "</select>"
+    
+    if data_type == 'text':
+        s = "<label for='" + id + "'>" + concept['name'].capitalize() + "</label>\n"
+        s += "<input id='" + id + "' name='obs__" + concept_uuid + "' type='text'/>"
+    return s
+        
+
+
+@login_required
+def build_schema(request):
+    if request.method == "GET":
+        return render(request,'ltfu/build_schema.html',{})
+    else :        
+        args = request.POST
+        s = ''
+        for k,v in args.iteritems() :
+            print k
+            parts = k.split('__')
+            if len(parts) > 0 and parts[0] == 'input':
+                concept_uuid = parts[1]
+                print concept_uuid
+                data_type = str(v)
+                html = toHTML(concept_uuid,data_type)
+                print html
+                s += html + "\n\n"
+            
+        data = json.dumps(s)
+        return HttpResponse(data,content_type='application/json')

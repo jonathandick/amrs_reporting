@@ -22,7 +22,7 @@ h2 a.ui-btn {
 }
 
 
-.ui-mobile label, label {
+.ui-mobile label, .ui-block-a label {
     text-decoration: none;
     font-size: medium;
     font-weight:bold;

@@ -7,7 +7,7 @@
 
 
 <head>
-  <title>AMRS Reporting v1.0</title>
+  <title>AMPATH+  v1.0</title>
 
   <script type="text/javascript" src="{% static 'js/jquery-1.10.2.min.js'%}"></script>  
 
@@ -17,11 +17,23 @@
   <script type="text/javascript" language="javascript" src="{% static 'js/DataTables-1.9.4/media/js/jquery.dataTables.js'%}"></script>
   <link type="text/css" rel="stylesheet" href="{% static 'js/DataTables-1.9.4/media/css/demo_table_jui.css'%}"/>
 
-  <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_layout.css'%}" />
-  
+
+{% if device.huawei or device.iphone%}
+  <meta content='initial-scale=0.25, maximum-scale=0.25, user-scalable=no' name='viewport' />   
+  <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_huawei.css'%}" />
+{% else %}
+  <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_huawei.css'%}" />
+{%endif%}
 
 {% block alert_style %}{% endblock %}
+
+  <script>
+    $(document).ready(function() {
+        $.mobile.pushStateEnabled = false;
+    });
+  </script>
 </head>
+
 
 <body>
 <div id="wrapper" style="padding-top:10px;">

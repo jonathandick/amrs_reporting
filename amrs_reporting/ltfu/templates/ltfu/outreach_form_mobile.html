@@ -34,6 +34,7 @@ $(document).ready(function() {
   $("#contacted_in_field").change(function() {
      if($("#contacted_in_field option:selected").text().toLowerCase() === 'yes') {
          $("#reason_not_found_in_field").attr('disabled','disabled').removeAttr('required').val('');
+         $("#date_found").val($("#encounter_datetime").val());
      }
      else if($("#contacted_in_field option:selected").text().toLowerCase() == 'no') {
          $("#reason_not_found_in_field").attr('required','required').removeAttr('disabled');
@@ -224,7 +225,7 @@ $("#return_to_dashboard").click(function() {
 var t = new Date()
 $("#encounter_datetime").val($.datepicker.formatDate('yy-mm-dd',new Date()));
 
-{%if device.huawei %}
+{%if device.huawei or device.firefox%}
 $("#encounter_datetime").datepicker({dateFormat:'yy-mm-dd'});
 $("#missed_return_visit_date").datepicker({dateFormat:'yy-mm-dd'});
 $("#date_found").datepicker({dateFormat:'yy-mm-dd'});
@@ -260,7 +261,8 @@ $("#date_of_death").datepicker({dateFormat:'yy-mm-dd'});
     <div id="tabs-1">
       <div class="form-group">
         <label for="encounter_datetime">Encounter Date:</label>
-        <input id="encounter_datetime" name="encounter_datetime" type="date" required/>
+        <input id="encounter_datetime" name="encounter_datetime" 
+	       type="date" {%if form.encounter_datetime %}value="{{encounter_datetime}}"{%endif%}required/>
       </div>
       <div class="form-group">
 	<label for="phone_number">Phone:</label>
@@ -499,7 +501,7 @@ $("#date_of_death").datepicker({dateFormat:'yy-mm-dd'});
       <div data-role="fieldcontain">
 	<fieldset data-role="controlgroup">
 	  <legend>If deceased:</legend>
-	  <div class="form-group"> 		    
+	  <div class="form-group">
 	    <label for="date_of_death">Death date:</label>
 	    <input class="form-control datepicker" data-concept="1570^DATE OF DEATH^99DCT" id="date_of_death" 
 		   name="obs__a89df3d6-1350-11df-a1f1-0026b9348838" type="date"/>               

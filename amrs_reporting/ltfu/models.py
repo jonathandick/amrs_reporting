@@ -47,6 +47,7 @@ class DefaulterCohortMember(models.Model):
         patient['retired'] = self.retired
         patient['risk_category'] = self.risk_category
         patient['defaulter_cohort_member_id'] = self.id
+        patient['patient_uuid'] = self.patient_uuid
 
         if self.last_rtc_date and self.next_encounter_date is None :
             patient['days_since_rtc_date'] = (datetime.date.today() - self.last_rtc_date).days
@@ -163,6 +164,7 @@ class DefaulterCohort(models.Model):
         import datetime
         self.retired=1
         self.date_retired = datetime.datetime.today()
+        self.save()
 
 
     def get_total_active(self):
@@ -369,6 +371,8 @@ class OutreachFormSubmissionLog(models.Model):
         name = p['given_name'] + ' ' + p['family_name']
         return name
         
+        
+
     @staticmethod
     def process_outreach_form(args,user_id):        
         patient_uuid = args['patient_uuid']        
@@ -377,6 +381,14 @@ class OutreachFormSubmissionLog(models.Model):
         encounter_type_uuid = args['encounter_type_uuid']
         encounter_datetime = args['encounter_datetime']
         obs = []
+        
+        logs = OutreachFormSubmissionLog.objects.filter(patient_uuid=patient_uuid)
+        for l in logs:
+            vals = json.loads(l.values)
+            d = vals['encounter_datetime']
+            if encounter_datetime == d:
+                print 'ERROR: This encounter has already been entered'
+                return ''
         
         for key,value in args.iteritems():
             if key.startswith('obs__') and value.strip() != '':
@@ -420,7 +432,7 @@ class OutreachFormSubmissionLog(models.Model):
         
         if death_date and cause_of_death and patient_status=='a89335d6-1350-11df-a1f1-0026b9348838': 
             result = Person.set_dead(patient_uuid,death_date,cause_of_death)
-
+            print result
 
         vals = json.dumps({'patient_uuid':patient_uuid,
                            'encounter_datetime':encounter_datetime,
@@ -486,3 +498,110 @@ class OutreachFormSubmissionLog(models.Model):
             if not Concept.is_valid_concept_uuid(value): errors += 'INVALID CONCEPT_UUID: ' + value + '\n'
             
         return errors
+
+
+    def get_form_vals(self):
+        vals = json.loads(self.values)
+        form_vals = {'patient_uuid':vals['patient_uuid'],
+                     'encounter_datetime':vals['encounter_datetime'],
+                     'encounter_type_uuid':vals['encounter_type_uuid'],
+                     'provider_uuid':vals['provider_uuid'],
+                     'location_uuid':vals['location_uuid'],
+                     }
+                
+        print vals['obs']
+        obs = []
+        for o in vals['obs']:            
+            question = Concept.get_concept_info(o['concept'])            
+            question['answer'] = o['value']
+            obs.append(question)
+                
+        form_vals['obs'] = obs
+
+        return form_vals
+            
+            
+
+    def process_death(self):
+        values = json.loads(self.values)
+        obs = values['obs']
+
+        death_date = None
+        patient_status = None
+        cause_of_death = None
+        
+        for o in args['obs']:
+            if o['concept'] == 'a89df3d6-1350-11df-a1f1-0026b9348838':
+                death_date = o['value']
+            elif o['concept'] == '7c579743-5ef7-4e2c-839f-5b95597cb01c':
+                patient_status = o['value']
+            elif o['concept'] == 'a89df750-1350-11df-a1f1-0026b9348838':
+                cause_of_death == o['value']
+        
+        if death_date and cause_of_death and patient_status=='a89335d6-1350-11df-a1f1-0026b9348838': 
+            result = Person.set_dead(self.patient_uuid,death_date,cause_of_death)
+            print result
+
+
+    def reprocess_form(self,args):
+        self.patient_uuid = args['patient_uuid']        
+        self.encounter_datetime = args['encounter_datetime']
+        self.location_uuid = args['location_uuid']        
+        self.encounter_type_uuid = args['encounter_type_uuid']
+        self.provider_uuid = args['provider_uuid']
+        obs = []        
+        for key,value in args.iteritems():
+            if key.startswith('obs__') and value.strip() != '':
+                question_uuid = key[5:]
+                l = args.getlist(key)
+                for val in l:
+                    obs.append({'concept':question_uuid,'value':val})
+                
+            if key.startswith('attr__') and value.strip() != '':
+                attr_type_uuid = key[6:]       
+                result = PersonAttribute.create_person_attribute_rest(person_uuid=patient_uuid,person_attribute_type_uuid=attr_type_uuid,value=value)
+
+        self.save()
+        
+        result = Encounter.create_encounter_rest(patient_uuid=self.patient_uuid,
+                                                 encounter_datetime=self.encounter_datetime,
+                                                 location_uuid=self.location_uuid,
+                                                 encounter_type_uuid=self.encounter_type_uuid,
+                                                 provider_uuid=self.provider_uuid,
+                                                 obs=obs)
+        if result.get('error',None) : print 'REST Error: ' + str(result['error']['message'])
+        
+        death_date = None
+        patient_status = None
+        cause_of_death = None
+
+        for o in args['obs']:
+            if o['concept'] == 'a89df3d6-1350-11df-a1f1-0026b9348838':
+                death_date = o['value']
+            elif o['concept'] == '7c579743-5ef7-4e2c-839f-5b95597cb01c':
+                patient_status = o['value']
+            elif o['concept'] == 'a89df750-1350-11df-a1f1-0026b9348838':
+                cause_of_death == o['value']
+        
+        if death_date and cause_of_death and patient_status=='a89335d6-1350-11df-a1f1-0026b9348838': 
+            result = Person.set_dead(self.patient_uuid,death_date,cause_of_death)
+
+
+        self.values = json.dumps({'patient_uuid':self.patient_uuid,
+                                  'encounter_datetime':self.encounter_datetime,
+                                  'location_uuid':self.location_uuid,
+                                  'encounter_type_uuid':self.encounter_type_uuid,
+                                  'provider_uuid':self.provider_uuid,
+                                  'obs':obs})
+
+        self.enc_uuid = result.get('uuid',None)
+        self.save()
+
+        if self.defaulter_cohort_member_id is not None and self.defaulter_cohort_member_id != '': 
+            member = DefaulterCohortMember.objects.get(id=self.defaulter_cohort_member_id)
+            args = {'next_appt_date':self.encounter_datetime,
+                    'next_encounter_type':"OUTREACHFIELDFU",
+                    }
+            member.update_status(args)
+            
+

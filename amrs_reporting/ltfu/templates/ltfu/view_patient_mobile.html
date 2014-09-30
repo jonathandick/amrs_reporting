@@ -74,15 +74,15 @@ $(document).ready(function () {
 
 <ul data-role="listview">
   <li data-role="header">
-  Patient: {{patient.given_name}} {{patient.middle_name}} {{patient.family_name}}
+  {{patient.given_name}} {{patient.middle_name}} {{patient.family_name}}
   </li>
   <li style="font-size:large">Identifier(s): {{patient.identifier}}</li>
   <li style="font-size:large">Birthdate: {{patient.birthdate|slice:":10"}}</li>
   <li data-role="fieldcontain">
     <div class='ui-grid-b'>
-      <div class='ui-block-a' style="font-size:large;width:12%;">Phone Number:</div>
-      <div class='ui-block-b' style="width:44%"><input name="phone_number" id="phone_number" type="tel" size='10' value="{{patient.phone_number}}"/></div>	
-      <div class='ui-block-c' style="width:44%">
+      <div class='ui-block-a' style="font-size:large;width:100%;">Phone Number:</div>
+      <div class='ui-block-a' style="width:50%"><input style="font-size:large;" name="phone_number" id="phone_number" type="tel" size='10' value="{{patient.phone_number}}"/></div>	
+      <div class='ui-block-b' style="width:50%">
 	<input type='hidden' id='patient_uuid' value='{{patient.uuid}}'/>
 	<input type="button" id="update_phone_number_button" value="Update"/>
       </div>
@@ -103,15 +103,17 @@ $(document).ready(function () {
       <tr>
 	<td>Date</td>
 	<td>Type</td>
-	<td>Location</td>
-	<td>RTC Date</td>
       </tr>
       {% for e in encounters %}
       <tr>
-	<td>{{e.encounter_datetime|date:"Y-m-d"}}</td>
-	<td>{{e.encounter_type_name}}</td>
-	<td>{{e.location_name}}</td>
-	<td>{{e.rtc_date|date:"Y-m-d"}}</td>
+	<td style="width:35%">{{e.encounter_datetime|date:"Y-m-d"}}</td>
+	<td>
+	  <ul data-role="listview">
+	    <li>{{e.encounter_type_name}}</li>
+	    <li>{{e.location_name}}</li>
+	    <li>RTC Date : {{e.rtc_date|date:"Y-m-d"}}</li>
+	  </ul>
+	</td>
       </tr>
       {%endfor%}
     </table>	

@@ -21,13 +21,21 @@ function viewClinic() {
 <h3>Outreach Worker Dashboard</h3>
 
 
-<label for='clinic_uuid'>Choose Clinic: </label>
-<select name='clinic_uuid' id='clinic_uuid'>
-  {% for l in clinics %}
-  <option value='{{l.uuid}}'>{{l.name}}</option>
-  {%endfor%}
-</select>
-<input type='button' onClick='viewClinic()' value='Go!'/>
+<div class='ui-grid-b'>
+  <div class='ui-block-a' style="width:100%">
+    <label for='clinic_uuid'>View Defaulter List: </label>
+  </div>
+  <div class='ui-block-a' style="width:50%">
+    <select name='clinic_uuid' id='clinic_uuid'>
+      {% for l in clinics %}
+      <option value='{{l.uuid}}'>{{l.name}}</option>
+      {%endfor%}
+    </select>
+  </div>
+  <div class='ui-block-b' style="width:50%">
+    <input type='button' onClick='viewClinic()' value='Go!'/>
+  </div>
+</div>
 <hr/>
 <ul data-role="listview">
   <li><a href='/ltfu/patient_search'>Patient Search</a></li>

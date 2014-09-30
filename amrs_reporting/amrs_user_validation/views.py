@@ -44,8 +44,9 @@ def my_login(request):
 @login_required
 def my_logout(request):
     logout(request)
-    return render(request,'amrs_user_validation/login.html',{})
-
+    device = get_device(request)
+    if device['is_mobile']: return render(request,'amrs_user_validation/mobile_login.html',{})
+    else : return render(request,'amrs_user_validation/login.html',{})
     
 @login_required
 def create_amrs_user(request):

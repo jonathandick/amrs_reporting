@@ -18,7 +18,7 @@
   <link type="text/css" rel="stylesheet" href="{% static 'js/DataTables-1.9.4/media/css/demo_table_jui.css'%}"/>
 
 
-{% if device.huawei %}
+{% if device.huawei or device.iphone %}
   <meta content='initial-scale=0.25, maximum-scale=0.25, user-scalable=no' name='viewport' />   
   <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_huawei.css'%}" />
 {% else %}
@@ -56,7 +56,7 @@
 </div-->
 
 <div data-role="header" data-theme='d'>
-  <h1>AMPATH+ Outreach</h1>
+  <h2><span style="font-size:18px;text-align:center">AMPATH+<br/>Outreach</span></h2>
   <a href="/ltfu/outreach_dashboard/" class="ui-btn-left" data-theme='b'>Home</a>
   <a href='/amrs_user_validation/logout' class="ui-btn-right" data-theme='b'>Logout</a>
 

@@ -49,6 +49,9 @@ def get_device(request):
     if ua.find("huawei") >0 :
         device['huawei'] = "huawei"
 
+
+    if ua.find("firefox/11.0") :
+        device['firefox'] = "firefox"
  
     # either desktop, or something we don't care about.
     if not device :

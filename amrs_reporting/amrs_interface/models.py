@@ -25,9 +25,10 @@ class RESTHandler():
     @staticmethod
     def post(url,payload):
         try :
-            payload = json.dumps(payload)
             res = requests.post(url,payload,auth=(amrs_settings.username,amrs_settings.password),headers=RESTHandler.headers,verify=False)
-            result = json.loads(res.text)            
+            result = json.loads(res.text)
+            print json.dumps(result,indent=2)
+
             res.close()
         except Exception, e:
             result = {'error':{'message':e}}
@@ -36,7 +37,8 @@ class RESTHandler():
 
     @staticmethod
     def post_and_log(url,payload):
-        result = RESTHandler.post(url,payload)        
+        payload = json.dumps(payload)
+        result = RESTHandler.post(url,payload)
         log = RESTLog.log(url,payload,result)
         return log
 
@@ -358,13 +360,14 @@ class Provider(models.Model):
         providers = {}
         con = None
         try :
-            sql = 'select t2.identifier, given_name, family_name, t4.uuid'
-            sql += ' from flat_outreach_data t1'
-            sql += ' join amrs.provider t2 using (provider_id)'
-            sql += ' join amrs.person_name t3 on t2.person_id=t3.person_id'
-            sql += ' join amrs.person t4 on t2.person_id=t4.person_id'
-            sql += ' where t1.encounter_datetime >= "2014-01-01"'
-            sql += ' group by t2.identifier order by given_name, family_name'
+            sql = 'select t3.identifier, given_name, family_name, t5.uuid'
+            sql += ' from flat_outreach_defined t1'
+            sql += ' join flat_retention_defined t2 using (encounter_id)'
+            sql += ' join amrs.provider t3 using (provider_id)'
+            sql += ' join amrs.person_name t4 on t3.person_id=t4.person_id'
+            sql += ' join amrs.person t5 on t3.person_id=t5.person_id'
+            sql += ' where t2.encounter_datetime >= "2014-01-01"'
+            sql += ' group by t3.identifier order by given_name, family_name'
 
             con = mdb.connect(settings.HOST,settings.USER,settings.PASSWORD,settings.DATABASE)
             cur = con.cursor(mdb.cursors.DictCursor)
@@ -500,6 +503,7 @@ class Encounter():
                    'provider':provider_uuid,
                    'obs': obs
                    }
+
         
         log = RESTHandler.post_and_log(url,payload)
 

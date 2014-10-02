@@ -17,6 +17,7 @@ import pytz
 from datetime import datetime, date
 import simplejson
 from ltfu.models import *
+from encounter_form.models import *
 from django.core.serializers.json import DjangoJSONEncoder
 
 # Create your views here.
@@ -226,7 +227,10 @@ def outreach_form(request):
 
 
     elif request.method == 'POST':
-        OutreachFormSubmissionLog.process_outreach_form(request.POST,request.user.id)
+        #OutreachFormSubmissionLog.process_outreach_form(request.POST,request.user.id)
+        
+        EncounterForm.process_encounter(request.POST,request.user.id)
+
         location_uuid = request.POST['location_uuid']
 
         defaulter_cohort_member_id = request.POST.get('defaulter_cohort_member_id',None)

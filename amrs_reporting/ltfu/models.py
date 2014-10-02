@@ -487,7 +487,7 @@ class OutreachFormSubmissionLog(models.Model):
                 #self.delete()
                 return 'ERROR : FORM PREVIOUSLY SUBMITTED'
 
-        result = Encounter.create_encounter_rest(**data)
+        log = Encounter.create_encounter_rest(**data)
 
         try :
             self.process_death()
@@ -495,12 +495,11 @@ class OutreachFormSubmissionLog(models.Model):
             print e
             print 'ERROR : processing death'
 
-        has_error = False
-        if 'error' in result: 
+
+        if log.error:
             s = "ERROR: FORM NOT SUBMITTED"
         else : 
-            enc_uuid = result.get('uuid',None)
-            self.enc_uuid = enc_uuid
+            self.enc_uuid = log.result_uuid
             self.save()
             s = "SUCCESS: FORM SUBMITTED"
 
@@ -602,14 +601,14 @@ class OutreachFormSubmissionLog(models.Model):
 
         self.save()
 
-        result = Encounter.create_encounter_rest(patient_uuid=self.patient_uuid,
+        log = Encounter.create_encounter_rest(patient_uuid=self.patient_uuid,
                                                  encounter_datetime=self.encounter_datetime,
                                                  location_uuid=self.location_uuid,
                                                  encounter_type_uuid=self.encounter_type_uuid,
                                                  provider_uuid=self.provider_uuid,
                                                  obs=obs)
-        if result.get('error',None) : 
-            print 'REST Error: ' + str(result['error']['message'])
+        if log.error:
+            print 'REST Error: ' + log.error
 
     
         death_date = None
@@ -647,7 +646,7 @@ class OutreachFormSubmissionLog(models.Model):
                                   'provider_uuid':self.provider_uuid,
                                   'obs':obs})
 
-        self.enc_uuid = result.get('uuid',None)
+        self.enc_uuid = log.result_uuid
         self.save()
     
         if self.defaulter_cohort_member_id is not None and self.defaulter_cohort_member_id != '': 

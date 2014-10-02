@@ -1,5 +1,5 @@
 from django.db import models
-
+from amrs_interface.models import *
 # Create your models here.
 
 
@@ -29,6 +29,7 @@ class EncounterForm():
 
     @staticmethod
     def set_person_attributes(args):
+        patient_uuid = args.get('patient_uuid',None)        
         attrs = []
         for key,value in args.iteritems():
             if key.startswith('attr__') and value.strip() != '':
@@ -39,9 +40,10 @@ class EncounterForm():
 
 
     @staticmethod
-    def set_dead(death_date,cause_of_death):
-        death_date = args.get('obs__a89df3d6-1350-11df-a1f1-0026b9348838',None)
-        cause_of_death = args.get('obs__a89df750-1350-11df-a1f1-0026b9348838',None)
+    def set_dead(form_args):
+        patient_uuid = form_args.get('patient_uuid',None)
+        death_date = form_args.get('obs__a89df3d6-1350-11df-a1f1-0026b9348838',None)
+        cause_of_death = form_args.get('obs__a89df750-1350-11df-a1f1-0026b9348838',None)
         result = Person.set_dead(patient_uuid,death_date,cause_of_death)        
         return result
 
@@ -51,7 +53,7 @@ class EncounterForm():
         obs1 = {}
         obs = enc1.pop('obs')
 
-        for o in enc1['obs']:
+        for o in obs:
             enc1[o['concept']] = o['value']
         
         obs = enc2.pop('obs')
@@ -66,7 +68,7 @@ class EncounterForm():
     Check for equivalence of encounters. It seems that some of time, encounters are being submitted more than once
     '''
     @staticmethod
-    def is_duplicate(patient_uuid,encounter_datetime,location_uuid,encounter_type_uuid,obs):
+    def is_duplicate(patient_uuid,encounter_datetime,location_uuid,encounter_type_uuid,provider_uuid,obs):
         enc1 = {'patient':patient_uuid,
                 'encounterDatetime':encounter_datetime,
                 'location':location_uuid,
@@ -79,24 +81,25 @@ class EncounterForm():
         for l in logs:
             rest_log = RESTLog.objects.get(id=l.rest_log_id)
             enc2 = json.loads(rest_log.payload)
-            if is_equal(enc1,enc2):
+            if EncounterForm.is_equal(enc1,enc2):
                 return True
             
         return False
 
 
     @staticmethod
-    def process_encounter(args):        
-        patient_uuid = args['patient_uuid']        
-        location_uuid = args['location_uuid']        
-        provider_uuid = args['provider_uuid']
-        encounter_type_uuid = args['encounter_type_uuid']
-        encounter_datetime = args['encounter_datetime']
+    def process_encounter(form_args,creator):        
+        patient_uuid = form_args['patient_uuid']        
+        location_uuid = form_args['location_uuid']        
+        provider_uuid = form_args['provider_uuid']
+        encounter_type_uuid = form_args['encounter_type_uuid']
+        encounter_datetime = form_args['encounter_datetime']
         
-        obs = EncounterForm.get_obs(args)
-        if is_duplicate(patient_uuid,encounter_datetime,location_uuid,encounter_type_uuid,obs):
+        obs = EncounterForm.get_obs(form_args)
+        if EncounterForm.is_duplicate(patient_uuid,encounter_datetime,location_uuid,encounter_type_uuid,provider_uuid,obs):
+            print 'ERROR: this form has already been submitted'
             return 'ERROR: this form has already been submitted'
-                
+
         rest_log = Encounter.create_encounter_rest(patient_uuid=patient_uuid,
                                                    encounter_datetime=encounter_datetime,
                                                    location_uuid=location_uuid,
@@ -104,27 +107,31 @@ class EncounterForm():
                                                    provider_uuid=provider_uuid,
                                                    obs=obs)
 
-        log = EncounterFormLog.log(patient_uuid,encounter_type_uuid,encounter_datetime,rest_log.id)       
-        EncounterForm.set_person_attributes(args)
-        EncounterForm.set_dead(args)
+        print 'result uuid: ' + str(rest_log.result_uuid)
+        print 'error: ' + str(rest_log.error)
+
+        log = EncounterLog.log(creator,patient_uuid,encounter_type_uuid,encounter_datetime,rest_log.id)
+
+        EncounterForm.set_person_attributes(form_args)
+        EncounterForm.set_dead(form_args)
         return log
 
 
 
 class EncounterLog(models.Model):
     patient_uuid = models.CharField(max_length=50,db_index=True)
-    encouter_type_uuid = models.CharField(max_length=500)
+    encounter_type_uuid = models.CharField(max_length=500)
     encounter_datetime = models.DateTimeField()
     rest_log_id = models.IntegerField()
     creator = models.IntegerField()
 
     @staticmethod
     def log(creator,patient_uuid,encounter_type_uuid,encounter_datetime,rest_log_id):
-        log = EncounterLog(creator,
+        log = EncounterLog(creator=creator,
                            patient_uuid=patient_uuid,
-                           encounter_type_uuid=encounter_type_uuid,
+                           encounter_type_uuid=encounter_type_uuid,                           
                            encounter_datetime=encounter_datetime,
-                           rest_log_id = rest_log_id)
+                           rest_log_id=rest_log_id)
         log.save()
         return log
 

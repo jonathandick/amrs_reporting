@@ -7,6 +7,105 @@ import requests
 import json
 import amrs_settings
 
+class RESTHandler():
+
+    headers = {'content-type': 'application/json','connection':'close'}        
+
+    @staticmethod
+    def get(url):
+        try :
+            res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=RESTHandler.headers,verify=False)
+            result = json.loads(res.text)            
+            res.close()
+        except Exception, e:
+            result = {'error':{'message':e}}
+        return result
+        
+
+    @staticmethod
+    def post(url,payload):
+        try :
+            payload = json.dumps(payload)
+            res = requests.post(url,payload,auth=(amrs_settings.username,amrs_settings.password),headers=RESTHandler.headers,verify=False)
+            result = json.loads(res.text)            
+            res.close()
+        except Exception, e:
+            result = {'error':{'message':e}}
+        return result
+    
+
+    @staticmethod
+    def post_and_log(url,payload):
+        result = RESTHandler.post(url,payload)        
+        log = RESTLog.log(url,payload,result)
+        return log
+
+
+
+    @staticmethod
+    def repost(log=None,log_id=None):
+        if log is None :
+            log = RESTLog.objects.get(id=log_id)
+
+        result = RESTHandler.post(log.url,log.payload)
+        if result.get('error',None) :
+            log.error = result.get('error')
+        else :
+            log.error = ''
+            log.result_uuid = result['uuid']
+        log.save()
+        return log
+
+
+    '''
+    Convenience method to repost all non-retired errors. For unclear reasons, AMRS is throwing exceptions which
+    later do not occur using the same data.
+    '''
+    @staticmethod
+    def repost_errors():
+        logs = RESTLog.objects.filter(retired=0).exclude(error='')        
+        for log in logs:
+            l = RESTHandler.repost(log.id)
+            
+
+
+class RESTLog(models.Model):
+    url = models.CharField(max_length=1000)
+    payload = models.TextField()
+    result_uuid = models.CharField(max_length=500,null=True)
+    error = models.TextField(null=True)
+
+    date_created = models.DateTimeField(auto_now_add=True)
+    last_date_updated = models.DateTimeField(auto_now=True)
+
+    retired = models.BooleanField(default=False)
+    date_retired = models.DateTimeField(null=True)
+
+
+    @staticmethod
+    def log(url,payload,result):                
+        log = RESTLog(url=url,
+                      payload=payload)
+                            
+        if result.get('error',None) : 
+            log.error = str(result['error']['message'])
+        else :
+            log.result_uuid = result['uuid']
+            
+
+        log.save()
+        return log
+
+
+    def retire(self):
+        from datetime import datetime
+        self.retired = True
+        self.date_retired = datetime.datetime.today()
+        self.save()
+
+
+
+
 class Location(models.Model):
 
     HOST = settings.HOST
@@ -136,7 +235,7 @@ class Person():
 
     @staticmethod
     def set_dead(person_uuid,death_date,cause_of_death):
-        try:
+        try:            
             headers = {'content-type': 'application/json','connection':'close'}
             url = amrs_settings.amrs_url + '/ws/rest/v1/person/' + person_uuid    
             payload = {'deathDate':death_date,
@@ -144,10 +243,17 @@ class Person():
                        'causeOfDeath':cause_of_death,
                        }
             data = json.dumps(payload)
+
             res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)        
             result = json.loads(res.text)
             res.close()
             return result
+
+            '''
+            log = RESTHandler.post_and_log(user_id,url,payload,'person')
+            return log
+            '''
+
         except Exception, e:
             return 'error'
 
@@ -156,10 +262,10 @@ class Patient():
 
     @staticmethod
     def search_patients(search_string):
-        headers = {'content-type': 'application/json','connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/patient?v=default&limit=20&q=' + search_string
-        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
-        data = json.loads(res.text)['results']
+        result = RESTHandler.get(url)
+        data = result['results']
+
         patients = []
         for p in data:
             ids = p['identifiers']
@@ -199,16 +305,14 @@ class Patient():
                        'phone_number':phone_number
                        }
             patients.append(patient)
-        res.close()
         return patients
         
 
     @staticmethod
     def get_patient_by_uuid(patient_uuid):
-        headers = {'content-type': 'application/json','connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/patient/' + patient_uuid
-        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
-        data = json.loads(res.text)
+        data = RESTHandler.get(url)
+        
         names = data['person']['display']
         split = names.split(' ')
         num_names = len(split)
@@ -242,7 +346,6 @@ class Patient():
                    'uuid':patient_uuid,
                    'phone_number':phone_number
                    }
-        res.close()
         return patient
     
 
@@ -306,21 +409,15 @@ class Concept():
 
     @staticmethod
     def is_valid_concept_uuid(concept_uuid):
-        headers = {'content-type': 'application/json','connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/concept/' + concept_uuid
-        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
-        data = json.loads(res.text)
-        res.close()
-        #print 'Error: ' + str('error' in data)        
-        return ('error' not in data)
+        result = RESTHandler.get(url)
+        return ('error' not in result)
 
 
     @staticmethod
     def get_concept_info(concept_uuid):
-        headers = {'content-type': 'application/json','connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/concept/' + concept_uuid
-        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
-        data = json.loads(res.text)
+        data = RESTHandler.get(url)
         concept = {}
         concept['name'] = data['display']
         concept['datatype'] = data['datatype']['display']
@@ -334,17 +431,14 @@ class Concept():
             answers.append(answer)
 
         concept['answers'] = answers
-        res.close()
         return concept
         
 
     @staticmethod
     def search_concepts(search_string):
-        headers = {'content-type': 'application/json','connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/concept?v=default&limit=50&q=' + search_string
-        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+        data = RESTHandler.get(url)
         try :
-            data = json.loads(res.text)['results']
             concepts = []
             for c in data:
                 concept = {'name':c['display'].capitalize(),
@@ -353,7 +447,6 @@ class Concept():
         except Exception, e:
             print e
 
-        res.close()
         return concepts
 
     
@@ -363,13 +456,10 @@ class EncounterType():
 
     @staticmethod
     def get_encounter_type_by_uuid(uuid):
-        headers = {'content-type': 'application/json','connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/encountertype/' + uuid
-        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
-        data = json.loads(res.text)
+        data = RESTHandler.get(url)
         name = data['name']
         description = data['description']
-        res.close()
         return {'name':name,
                 'description':description,
                 'uuid':uuid,
@@ -402,7 +492,6 @@ class Encounter():
     @staticmethod
     def create_encounter_rest(patient_uuid=None, encounter_datetime=None,encounter_type_uuid=None,provider_uuid=None,location_uuid=None,obs=[]):
         import datetime
-        headers = {'content-type': 'application/json','connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/encounter'    
         payload = {'patient':patient_uuid,
                    'encounterDatetime':encounter_datetime,               
@@ -411,23 +500,23 @@ class Encounter():
                    'provider':provider_uuid,
                    'obs': obs
                    }
-        data = json.dumps(payload)
-        #print data
-        res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+        
+        log = RESTHandler.post_and_log(url,payload)
 
-        result = json.loads(res.text)
-        res.close()
-        return result
+        #headers = {'content-type': 'application/json','connection':'close'}
+        #data = json.dumps(payload)
+        #res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+        #result = json.loads(res.text)
+        #res.close()
+        return log
 
 
 
     @staticmethod
     def get_last_encounter(patient_uuid):
-        headers = {'content-type': 'application/json','connection':'close'}
-        url = amrs_settings.amrs_url + '/ws/rest/v1/encounter?patient=' + patient_uuid + '&limit=1'
-        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
-        vals = json.loads(res.text)['results'][0]
-        print vals
+        url = amrs_settings.amrs_url + '/ws/rest/v1/encounter?patient=' + patient_uuid + '&limit=1'        
+        result = RESTHandler.get(url)
+        vals = results['results'][0]
 
         enc_uuid = vals['uuid']
 
@@ -450,7 +539,6 @@ class Encounter():
                'encounter_datetime':encounter_datetime,
                'obs':obs
                }
-        res.close()
         return enc
 
 
@@ -501,10 +589,9 @@ class Encounter():
         
     @staticmethod
     def get_encounters(patient_uuid):
-        headers = {'content-type': 'application/json','connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/encounter?patient=' + patient_uuid
-        res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
-        data = json.loads(res.text)['results']
+        result = RESTHandler.get(url)
+        data = result['results']
         encounters = []
         for r in data:
             parts = r['display'].split(' ')
@@ -516,7 +603,6 @@ class Encounter():
                          'encounter_type':parts[0],
                          }
             encounters.append(encounter)
-        res.close()
         return list(reversed(encounters))
             
             
@@ -536,7 +622,6 @@ class RetentionDataset():
             results['retention_max'] = row['retention_max']
             results['retention_count'] = row['retention_count']
 
-            print results
             sql = 'select count(*) as encounter_count, max(date_created) as encounter_max from amrs.encounter where voided=0'
             sql += ' and encounter_type in (1,2,3,4,10,13,14,15,17,19,22,23,26,43,47,21)'            
             con = mdb.connect(settings.HOST,settings.USER,settings.PASSWORD,settings.DATABASE)
@@ -545,7 +630,6 @@ class RetentionDataset():
             row = cur.fetchone()
             results['encounter_max'] = row['encounter_max']
             results['encounter_count'] = row['encounter_count']
-            print results
         except Exception, e:
             print e
 
@@ -649,27 +733,25 @@ class PersonAttribute():
         url = amrs_settings.amrs_url + '/ws/rest/v1/person/' + person_uuid + '/attribute'    
 
         if void_existing :
-            res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),verify=False)
-            vals = json.loads(res.text)['results']
+            result = RESTHandler.get(url)
+            vals = result['results']
             for v in vals:
                 type_uuid = v['attributeType']['uuid']
                 uuid = v['uuid']
                 if type_uuid == person_attribute_type_uuid :
-                    requests.post(url + '/' + uuid + '?!purge',auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
+                    purge_url = url + '/' + uuid + '?!purge'
+                    RESTHandler.post(purge_url,[])                    
             
-
+        
         payload = {'attributeType':person_attribute_type_uuid,
                    'value':value
-                   }
-        data = json.dumps(payload)
-        res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)
-        result = json.loads(res.text)
-        res.close()
-        return result
+                   }        
+        log = RESTHandler.post_and_log(url,payload)
+        return log
 
 
 
-class Cohort(models.Model):
+class Cohort():
 
     url_cohort = amrs_settings.amrs_url + '/ws/rest/v1/cohort/' 
 
@@ -871,4 +953,13 @@ class DerivedGroup(models.Model):
 class DerivedGroupMember(models.Model):
     derived_group_id = models.IntegerField()
     member_id = models.IntegerField()
+    
+
+
+
+
+
+
+
+
     

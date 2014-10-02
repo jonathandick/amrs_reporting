@@ -368,7 +368,7 @@ class OutreachFormSubmissionLog(models.Model):
 
     def get_patient_name(self):
         p = Patient.get_patient_by_uuid(self.patient_uuid)
-        name = p['given_name'] + ' ' + p['family_name']
+        name = p['given_name'] + ' ' + p['middle_name'] + ' ' + p['family_name']
         return name
         
         
@@ -389,7 +389,7 @@ class OutreachFormSubmissionLog(models.Model):
             if encounter_datetime == d:
                 print 'ERROR: This encounter has already been entered'
                 return ''
-        
+
         for key,value in args.iteritems():
             if key.startswith('obs__') and value.strip() != '':
                 question_uuid = key[5:]
@@ -400,8 +400,11 @@ class OutreachFormSubmissionLog(models.Model):
 
 
             if key.startswith('attr__') and value.strip() != '':
-                attr_type_uuid = key[6:]       
-                result = PersonAttribute.create_person_attribute_rest(person_uuid=patient_uuid,person_attribute_type_uuid=attr_type_uuid,value=value)
+                attr_type_uuid = key[6:]
+                try : 
+                    result = PersonAttribute.create_person_attribute_rest(person_uuid=patient_uuid,person_attribute_type_uuid=attr_type_uuid,value=value)
+                except Exception, e:
+                    print e
 
         #patient_uuid = '5ead308a-1359-11df-a1f1-0026b9348838' #BF test 2
         #location_uuid = '08feae7c-1352-11df-a1f1-0026b9348838' #MTRH 1
@@ -417,22 +420,31 @@ class OutreachFormSubmissionLog(models.Model):
         print 'obs: ' + str(obs)
         '''
 
-        result = Encounter.create_encounter_rest(patient_uuid=patient_uuid,
-                                                 encounter_datetime=encounter_datetime,
-                                                 location_uuid=location_uuid,
-                                                 encounter_type_uuid=encounter_type_uuid,
-                                                 provider_uuid=provider_uuid,
-                                                 obs=obs)
+        log = Encounter.create_encounter_rest(patient_uuid=patient_uuid,
+                                              encounter_datetime=encounter_datetime,
+                                              location_uuid=location_uuid,
+                                              encounter_type_uuid=encounter_type_uuid,
+                                              provider_uuid=provider_uuid,
+                                              obs=obs)
 
-        if result.get('error',None) : print 'REST Error: ' + str(result['error']['message'])
+        if log.error : 
+            print 'REST Error: ' + log.error
+            enc_uuid = None
+        else :         
+            enc_uuid = log.result_uuid
 
         death_date = args.get('obs__a89df3d6-1350-11df-a1f1-0026b9348838',None)
         patient_status = args.get('obs__7c579743-5ef7-4e2c-839f-5b95597cb01c',None)
         cause_of_death = args.get('obs__a89df750-1350-11df-a1f1-0026b9348838',None)
         
+        print 'death_date: ' + str(death_date)
+        print 'patient_status is dead: ' + str(patient_status=='a89335d6-1350-11df-a1f1-0026b9348838')
+        print 'cause_of_death: ' + cause_of_death
+
+
         if death_date and cause_of_death and patient_status=='a89335d6-1350-11df-a1f1-0026b9348838': 
             result = Person.set_dead(patient_uuid,death_date,cause_of_death)
-            print result
+            #if 'error' in result : print result['error']
 
         vals = json.dumps({'patient_uuid':patient_uuid,
                            'encounter_datetime':encounter_datetime,
@@ -441,11 +453,7 @@ class OutreachFormSubmissionLog(models.Model):
                            'provider_uuid':provider_uuid,
                            'obs':obs})
 
-        enc_uuid = result.get('uuid',None)
-        if enc_uuid is not None :
-            enc_uuid = result['uuid']
-        else: enc_uuid = None
-        
+
         dcm_id = args.get('defaulter_cohort_member_id',None)
 
         log = OutreachFormSubmissionLog(patient_uuid=patient_uuid,
@@ -469,11 +477,24 @@ class OutreachFormSubmissionLog(models.Model):
 
 
     def resubmit_form(self):
-        print self.values
-        data = json.loads(self.values)
-        
+        data = json.loads(self.values)        
+        logs = OutreachFormSubmissionLog.objects.filter(patient_uuid=self.patient_uuid)
+        for l in logs:
+            vals = json.loads(l.values)
+            d = vals['encounter_datetime']
+            if l.id != self.id and data['encounter_datetime'] == d:
+                print 'ERROR: This encounter has already been entered'
+                #self.delete()
+                return 'ERROR : FORM PREVIOUSLY SUBMITTED'
+
         result = Encounter.create_encounter_rest(**data)
-        print result
+
+        try :
+            self.process_death()
+        except Exception, e:
+            print e
+            print 'ERROR : processing death'
+
         has_error = False
         if 'error' in result: 
             s = "ERROR: FORM NOT SUBMITTED"
@@ -482,6 +503,7 @@ class OutreachFormSubmissionLog(models.Model):
             self.enc_uuid = enc_uuid
             self.save()
             s = "SUCCESS: FORM SUBMITTED"
+
             
         return s
 
@@ -530,20 +552,31 @@ class OutreachFormSubmissionLog(models.Model):
         patient_status = None
         cause_of_death = None
         
-        for o in args['obs']:
+        for o in obs:
+            print o['concept']
             if o['concept'] == 'a89df3d6-1350-11df-a1f1-0026b9348838':
                 death_date = o['value']
             elif o['concept'] == '7c579743-5ef7-4e2c-839f-5b95597cb01c':
                 patient_status = o['value']
             elif o['concept'] == 'a89df750-1350-11df-a1f1-0026b9348838':
-                cause_of_death == o['value']
+                cause_of_death = o['value']
         
         if death_date and cause_of_death and patient_status=='a89335d6-1350-11df-a1f1-0026b9348838': 
             result = Person.set_dead(self.patient_uuid,death_date,cause_of_death)
-            print result
-
+            
+            
 
     def reprocess_form(self,args):
+        
+        logs = OutreachFormSubmissionLog.objects.filter(patient_uuid=self.patient_uuid)
+        for l in logs:
+            vals = json.loads(l.values)
+            d = vals['encounter_datetime']
+            if l.id != self.id and args['encounter_datetime'] == d:
+                print 'ERROR: This encounter has already been entered'
+                #self.delete()              
+                return ''
+
         self.patient_uuid = args['patient_uuid']        
         self.encounter_datetime = args['encounter_datetime']
         self.location_uuid = args['location_uuid']        
@@ -558,35 +591,55 @@ class OutreachFormSubmissionLog(models.Model):
                     obs.append({'concept':question_uuid,'value':val})
                 
             if key.startswith('attr__') and value.strip() != '':
-                attr_type_uuid = key[6:]       
-                result = PersonAttribute.create_person_attribute_rest(person_uuid=patient_uuid,person_attribute_type_uuid=attr_type_uuid,value=value)
+                try :
+                    attr_type_uuid = key[6:]       
+                    result = PersonAttribute.create_person_attribute_rest(person_uuid=patient_uuid,person_attribute_type_uuid=attr_type_uuid,value=value)
+                    if result.get('error',None):
+                        print 'REST Error: ' + str(result['error']['message'])
+
+                except Exception, e:
+                    print e
 
         self.save()
-        
+
         result = Encounter.create_encounter_rest(patient_uuid=self.patient_uuid,
                                                  encounter_datetime=self.encounter_datetime,
                                                  location_uuid=self.location_uuid,
                                                  encounter_type_uuid=self.encounter_type_uuid,
                                                  provider_uuid=self.provider_uuid,
                                                  obs=obs)
-        if result.get('error',None) : print 'REST Error: ' + str(result['error']['message'])
-        
+        if result.get('error',None) : 
+            print 'REST Error: ' + str(result['error']['message'])
+
+    
         death_date = None
         patient_status = None
         cause_of_death = None
 
-        for o in args['obs']:
+        for o in obs:
             if o['concept'] == 'a89df3d6-1350-11df-a1f1-0026b9348838':
                 death_date = o['value']
             elif o['concept'] == '7c579743-5ef7-4e2c-839f-5b95597cb01c':
                 patient_status = o['value']
             elif o['concept'] == 'a89df750-1350-11df-a1f1-0026b9348838':
-                cause_of_death == o['value']
+                cause_of_death = o['value']
+
+        print 'death_date: ' + str(death_date)
+        print 'patient_status is dead: ' + str(patient_status=='a89335d6-1350-11df-a1f1-0026b9348838')
+        print 'cause_of_death: ' + str(cause_of_death)
+
         
         if death_date and cause_of_death and patient_status=='a89335d6-1350-11df-a1f1-0026b9348838': 
-            result = Person.set_dead(self.patient_uuid,death_date,cause_of_death)
+            try:
+                result = Person.set_dead(self.patient_uuid,death_date,cause_of_death)
+                
+                if result.get('error',None):
+                    print 'REST Error: ' + str(result['error']['message'])
+            except Exception, e:
+                print e
+                print 'ERROR : REST set dead : patient ' + self.patient_uuid
 
-
+        
         self.values = json.dumps({'patient_uuid':self.patient_uuid,
                                   'encounter_datetime':self.encounter_datetime,
                                   'location_uuid':self.location_uuid,
@@ -596,12 +649,12 @@ class OutreachFormSubmissionLog(models.Model):
 
         self.enc_uuid = result.get('uuid',None)
         self.save()
-
+    
         if self.defaulter_cohort_member_id is not None and self.defaulter_cohort_member_id != '': 
             member = DefaulterCohortMember.objects.get(id=self.defaulter_cohort_member_id)
             args = {'next_appt_date':self.encounter_datetime,
                     'next_encounter_type':"OUTREACHFIELDFU",
                     }
             member.update_status(args)
-            
+        
 

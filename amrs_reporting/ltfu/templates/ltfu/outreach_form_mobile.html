@@ -73,14 +73,20 @@ $(document).ready(function() {
 
   });
  
+  $("#outreach_form").validate();
 
-  $("#outreach_form").validate({
-      debug: false,
-      submitHandler: function(form) {
-             alert('submitting form');
-             form.submit(); //alert("submitted! (skipping validation for cancel button)");
-      },
-  });
+  $("#outreach_form").on('submit',function(e) {
+    var is_valid = $("#outreach_form").valid();
+    if(!is_valid)
+        {
+            e.preventDefault();
+            alert('This form has errors');
+        }
+    else { 
+        alert('Submitting form.');
+    }
+    });
+
 
   jQuery.validator.addMethod("needs_date_found", function(value, element) {
      if(value === '') {
@@ -88,7 +94,7 @@ $(document).ready(function() {
                && $("#contacted_by_phone option:selected").text().toLowerCase() != 'yes');
      }
      else { return true; }
-     }, "* Must provide date of found"
+     }, "* Must provide date found"
   );
 
 
@@ -146,7 +152,13 @@ $(document).ready(function() {
      }, "* Must provide death date and cause for death"
   );
 
-
+    jQuery.validator.addMethod("check_death_date", function(value, element) {
+        var re = /^\d{4}-\d{2}-\d{2}$/;
+        // valid if optional and empty OR if it passes the regex test
+        return (this.optional(element) && value=="") || re.test(value);
+     },
+     function(params,element) { return 'Date is in invalid format. Please use YYYY-MM-DD';}
+    );
 
 
   $("#missed_return_visit_date").rules("add",{required:true});
@@ -158,6 +170,7 @@ $(document).ready(function() {
   $("#transfer_location").rules("add",{needs_transfer_location:true});
   $("#phone_number").rules("add",{needs_phone_number:true});
   $("#date_of_death").rules("add",{needs_death_info:true});
+  $("#date_of_death").rules("add",{check_death_date:true});
   $("#cause_for_death").rules("add",{needs_death_info:true});
   $("#provider_uuid").rules("add",{required:true});
   $("#encounter_datetime").rules("add",{required:true});
@@ -230,8 +243,8 @@ $("#encounter_datetime").datepicker({dateFormat:'yy-mm-dd'});
 $("#missed_return_visit_date").datepicker({dateFormat:'yy-mm-dd'});
 $("#date_found").datepicker({dateFormat:'yy-mm-dd'});
 $("#return_visit_date").datepicker({dateFormat:'yy-mm-dd'});
-$("#date_of_death").datepicker({dateFormat:'yy-mm-dd'});
 {% endif %} 
+$("#date_of_death").datepicker({dateFormat:'yy-mm-dd'});
 
 
 } );
@@ -504,7 +517,7 @@ $("#date_of_death").datepicker({dateFormat:'yy-mm-dd'});
 	  <div class="form-group">
 	    <label for="date_of_death">Death date:</label>
 	    <input class="form-control datepicker" data-concept="1570^DATE OF DEATH^99DCT" id="date_of_death" 
-		   name="obs__a89df3d6-1350-11df-a1f1-0026b9348838" type="date"/>               
+		   name="obs__a89df3d6-1350-11df-a1f1-0026b9348838" type="text"/>               
 	    
 	  </div>
 	  <div class="form-group">

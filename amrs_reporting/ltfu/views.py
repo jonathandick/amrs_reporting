@@ -148,8 +148,9 @@ def ajax_update_phone_number(request):
     phone_number = request.POST['phone_number']
     patient_uuid = request.POST['patient_uuid']
     attr_type_uuid = '72a759a8-1359-11df-a1f1-0026b9348838'
-    result = PersonAttribute.create_person_attribute_rest(person_uuid=patient_uuid,person_attribute_type_uuid=attr_type_uuid,value=phone_number)
-    result = json.dumps(result)
+    log = PersonAttribute.create_person_attribute_rest(person_uuid=patient_uuid,person_attribute_type_uuid=attr_type_uuid,value=phone_number)
+    
+    result = json.dumps(log.error)
     return HttpResponse(result,content_type='application/json')
     
 
@@ -174,7 +175,8 @@ def patient_search(request):
 
 @login_required
 def outreach_form(request):
-    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']):
+    #if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']):
+    if not Authorize.authorize(request.user,['superuser']):
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
     if request.method == 'GET':
@@ -266,6 +268,17 @@ def ajax_resubmit_outreach_form(request):
     log = OutreachFormSubmissionLog.objects.get(id=log_id)
     result = log.resubmit_form()
     return HttpResponse(result,content_type='application/json')
+
+
+@login_required
+def resubmit_outreach_form(request):
+    log_id = request.POST['outreach_form_submission_log_id']
+    print 'LOG ID: ' + str(log_id)
+    log = OutreachFormSubmissionLog.objects.get(id=log_id)
+    result = log.resubmit_form()
+    return view_rest_submission_errors(request) 
+
+
 
 
 
@@ -530,7 +543,6 @@ def run_report_table(request):
                        'rows':rows,
                        'parameters':parameters,                       
                        })
-
 
     else :
         report_tables = ReportTable.objects.all()
@@ -1147,8 +1159,17 @@ def view_data_entry_stats(request):
 
 @login_required    
 def test(request):
+    '''
+    death_date = '2013-05-11'
+    cause_of_death = 'a89de2d8-1350-11df-a1f1-0026b9348838'
+    patient_uuid = '5ead308a-1359-11df-a1f1-0026b9348838' # bf test
+    #patient_uuid = '5ead313e-1359-11df-a1f1-0026b9348838' # bf patient
+    result = Person.set_dead(patient_uuid,death_date,cause_of_death)
+    print result
+    '''
+
     
-    #print Concept.is_valid_concept_uuid('adfasd')
+    
     return render(request,'ltfu/patient_search_mobile.html',{})
     
 
@@ -1216,14 +1237,11 @@ def build_schema(request):
         args = request.POST
         s = ''
         for k,v in args.iteritems() :
-            print k
             parts = k.split('__')
             if len(parts) > 0 and parts[0] == 'input':
                 concept_uuid = parts[1]
-                print concept_uuid
                 data_type = str(v)
                 html = toHTML(concept_uuid,data_type)
-                print html
                 s += html + "\n\n"
             
         data = json.dumps(s)

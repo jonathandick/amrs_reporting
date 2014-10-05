@@ -25,17 +25,17 @@ function getCookie(name) {
 
 $(document).ready(function () {
 
-  //For unclear reason the a href was not working directly has the following
   $('#form_link').click(function() {
      var d_id = $('#form_link').attr('d_id');
      var p_id = $('#form_link').attr('p_id');
      if(d_id != "") {
-         window.location = '/ltfu/outreach_form?defaulter_cohort_member_id=' + d_id;
+         window.location = 'https://testserver1.ampath.or.ke/ltfu/outreach_form?defaulter_cohort_member_id=' + d_id;
      }
      else {
-         window.location = '/ltfu/outreach_form?patient_uuid=' + p_id;
+         window.location = 'https://testserver1.ampath.or.ke/ltfu/outreach_form?patient_uuid=' + p_id;
      }
-   });
+   }); 
+   
 
    var csrftoken = getCookie('csrftoken');
    $.ajaxSetup({
@@ -48,7 +48,7 @@ $(document).ready(function () {
             alert('This phone number has ' + num.length + ' digits. Phone number must be 10 digits and contain no spaces. For example: 0724123456.');
        }
        else {
-            if(confirm('Are you sure you want to update this phone number?')) {
+            if(confirm('Are you sure you want to update this phone number to ' + $("#phone_number").val().trim() + '?')) {
                var d = {phone_number:$("#phone_number").val().trim(),patient_uuid:$("#patient_uuid").val()};
                $.ajax({
                        type: "POST",
@@ -123,7 +123,7 @@ $(document).ready(function () {
 <div data-role='collapsible'>
   <h2>Forms</h2>
   <ul data-role="listview">
-    <li><a id="form_link" d_id="{{patient.defaulter_cohort_member_id}}" p_id="{{patient.uuid}}" href="#">Enter Outreach Form</a></li>
+    <li><a id="form_link" d_id="{{patient.defaulter_cohort_member_id}}" p_id="{{patient.uuid}}" href="">Enter Outreach Form</a></li>
   </ul>
 </div>
 

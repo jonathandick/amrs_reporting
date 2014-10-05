@@ -27,8 +27,14 @@ class RESTHandler():
         try :
             res = requests.post(url,payload,auth=(amrs_settings.username,amrs_settings.password),headers=RESTHandler.headers,verify=False)
             result = json.loads(res.text)
-            print json.dumps(result,indent=2)
-
+            #print json.dumps(result,indent=2)
+            print json.dumps(payload,indent=2)
+            e = result.get('error',None)
+            if e :
+                print 'REST URL leading to error: ' + url
+                s = e['detail'].split('\\n\\tat')
+                for line in s:
+                    print line
             res.close()
         except Exception, e:
             result = {'error':{'message':e}}
@@ -266,7 +272,8 @@ class Patient():
     def search_patients(search_string):
         url = amrs_settings.amrs_url + '/ws/rest/v1/patient?v=default&limit=20&q=' + search_string
         result = RESTHandler.get(url)
-        data = result['results']
+
+        data = result.get('results',None)
 
         patients = []
         for p in data:

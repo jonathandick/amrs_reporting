@@ -2,10 +2,7 @@
 
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
 "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
-
-
 <head>
   <title>AMPATH+ Outreach v1.0</title>
 
@@ -25,40 +22,14 @@
   <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_huawei.css'%}" />
 {%endif%}
 
-{% block alert_style %}{% endblock %}
-
-  <script>
-    $(document).ready(function() {
-        $.mobile.pushStateEnabled = false;
-    });
-  </script>
 </head>
 
 
 <body>
-<!--div id="wrapper" style="padding-top:10px;">  
-  <div id="header">
-    <table width='100%'>
-      <tr>
-	<td>{%if not device.huawei %}<div id='wordmark'><img src='{% static "amrs_reports/images/ampath_logo.png" %}'/>{%endif%}</div></td>	     
-	<td>
-	  <foo>&nbsp;&nbsp;AMPATH+ Outreach</font></foo><small>v1.0 </small>
-	</td>
-	<td valign='bottom'>
-	  <ul id='links'>
-	    <li><a href='/amrs_user_validation/logout'><span>Logout</span></a></li>
-	    <li><a href="/"><span>Home</span></a></li>
-	  </ul>
-	</td>
-      </tr>
-    </table>
-  </div>
-</div-->
-
 <div data-role="header" data-theme='d'>
   <h2><span style="font-size:18px;text-align:center">AMPATH+<br/>Outreach</span></h2>
-  <a href="/ltfu/outreach_dashboard/" class="ui-btn-left" data-theme='b'>Home</a>
-  <a href='/amrs_user_validation/logout' class="ui-btn-right" data-theme='b'>Logout</a>
+  <a href="https://testserver1.ampath.or.ke/ltfu/outreach_dashboard/" class="ui-btn-left" data-theme='b'>Home</a>
+  <a href='https://testserver1.ampath.or.ke/amrs_user_validation/logout' class="ui-btn-right" data-theme='b'>Logout</a>
 
 </div>
 

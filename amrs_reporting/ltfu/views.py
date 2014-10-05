@@ -70,6 +70,41 @@ def view_defaulter_cohort(request):
                    'device':device}
                   )
 
+@login_required
+def ajax_get_defaulter_cohort(request):
+    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
+    defaulter_cohort_id = request.POST['defaulter_cohort_id']
+
+    dc = DefaulterCohort.objects.get(id=defaulter_cohort_id)
+
+    data = request.session.get(dc.location_uuid,'')
+    if data is not None and data != '':
+        patients = json.loads(request.session.get(dc.location_uuid,''))
+    else :
+        patients = dc.get_patients()
+        request.session[dc.location_uuid] = json.dumps(patients, cls=DjangoJSONEncoder)
+
+    patients = json.dumps(patients,cls=DjangoJSONEncoder)
+    return HttpResponse(patients,content_type='application/json')
+
+
+@login_required    
+def test(request):
+    '''
+    death_date = '2013-05-11'
+    cause_of_death = 'a89de2d8-1350-11df-a1f1-0026b9348838'
+    patient_uuid = '5ead308a-1359-11df-a1f1-0026b9348838' # bf test
+    #patient_uuid = '5ead313e-1359-11df-a1f1-0026b9348838' # bf patient
+    result = Person.set_dead(patient_uuid,death_date,cause_of_death)
+    print result
+    '''
+
+    cohorts = DefaulterCohort.objects.filter(retired=0).order_by('name')    
+    
+    return render(request,'ltfu/test.html',{'defaulter_cohorts':cohorts})
+
+
 
 @login_required
 def update_defaulter_cohorts(request):
@@ -147,6 +182,7 @@ def view_patient(request):
 @login_required
 def ajax_update_phone_number(request):
     phone_number = request.POST['phone_number']
+    print phone_number
     patient_uuid = request.POST['patient_uuid']
     attr_type_uuid = '72a759a8-1359-11df-a1f1-0026b9348838'
     log = PersonAttribute.create_person_attribute_rest(person_uuid=patient_uuid,person_attribute_type_uuid=attr_type_uuid,value=phone_number)
@@ -176,8 +212,8 @@ def patient_search(request):
 
 @login_required
 def outreach_form(request):
-    #if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']):
-    if not Authorize.authorize(request.user,['superuser']):
+    #if not Authorize.authorize(request.user,['superuser']):
+    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']):    
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
     if request.method == 'GET':
@@ -1161,20 +1197,6 @@ def view_data_entry_stats(request):
         
 
 
-@login_required    
-def test(request):
-    '''
-    death_date = '2013-05-11'
-    cause_of_death = 'a89de2d8-1350-11df-a1f1-0026b9348838'
-    patient_uuid = '5ead308a-1359-11df-a1f1-0026b9348838' # bf test
-    #patient_uuid = '5ead313e-1359-11df-a1f1-0026b9348838' # bf patient
-    result = Person.set_dead(patient_uuid,death_date,cause_of_death)
-    print result
-    '''
-
-    
-    
-    return render(request,'ltfu/patient_search_mobile.html',{})
     
 
 

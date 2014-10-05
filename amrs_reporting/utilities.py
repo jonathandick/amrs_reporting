@@ -35,7 +35,7 @@ def get_device(request):
         device['ipad'] = "ipad"
 
     if ua.find("android") > 0:
-        device['android'] = "android" + re.search("android (\d\.\d)", ua).groups(0)[0].translate(None, '.')
+        device['android'] = "android" #+ re.search("android (\d\.\d)", ua).groups(0)[0]
 
     if ua.find("blackberry") > 0:
         device['blackberry'] = "blackberry"

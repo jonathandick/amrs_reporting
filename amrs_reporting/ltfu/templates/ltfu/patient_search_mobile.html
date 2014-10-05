@@ -56,7 +56,7 @@ function getCookie(name) {
      for(var i=0; i<response.length;i++) {
          var row =  response[i];
                       
-         var html = "<li><a href='/ltfu/view_patient?patient_uuid="+ row['uuid'] + "'>";
+         var html = "<li><a href='https://testserver1.ampath.or.ke/ltfu/view_patient?patient_uuid="+ row['uuid'] + "'>";
          html += row['family_name'] + ", " + row['given_name'] + " " + row['middle_name'] + "<br/>";        
          html += "Sex: " + row['gender'] + "; Birthdate: " + row['birthdate'] + "<br/>";
          html += "Identifier(s): " + row['identifier'];
@@ -69,19 +69,7 @@ function getCookie(name) {
    $('#search_string').on("keyup change",function() {
       patientSearch();
    });
-
-  //For unclear reason the a href was not working directly has the following
-  $('#form_link').click(function() {
-     var d_id = $('#form_link').attr('d_id');
-     var p_id = $('#form_link').attr('p_id');
-     if(d_id != "") {
-         window.location = '/ltfu/outreach_form?defaulter_cohort_member_id=' + d_id;
-     }
-     else {
-         window.location = '/ltfu/outreach_form?patient_uuid=' + p_id;
-     }
-  });
-
+					
      
 
 

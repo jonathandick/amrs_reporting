@@ -8,7 +8,7 @@
 function viewClinic() {
   var clinic_uuid = $('#clinic_uuid').val();
   
-  var link = '/ltfu/view_defaulter_cohort?location_uuid=' + clinic_uuid;
+  var link = 'https://testserver1.ampath.or.ke/ltfu/view_defaulter_cohort?location_uuid=' + clinic_uuid;
   if(clinic_uuid != '') {
       window.location = link;
   }
@@ -38,6 +38,6 @@ function viewClinic() {
 </div>
 <hr/>
 <ul data-role="listview">
-  <li><a href='/ltfu/patient_search'>Patient Search</a></li>
+  <li><a href='https://testserver1.ampath.or.ke/ltfu/patient_search'>Patient Search</a></li>
 </ul>
 {% endblock %}

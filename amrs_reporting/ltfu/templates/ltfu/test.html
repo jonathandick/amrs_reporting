@@ -1,13 +1,35 @@
-{% extends "ltfu/base.html" %}
 {% load staticfiles %}
-{% load ltfu_filters %}
 
-{% block content %}
+<!--html manifest="{% static 'amrs_reports/ltfu.manifest' %}"-->
+<html>
 
-<link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/table.css'%}">
-<script>
+<head>
 
-function getCookie(name) {
+  <script type="text/javascript" src="{% static 'js/jquery-1.10.2.min.js'%}"></script>  
+
+  <script type="text/javascript" src="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.js'%}"></script>  
+  <link rel="stylesheet" type="text/css" href="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.css'%}" />     
+  
+  <meta content='initial-scale=0.25, maximum-scale=0.25, user-scalable=no' name='viewport' />   
+  <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_huawei.css'%}" />
+
+  <script>
+
+  function createDefaulterCohort(location_uuid) {
+     if(confirm('This will retire the current list. Are you sure you want to create a new defaulter list?')) {
+         window.location = '/ltfu/create_defaulter_cohort?location_uuid=' + location_uuid;
+     }
+  }
+
+
+  window.applicationCache.addEventListener('updateready',function() {
+     window.applicationCache.swapCache();
+     alert('Cache updated');
+     window.location.reload();
+  },false);
+
+
+  function getCookie(name) {
     var cookieValue = null;
     if (document.cookie && document.cookie != '') {
         var cookies = document.cookie.split(';');
@@ -21,157 +43,135 @@ function getCookie(name) {
         }
     }
     return cookieValue;
-}
-
+  }
 
   $(document).ready(function() {
-
-   var patients_table = $('#patients').DataTable( {
-       "sScrollY": "100px",
-       "bJQueryUI": true,
-       "bPaginate": false,
-       "bLengthChange": false,
-       "bFilter": true,
-       "bSort": true,
-       "bInfo": false,
-       "bAutoWidth": true,});
-
-
-   var encounters_table = $('#encounters').DataTable( {
-       "columns": [{"type":"date"},null],
-       "sScrollY": "100px",
-       "bJQueryUI": true,
-       "bPaginate": false,
-       "bLengthChange": false,
-       "bFilter": true,
-       "bSort": true,
-       "bInfo": false,
-       "bAutoWidth": true,});
-			    
-   var csrftoken = getCookie('csrftoken');
-   $.ajaxSetup({
+     var csrftoken = getCookie('csrftoken');
+     $.ajaxSetup({
         headers: { "X-CSRFToken": csrftoken }
-   });
-
-   function patientSearch() {
-        var d = {search_string:$("#search_string").val()};
-        $.ajax({
-        type: "POST",
-        url: "/ltfu/ajax_patient_search",
-        data: d,
-        dataType: "json",
-        success: OnSuccessPatientSearch,
-        failure: function() {
-            alert('failed');
-        },
-        error : function(xhr,errmsg,err) {
-                                alert(xhr.status + ": " + xhr.responseText);
-                            }
-        });
-   }
-
-
-   function encounterSearch(patient_uuid) {
-        var d = {patient_uuid:patient_uuid};       
-        $.ajax({
-        type: "POST",
-        url: "/ltfu/ajax_encounter_search",
-        data: d,
-        dataType: "json",
-        success: OnSuccessEncounterSearch,
-        failure: function() {
-            alert('failed');
-        },
-        error : function(xhr,errmsg,err) {
-                                $('#error').text(xhr.responseText);
-                            }
-        });
-   }
-
-   function OnSuccessPatientSearch(response) { 
-     patients_table.clear().draw();
-     encounters_table.clear().draw();
-     $('#patient_name').text('');
-     $('#error').text('');
-
-     for(var i=0; i<response.length;i++) {
-         var row =  response[i];
-         var data = [row['given_name'],row['family_name'],row['middle_name'],row['gender'],row['birthdate'],row['identifier'],row['phone_number']];
-	 patients_table.row.add(data).draw();
-         var i = $('#patients tbody tr').length -1;      
-         var node = $('#patients').dataTable().fnSettings().aoData[i].nTr;
-         node.setAttribute('patient_uuid',row['uuid']);
-         
-     }
-  }
-
-
-
-
-   function OnSuccessEncounterSearch(response) {
-     encounters_table.clear().draw();
-     for(var i=0; i<response.length;i++) {
-         var row = response[i];
-         encounters_table.row.add([row['encounter_date'],row['encounter_type']]).draw();
-     }
-  }
-
-   $('#search_string').keyup(function() {
-      patientSearch();
-   });
-
-
-   $('#patients').on("click","tr",function(e) {
-        encounterSearch($(this).attr('patient_uuid'));
-        var given_name = $(this).find('td').eq(0).text();
-	var family_name = $(this).find('td').eq(1).text();
-	var middle_name = $(this).find('td').eq(2).text();
-
-        $('#patient_name').text(given_name + ' ' + middle_name + ' ' + family_name);
-    });
-
-
+     });
      
+     $("#defaulter_list_btn").click(function() {			    
+          var d = {defaulter_cohort_id:$("#defaulter_cohort").val()};
+          $.ajax({
+                       type: "POST",
+                       url: "/ltfu/ajax_get_defaulter_cohort",
+                       data: d,
+                       dataType: "json",
+                       success: onSuccessGetDefaulterCohort,
+                       error : function(xhr,errmsg,err) {
+                                alert(xhr.status + ": " + errmsg);
+                       }
+          });
+      });
+
+      function onSuccessGetDefaulterCohort(response) {
+          var chars = 0;
+          localStorage.clear();
+          $("#defaulter_cohort_list").empty();
+          for(var i=0; i< response.length; i++) {
+            var row = response[i];
+            localStorage.setItem(row['patient_uuid'],JSON.stringify(row));
+            chars += JSON.stringify(row).length;
+            var s = "<li";
+            if(row['retired']) {
+               s += " class='retired'";
+            }
+            
+            s += "><a onClick='viewPatientDashboard(\"" + row["patient_uuid"] + "\")'>";
+            s += row["family_name"] + ", " + row["given_name"] + " " + row["middle_name"] + "<br/>";
+            s += row["identifier"] + "<br/>";
+            s += "Phone: " + row["phone_number"];
+            $("#defaulter_cohort_list").append(s).listview("refresh");    	  
+          }
+          console.log('Num Chars: ' + chars);
+      }
+   });
 
 
-});
-</script>
+   function viewPatientDashboard(uuid) {
+      console.log('method: viewPatientDashboard; patient_uuid=' + uuid);
+      $("#patient_dashboard_view").css("display","inline");
+      $("#defaulter_cohort_view").css("display","none");
+  
+      var patient = JSON.parse(localStorage[uuid]);
+      console.log("Patient Info: " + localStorage[uuid]);
+      $("#dash_patient_name").text(patient["given_name"] + " " + patient["middle_name"] + " " + patient["family_name"]);
+      $("#dash_identifier").text(patient["identifier"]);
+      $("#dash_birthdate").text(patient["birthdate"].substring(0,10));
+      $("#dash_phone_number").val(patient["phone_number"]);
+
+   }
+   
+
+  </script>
+</head>
+
+<body>
+
+  
+  <div id='defaulter_cohort_view'>
+    <select id='defaulter_cohort'>
+      {% for dc in defaulter_cohorts %}
+      <option value='{{dc.id}}'>{{dc.name}}</option>
+      {%endfor%}
+    </select>
+    <input type='button' value='Get Defaulter List' id='defaulter_list_btn'/>
+    
+    <span id='defaulter_cohort_name'/><br/>
+    <span id='date_created'/><br/>
+    <span id='num_remaining'/><br/>
+    
+    
+    <input type='button' name='create_defaulter_cohort' id='create_defaulter_cohort' value='Get New list' onClick='createDefaulterCohort()'/>
+    
+    <ul data-role="listview" data-filter="true" id="defaulter_cohort_list">
+    </ul>
+  </div>
 
 
-<input type='text' name='search_string' id='search_string'/>
-<table id='patients'>
-  <thead>
-    <tr>
-      <td style='width:135px;'>Given Name</td>
-      <td style='width:135px;'>Family Name</td>
-      <td style='width:135px;'>Other Names</td>
-      <td style='width:135px;'>Gender</td>
-      <td style='width:135px;'>Birthdate</td>
-      <td style='width:135px;'>Identifiers</td>
-      <td style='width:135px;'>Phone</td>
-    </tr> 
-  </thead>
-  <tbody>
-  </tbody>
-</table>
+  <!-- PATIENT DASHBOARD -->
+  <div id="patient_dashboard_view" style="display:none">
+    <ul data-role="listview">
+      <li data-role="header">
+	<span id="dash_patient_name"/>
+      </li>
+      <li style="font-size:large">Identifier(s):<span id="dash_identifier"/></li>
+      <li style="font-size:large">Birthdate: <span id="dash_birthdate"/></li>
+      <li data-role="fieldcontain">
+	<div class='ui-grid-b'>
+	  <div class='ui-block-a' style="font-size:large;width:100%;">Phone Number:</div>
+	  <div class='ui-block-a' style="width:50%"><input style="font-size:large;" name="phone_number" id="dash_phone_number" type="tel" size="10"/></div>	
+	  <div class='ui-block-b' style="width:50%">
+	    <input type='hidden' id='dash_patient_uuid'/>
+	    <input type="button" id="update_phone_number_button" value="Update"/>
+	  </div>
+	</div>
+      </li>
+      
+    </ul>
+    
+    <b>This patient had a {{patient.next_encounter_type}} encounter on {{patient.next_encounter_date}}</b>    
+    
+    <div data-role='collapsible'>
+      <h2>Encounters</h2>  
+      <div class="CSSTableGenerator">
+	<table id="dash_encounters">
+	  <tr>
+	    <td>Date</td>
+	    <td>Type</td>
+	  </tr>
+	</table>	
+      </div>
+    </div>
 
-<br/>
-<hr/>
-<br/>
+    <div data-role='collapsible'>
+      <h2>Forms</h2>
+      <ul data-role="listview">
+	<li><a id="form_link" d_id="" p_id="" href="">Enter Outreach Form</a></li>
+      </ul>
+    </div>
+    
+  </div>
 
-<h3>Patient: <span id='patient_name'></span></h3>
-<h3>Encounters</h3>
-
-  <table id='encounters'>
-    <thead>
-      <tr>
-	<td>Encounter Date</td>
-	<td>Encouter Type</td>
-      </tr>
-    </thead>
-    <tbody/>
-  </table>
-
-
-<span id='error'></span>
-{%endblock%}
+</body>

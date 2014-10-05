@@ -100,9 +100,13 @@ def test(request):
     print result
     '''
 
-    cohorts = DefaulterCohort.objects.filter(retired=0).order_by('name')    
-    
-    return render(request,'ltfu/test.html',{'defaulter_cohorts':cohorts})
+    cohorts = DefaulterCohort.objects.filter(retired=0).order_by('name')
+    locations = Location.get_locations()
+    providers = Provider.get_outreach_providers()
+    print 'rendering ltfu app'
+    return render(request,'ltfu/test.html',{'defaulter_cohorts':cohorts,
+                                            'locations':locations,
+                                            'providers':providers})
 
 
 

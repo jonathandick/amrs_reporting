@@ -124,6 +124,7 @@ class EncounterLog(models.Model):
     encounter_datetime = models.DateTimeField()
     rest_log_id = models.IntegerField()
     creator = models.IntegerField()
+    date_created = models.DateTimeField(auto_now_add=True)
 
     @staticmethod
     def log(creator,patient_uuid,encounter_type_uuid,encounter_datetime,rest_log_id):

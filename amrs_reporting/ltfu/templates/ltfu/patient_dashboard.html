@@ -1,0 +1,43 @@
+    <input type="hidden" name="patient_uuid" id="dash_patient_uuid"/>
+    <input type="hidden" name="dash_cohort_key" id="dash_cohort_key"/>
+
+    <input type="button" onClick="viewDefaulterCohortList()" value="Back to defaulter list"/>
+    <ul data-role="listview">
+      <li data-role="header">
+	<span id="dash_patient_name"/>
+      </li>
+      <li style="font-size:large">Identifier(s):<span id="dash_identifier"/></li>
+      <li style="font-size:large">Birthdate: <span id="dash_birthdate"/></li>
+      <li data-role="fieldcontain">
+	<div class='ui-grid-b'>
+	  <div class='ui-block-a' style="font-size:large;width:100%;">Phone Number:</div>
+	  <div class='ui-block-a' style="width:50%"><input style="font-size:large;" name="phone_number" id="dash_phone_number" type="tel" size="10"/></div>	
+	  <div class='ui-block-b' style="width:50%">
+	    <input type='hidden' id='dash_patient_uuid'/>
+	    <input type="button" id="update_phone_number_button" value="Update"/>
+	  </div>
+	</div>
+      </li>
+      
+    </ul>
+    
+    <b>This patient had a </b>    
+    
+    <div data-role='collapsible'>
+      <h2>Encounters</h2>  
+      <div class="CSSTableGenerator">
+	<table id="dash_encounters">
+	  <tr>
+	    <td>Date</td>
+	    <td>Type</td>
+	  </tr>
+	</table>	
+      </div>
+    </div>
+
+    <div data-role='collapsible'>
+      <h2>Forms</h2>
+      <ul data-role="listview">
+	<li><a id="form_link" d_id="" p_id="" onClick="viewOutreachForm()">Enter Outreach Form</a></li>
+      </ul>
+    </div>

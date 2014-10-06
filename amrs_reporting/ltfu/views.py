@@ -85,8 +85,10 @@ def ajax_get_defaulter_cohort(request):
         patients = dc.get_patients()
         request.session[dc.location_uuid] = json.dumps(patients, cls=DjangoJSONEncoder)
 
-    patients = json.dumps(patients,cls=DjangoJSONEncoder)
-    return HttpResponse(patients,content_type='application/json')
+    d = {"name":dc.name,"date_created":dc.date_created,"patients":patients,"id":dc.id,"location_uuid":dc.location_uuid}
+    d = json.dumps(d,cls=DjangoJSONEncoder)
+
+    return HttpResponse(d,content_type='application/json')
 
 
 @login_required    

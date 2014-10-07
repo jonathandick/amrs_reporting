@@ -91,6 +91,25 @@ def ajax_get_defaulter_cohort(request):
     return HttpResponse(d,content_type='application/json')
 
 
+@login_required
+def ajax_encounter_search(request):
+    patient_uuid = request.POST['patient_uuid']
+    #encounters = {'response':'nice work'}
+
+    encounters  = Encounter.get_encounters(patient_uuid)
+    data = json.dumps(encounters)
+    return HttpResponse(data,content_type='application/json')
+
+
+@login_required
+def ajax_submit_form(request):
+    print 'LTFU: ajax_submit_form'
+    log = '' # EncounterForm.process_encounter(request.POST,request.user.id)           
+    data = json.dumps(log)
+    return HttpResponse(data,content_type='application/json')
+
+
+
 @login_required    
 def test(request):
     '''
@@ -1209,19 +1228,16 @@ def view_data_entry_stats(request):
 @login_required
 def ajax_patient_search(request):
     search_string = request.POST['search_string']
-
     patients = ''
     if len(search_string) >= 3 :
         patients = Patient.search_patients(search_string)
     data = json.dumps(patients)
-    print 'returning ajax patient search'
     return HttpResponse(data,content_type='application/json')
 
 
 @login_required
 def ajax_concept_search(request):
     search_string = request.POST['search_string']
-
     concepts = ''
     if len(search_string) >= 3 :
         concepts = Concept.search_concepts(search_string)
@@ -1230,14 +1246,6 @@ def ajax_concept_search(request):
     return HttpResponse(data,content_type='application/json')
 
 
-@login_required
-def ajax_encounter_search(request):
-    patient_uuid = request.POST['patient_uuid']
-    #encounters = {'response':'nice work'}
-
-    encounters  = Encounter.get_encounters(patient_uuid)
-    data = json.dumps(encounters)
-    return HttpResponse(data,content_type='application/json')
 
     
 

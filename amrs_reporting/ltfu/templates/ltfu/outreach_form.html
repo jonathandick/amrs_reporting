@@ -26,53 +26,53 @@
 	       type="date" {%if form.encounter_datetime %}value=""{%endif%}required/>
       </div>
       <div class="form-group">
-	<label for="form_phone_number">Phone:</label>
-	<input class="form-control phoneNumber" id="form_phone_number" name="attr__72a759a8-1359-11df-a1f1-0026b9348838" type="tel" value=""/>
+	<label for="phone_number">Phone:</label>
+	<input auto-populate="True" id="phone_number" name="attr__72a759a8-1359-11df-a1f1-0026b9348838" type="tel"/>
       <div class="form-group">
-        <label for="form_missed_return_visit_date">Missed appointment date:</label>
-        <input data-concept="1592^MISSED RETURN VISIT DATE^99DCT" id="form_missed_return_visit_date" 
+        <label for="missed_return_visit_date">Missed appointment date:</label>
+        <input auto-populate="True" id="missed_return_visit_date" 
 	       name="obs__a89e3896-1350-11df-a1f1-0026b9348838" value='' type="date"/>
       </div>
       <label for="form_identifier">AMRS ID Number:</label>
-      <input class="form-control" id="form_identifier"
-	     name="form_identifier" type="text" value = "" readonly/>
+      <input auto-populate="True" id="identifier"
+	     name="identifier" type="text" readonly/>
       <div class="form-group">
-	<label for="form_family_name">Family Name:</label>
-	<input class="form-control" id="form_family_name" name="patient.family_name" type="text"
+	<label for="family_name">Family Name:</label>
+	<input auto-populate="True" id="family_name" name="patient.family_name" type="text"
 	       readonly="readonly" value=""/>
       </div>
       <div class="form-group">
-	<label for="form_given_name">Given Name:</label>
-	<input class="form-control" id="form_given_name" name="patient.given_name" type="text"
+	<label for="given_name">Given Name:</label>
+	<input auto-populate="True" id="given_name" name="patient.given_name" type="text"
 	       readonly="readonly"/>
       </div>
       <div class="form-group">
-	<label for="form_middle_name">Middle Name:</label>
-	<input class="form-control" id="form_middle_name" name="patient.middle_name" type="text"
+	<label for="middle_name">Middle Name:</label>
+	<input auto-populate="True" id="middle_name" name="patient.middle_name" type="text"
 	       readonly="readonly" value=""/>
       </div>
       <div class="form-group">        
-	<label for="form_gender">Gender:</label>
-	<input type='text' id="form_gender" name="form_gender" readonly="readonly"/>
+	<label for="gender">Gender:</label>
+	<input auto-populate="True" type='text' id="gender" name="gender" readonly="readonly"/>
       </div>
       <div class="form-group">
-	<label for="form_birthdate">Date Of Birth:</label>
-	<input id="form_birthdate" name="patient.birthdate" type="text"
+	<label for="birthdate">Date Of Birth:</label>
+	<input auto-populate="True" id="birthdate" name="patient.birthdate" type="text"
 	       readonly="readonly" value=''/>
       </div>
       </div>   
       <div class="form-group">
         <label for="clinic_name">Clinic:</label>
-        <input value='' type="text" readonly id='clinic_name'/>
+        <input type="text" readonly id='clinic_name'/>
       </div>
 
       <div class="form-group">	   
-        <label for="form_last_encounter_date">Last Encounter Date:</label>
-        <input id="form_last_encounter_date" type="date" readonly/>
+        <label for="last_encounter_date">Last Encounter Date:</label>
+        <input auto-populate="True" id="last_encounter_date" type="date" readonly/>
       </div>
       <div class="form-group">
-        <label for="form_last_encounter_type">Last Encounter Type:</label>
-        <input id="form_last_encounter_type" type="text" readonly size='50'/>
+        <label for="last_encounter_type">Last Encounter Type:</label>
+        <input auto-populate="True" id="last_encounter_type" type="text" readonly size='50'/>
       </div>	
     </div>
     

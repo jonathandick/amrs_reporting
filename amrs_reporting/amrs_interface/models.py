@@ -14,8 +14,9 @@ class RESTHandler():
     @staticmethod
     def get(url):
         try :
+            print "REST: do GET : " + str(url)
             res = requests.get(url,auth=(amrs_settings.username,amrs_settings.password),headers=RESTHandler.headers,verify=False)
-            result = json.loads(res.text)            
+            result = json.loads(res.text)
             res.close()
         except Exception, e:
             result = {'error':{'message':e}}
@@ -272,9 +273,8 @@ class Patient():
     def search_patients(search_string):
         url = amrs_settings.amrs_url + '/ws/rest/v1/patient?v=default&limit=20&q=' + search_string
         result = RESTHandler.get(url)
-
+    
         data = result.get('results',None)
-
         patients = []
         for p in data:
             ids = p['identifiers']
@@ -447,7 +447,8 @@ class Concept():
     @staticmethod
     def search_concepts(search_string):
         url = amrs_settings.amrs_url + '/ws/rest/v1/concept?v=default&limit=50&q=' + search_string
-        data = RESTHandler.get(url)
+        result = RESTHandler.get(url)
+        data = result.get('results',None)        
         try :
             concepts = []
             for c in data:

@@ -50,32 +50,23 @@
   }
 
 
-  $(document).ready(function() {
-     var csrftoken = getCookie('csrftoken');
-     $.ajaxSetup({
-        headers: { "X-CSRFToken": csrftoken }
-     });
-     
-     $("#defaulter_list_btn").click(function() {		
-          var id = $("#defaulter_cohort").val();
-          var cohort = localStorage.getItem("defaulter_cohort_id_" + id);
-          if(cohort === null) {
-              var d = {defaulter_cohort_id:$("#defaulter_cohort").val()};
-              $.ajax({
-                       type: "POST",
-                       url: "/ltfu/ajax_get_defaulter_cohort",
-                       data: d,
-                       dataType: "json",
-                       success: onSuccessGetDefaulterCohort,
-                       error : function(xhr,errmsg,err) {
+  function ajaxPOST(url,data,onSuccessFunction){     
+     $.ajax({
+            type: "POST",
+            url: url,
+            data: data,
+            dataType: "json",
+            success: onSuccessFunction,
+            error : function(xhr,errmsg,err) {
                                 alert(xhr.status + ": " + errmsg);
-                       }
-              });
-          }
-          else {
-             defaulterCohortToList("defaulter_cohort_id_" + id);    
-          }          
+                    }
       });
+  }
+
+
+  function onSuccessSubmitOutreachForm(response) {
+     console.log('Response From Server: ' + response);
+  }
 
 
       function onSuccessGetDefaulterCohort(response) {                    
@@ -91,21 +82,26 @@
           localStorage.setItem(key,JSON.stringify(d));
           defaulterCohortToList(key);
       }
-   
+
 
       //key : defaulter_cohort_id_NN
       function defaulterCohortToList(key) {
+                 
          $("#defaulter_cohort_list").empty();
          console.log('getting cohort id: ' + key);
                
          var cohort = JSON.parse(localStorage.getItem(key));
          var patients = cohort["patients"];
+         var total_patients = Object.keys(patients).length; 
+         var num_remaining = total_patients;
+         console.log("Num remaining: " + num_remaining);
          for(var uuid in patients) {           
             var row = patients[uuid];
             var s = "<li";
             if(row['retired']) {
                s += " class='retired'";
-            }            
+               num_remaining = num_remaining - 1;
+            }
             s += "><a onClick=\"viewPatientDashboard('" + row["patient_uuid"] + "','" + key + "')\">";
             s += row["family_name"] + ", " + row["given_name"] + " " + row["middle_name"] + "<br/>";
             s += row["identifier"] + "<br/>";
@@ -116,20 +112,42 @@
 			  console.log("location_uuid: " + $("#list_location_uuid").val());
           var id = key.substring(key.lastIndexOf("_")+1)
           $("#list_defaulter_cohort_id").val(id);
-
+          $("#defaulter_cohort_list_view #num_remaining").text("Patients remaining to be traced: " + num_remaining + " / " + total_patients);
       }
 
+
+
+  
+  $(document).ready(function() {
+     var csrftoken = getCookie('csrftoken');
+     $.ajaxSetup({
+        headers: { "X-CSRFToken": csrftoken }
+     });
+
+     $("#test_btn").click(function() {
+           ajaxPOST('',onSuccessTest);
+     });
+
+     $(".to_apps").click(function() {
+         viewApps();
+     });
+                
+     $("#defaulter_list_btn").click(function(){
+         viewDefaulterCohortList();	
+     });
+
+   
      $("#process_offline_forms_btn").click(function() {
           if(navigator.onLine){
               u_forms = localStorage.getItem("unsubmitted_forms");
               if(u_forms === null) {
-                          alert("There are no forms to process.");
+                  alert("There are no forms to process.");
               }
               else {
                  u_forms = JSON.parse(u_forms);
                  for(var i=0; i < u_forms.length; i++) {
                      form_data = u_forms[i];
-                     response = submitForm(form_data);
+                     response = ajaxPOST('/ltfu/ajax_submit_form',form_data,onSuccessSubmitForm);
                  }
               }
            }
@@ -145,43 +163,26 @@
 
 	if(navigator.onLine){
           console.log('online');                    
-          console.log(JSON.stringify(d));
-          $.ajax({
-                       type: "POST",
-                       url: "",
-                       data: d,
-                       dataType: "json",
-                       success: onSuccessSubmitOutreachForm,
-                       error : function(xhr,errmsg,err) {
-                                alert(xhr.status + ": " + errmsg);
-                       }
-          });
+          ajaxPOST('/ltfu/ajax_submit_form',d,onSuccessSubmitOutreachForm);
         } else {
-          console.log("offline");
-    	  var u_forms = localStorage.getItem("unsubmitted_forms");
-          if(u_forms === null) {
-             u_forms = [];
-             console.log("Creating new unsubmitted_forms array");
-          }
-          else {
-             u_forms = JSON.parse(u_forms);
-             console.log("Loaded unsubmitted_forms array");
-          }
-          u_forms.push(JSON.stringify(d));
-          localStorage.setItem("unsubmitted_forms",JSON.stringify(u_forms));
-          alert("You are working offline. This form has been saved for later processing");
+             console.log("offline");
+       	     var u_forms = localStorage.getItem("unsubmitted_forms");
+             if(u_forms === null) {
+                 u_forms = [];
+                 console.log("Creating new unsubmitted_forms array");
+             }
+             else {
+                 u_forms = JSON.parse(u_forms);
+                 console.log("Loaded unsubmitted_forms array");
+             }
+             u_forms.push(JSON.stringify(d));
+             localStorage.setItem("unsubmitted_forms",JSON.stringify(u_forms));
+             alert("You are working offline. This form has been saved for later processing");
         }
         $("#outreach_form").trigger("reset");
         viewDefaulterCohortList();       
 
-
       });
-
-      function onSuccessSubmitOutreachForm(response) {
-	console.log('Response From Server: ' + response);
-      }
-
-
 
       
    });
@@ -199,10 +200,17 @@ function getFormData($form){
     return indexed_array;
 }
 
+   function viewApps() {
+      $("#apps_view").css("display","inline");
+      $("#patient_dashboard_view").css("display","none");
+      $("#outreach_form_view").css("display","none");
+      $("#defaulter_cohort_list_view").css("display","none");
+   }
+
    function viewPatientDashboard(uuid,key) {
       console.log('method: viewPatientDashboard; patient_uuid=' + uuid + ' cohort = ' + key);
       $("#patient_dashboard_view").css("display","inline");
-      $("#defaulter_cohort_view").css("display","none");
+      $("#defaulter_cohort_list_view").css("display","none");
       $("#outreach_form_view").css("display","none");			  
   
       var cohort = JSON.parse(localStorage[key]);
@@ -216,15 +224,34 @@ function getFormData($form){
       $("#dash_cohort_key").val(key);			  
    }
    
+
    function viewDefaulterCohortList(){
       $("#patient_dashboard_view").css("display","none");
-      $("#defaulter_cohort_view").css("display","inline");
-      $("#outreach_form_view").css("display","none");			  
+      $("#outreach_form_view").css("display","none");
+      $("#apps_view").css("display","none");
+
+      var cur_list_id = $("#list_defaulter_cohort_id").val();
+      var id = $("#defaulter_cohort").val();
+      if((id != cur_list_id) || ($("#defaulter_cohort_list li").length == 0))  {
+          var cohort = localStorage.getItem("defaulter_cohort_id_" + id);
+          if(cohort === null) {
+              var d = {defaulter_cohort_id:$("#defaulter_cohort").val()};
+              ajaxPOST('/ltfu/ajax_get_defaulter_cohort',d,onSuccessGetDefaulterCohort);
+          }
+          else {
+             defaulterCohortToList("defaulter_cohort_id_" + id);    
+          }
+          cohort = JSON.parse(cohort);
+          $("#defaulter_cohort_list_view #defaulter_cohort_name").text(cohort["name"]);
+          $("#defaulter_cohort_list_view #date_created").text(cohort["date_created"]);
+      }
+
+      $("#defaulter_cohort_list_view").css("display","inline");
    }
 
    function viewOutreachForm(){
       $("#patient_dashboard_view").css("display","none");
-      $("#defaulter_cohort_view").css("display","none");
+      $("#defaulter_cohort_list_view").css("display","none");
       $("#outreach_form_view").css("display","inline");	
 
       patient_uuid = $("#dash_patient_uuid").val();
@@ -235,21 +262,16 @@ function getFormData($form){
       patient = cohort["patients"][patient_uuid];	
       console.log(patient);
 
+
       $("#return_to_dashboard").attr("onClick","viewPatientDashboard('" + patient["patient_uuid"] + "')");
+
+      $("#outreach_form_view input[auto-populate='True']").each(function(index) {
+           $(this).attr("value",(patient[$(this).attr("id")])); 
+      });
+
       $("#form_patient_uuid").val(patient_uuid);
       $("#form_location_uuid").val($("#list_location_uuid").val());		  
       $("#form_defaulter_cohort_id").val($("list_defaulter_cohort_id").val());		  
-
-      $("#form_given_name").val(patient["given_name"]);
-      $("#form_middle_name").val(patient["middle_name"]);
-      $("#form_family_name").val(patient["family_name"]);
-      $("#form_phone_number").val(patient["phone_number"]);
-      $("#form_gender").val(patient["gender"]);
-      $("#form_birthdate").val(patient["phone_number"]);
-      $("#form_identifier").val(patient["identifier"]);			  
-      $("#form_missed_return_visit_date").val(patient["last_rtc_date"]);
-      $("#form_last_encounter_date").val(patient["last_encounter_date"]);
-      $("#form_last_encounter_type").val(patient["last_encounter_type"]);
 
       var t = new Date()
       $("#encounter_datetime").val($.datepicker.formatDate('yy-mm-dd',new Date())); 
@@ -264,22 +286,35 @@ function getFormData($form){
 <body>
 
   <div id="apps_view">
+    <div class='ui-grid-b'>
+      <div class='ui-block-a' style="width:100%">
+	<label for='clinic_uuid'>View Defaulter List: </label>
+      </div>
+      <div class='ui-block-a' style="width:50%">
+	<select id='defaulter_cohort'>
+	  {% for dc in defaulter_cohorts %}
+	  <option value='{{dc.id}}'>{{dc.name}}</option>
+	  {%endfor%}
+	</select>
+      </div>
+      <div class='ui-block-b' style="width:50%">
+	<input type='button' value='Get Defaulter List' id='defaulter_list_btn'/>    
+      </div>
+    </div>
+    <hr/>
+    <ul data-role="listview">
+      <li><a href='https://testserver1.ampath.or.ke/ltfu/patient_search'>Patient Search</a></li>
+    </ul>
   </div>
 
-  <div id='defaulter_cohort_view'>
+  <div id='defaulter_cohort_list_view' style="display:none">
+    <input type="button" class="to_apps" value="Back to Apps"/>
     <input type="hidden" id="list_defaulter_cohort_id"/>
     <input type="hidden" id="list_location_uuid"/>
-    <select id='defaulter_cohort'>
-      {% for dc in defaulter_cohorts %}
-      <option value='{{dc.id}}'>{{dc.name}}</option>
-      {%endfor%}
-    </select>
-
     
-    <span id='defaulter_cohort_name'/><br/>
-    <span id='date_created'/><br/>
-    <span id='num_remaining'/><br/>
-    <input type='button' value='Get Defaulter List' id='defaulter_list_btn'/>    
+    <span id='defaulter_cohort_name'></span><br/>
+    <span id='date_created'></span><br/>
+    <span id='num_remaining'></span><br/>
     
     <input type='button' name='create_defaulter_cohort' id='create_defaulter_cohort' value='Get New list' onClick='createDefaulterCohort()'/>
     

@@ -4,20 +4,6 @@ function appsView() {
 	$("#apps_view").css("display","inline");
 }
 
-function patientDashboardView(uuid,key) {
-    $(".app").hide()
-	$("#patient_dashboard_view").css("display","inline");
-    
-    var cohort = JSON.parse(localStorage[key]);
-    var patient = cohort["patients"][uuid];
-    console.log("Patient Info: " + JSON.stringify(patient));
-    $("#dash_patient_name").text(patient["given_name"] + " " + patient["middle_name"] + " " + patient["family_name"]);
-    $("#dash_identifier").text(patient["identifier"]);
-    $("#dash_birthdate").text(patient["birthdate"].substring(0,10));
-    $("#dash_phone_number").val(patient["phone_number"]);
-    $("#dash_patient_uuid").val(patient["patient_uuid"]);
-    $("#dash_cohort_key").val(key);			  
-}
 
 
 function defaulterCohortListView(){
@@ -26,9 +12,6 @@ function defaulterCohortListView(){
     var id = $("#defaulter_cohort").val();
     if((id !== "") && ((id != cur_list_id) || ($("#defaulter_cohort_list li").length == 0)))  {
 	var cohort = getCohort(id);
-	console.log("viewDefaulterCohortList().cohort");
-	console.log(cohort);
-	
 	$("#defaulter_cohort_list_view #defaulter_cohort_name").text(cohort["name"]);
 	$("#defaulter_cohort_list_view #date_created").text(cohort["date_created"]);
 	defaulterCohortToList(cohort);
@@ -52,7 +35,7 @@ function defaulterCohortToList(cohort) {
 	    s += " class='retired'";
 	    num_remaining = num_remaining - 1;
 	}
-	s += "><a onClick=\"viewPatientDashboard('" + row["patient_uuid"] + "','" + key + "')\">";
+	s += "><a onClick=\"patientDashboardView('" + row["patient_uuid"] + "')\">";
 	s += row["family_name"] + ", " + row["given_name"] + " " + row["middle_name"] + "<br/>";
 	s += row["identifier"] + "<br/>";
             s += "Phone: " + row["phone_number"];
@@ -66,20 +49,33 @@ function defaulterCohortToList(cohort) {
 }
 
 
+function patientDashboardView(patient_uuid) {
+    $(".app").hide();
+    $("#patient_dashboard_view").css("display","inline");
+    
+    var cohort_id = $("#list_defaulter_cohort_id").val();
+    var patient = getPatient(cohort_id,patient_uuid);
+
+    console.log("Patient Info: " + JSON.stringify(patient));
+    $("#dash_patient_name").text(patient["given_name"] + " " + patient["middle_name"] + " " + patient["family_name"]);
+    $("#dash_identifier").text(patient["identifier"]);
+    $("#dash_birthdate").text(patient["birthdate"].substring(0,10));
+    $("#dash_phone_number").val(patient["phone_number"]);
+    $("#dash_patient_uuid").val(patient["patient_uuid"]);
+}
+
+
 
 function outreachFormView(){
     $(".app").hide();
     $("#outreach_form_view").css("display","inline");	
-    
-    patient_uuid = $("#dash_patient_uuid").val();
-    cohort_key = $("#dash_cohort_key").val();
-    console.log("Outreach Form : patient_uuid = " + patient_uuid + "; cohort_key: " + cohort_key);
-    
-    var cohort = JSON.parse(localStorage.getItem(cohort_key));
-    patient = cohort["patients"][patient_uuid];	
+
+    var cohort_id = $("#list_defaulter_cohort_id").val();    
+    var patient_uuid = $("#dash_patient_uuid").val();
+    var patient = getPatient(cohort_id,patient_uuid);
+
     console.log(patient);
-    
-    
+        
     $("#return_to_dashboard").attr("onClick","viewPatientDashboard('" + patient["patient_uuid"] + "')");
 
     $("#outreach_form_view input[auto-populate='True']").each(function(index) {
@@ -113,12 +109,10 @@ function submitOutreachFormView() {
 }
 
 
-function retirePatient(defaulter_cohort_id,patient_uuid) {
-    var key = 'defaulter_cohort_id_' + defaulter_cohort_id;
-    var cohort = localStorage.getItem(key);
-    cohort = JSON.parse(cohort);
+function retirePatient(cohort_id,patient_uuid) {
+    var cohort = getCohort(cohort_id)
     cohort.patients[patient_uuid].retired=1;
-    localStorage.setItem(key,JSON.stringify(cohort));
+    setCohort(cohort);
 }
 
 
@@ -138,7 +132,7 @@ function getFormData($form){
 
 function submitSavedFormsView(){
     if(navigator.onLine){
-	var u_forms = getSavedForms();		
+	var u_forms = getSavedEncounters();		
 	if(u_forms === null) {
 	    alert("There are no forms to process.");
 	}
@@ -146,7 +140,7 @@ function submitSavedFormsView(){
 	    for(var key in u_forms) {
 		var form_data = u_forms[key];                
 		form_data["key"] = key;
-		submitSavedForm(form_data);
+		submitSavedEncounter(form_data);
 	    }             
 	}
     }

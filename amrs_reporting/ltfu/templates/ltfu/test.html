@@ -17,6 +17,7 @@
   <script type="text/javascript" src="{% static 'js/jquery-validation-1.13.0/dist/jquery.validate.min.js'%}"></script>
   <script type="text/javascript" src="{% static 'amrs_reports/js/outreach_form.js' %}"></script>
   <script type="text/javascript" src="{% static 'amrs_reports/js/ltfu_db.js' %}"></script>
+  <script type="text/javascript" src="{% static 'amrs_reports/js/ltfu_views.js' %}"></script>
 
 <script>
 
@@ -50,10 +51,6 @@
     return cookieValue;
   }
 
-
-
-
-
   
   $(document).ready(function() {
      $(".to_apps").click(function() {
@@ -82,7 +79,7 @@
 
      $("#outreach_form_btn").click(function() {
          var has_errors = submitOutreachFormView();
-         if(!has_errors) { viewDefaulterCohortList(); }
+         if(!has_errors) { defaulterCohortListView(); }
       });
 
 
@@ -118,7 +115,7 @@ $('#storageSpaceText').text("Remaining Storage: " + percentageLeft + "%");
 
   <div id="apps_view" class="app">
     <ul data-role="listview">
-      <li><a id="defaulter_list_app" onClick="viewDefaulterCohortList()">Outreach Defaulter Lists</a></li>
+      <li><a id="defaulter_list_app" onClick="defaulterCohortListView()">Outreach Defaulter Lists</a></li>
       <li><a href='https://testserver1.ampath.or.ke/ltfu/patient_search'>Patient Search</a></li>
       <li><a id="submit_saved_forms_link"></a></li>
     </ul>

@@ -18,7 +18,7 @@ function ajaxPOST(url,data,onSuccessFunction){
 	    data: data,
 	    dataType: "json",
 	    success: onSuccessFunction,
-	    fail : function(xhr,errmsg,err) {
+	    error : function(xhr,errmsg,err) {
 		alert(xhr.status + ": " + errmsg);
 	    }
 	});
@@ -35,7 +35,7 @@ function ajaxPOSTSync(url,data){
 	    dataType: "json",
 	    success: function(data) { result = data; },
             async:false,
-	    fail : function(xhr,errmsg,err) {
+	    error : function(xhr,errmsg,err) {
 		alert(xhr.status + ": " + errmsg);
 	    }
 	});
@@ -46,12 +46,13 @@ function ajaxPOSTSync(url,data){
 
 function getCohort(id) {
     var key = "defaulter_cohort_id_" + id;
+
     var cohort = localStorage.getItem(key);
     if(cohort === null) {
 	var d = {defaulter_cohort_id:id};
         cohort = ajaxPOSTSync('/ltfu/ajax_get_defaulter_cohort',d);       
  
-	d = {name:cohort["name"], date_created:cohort["date_created"],location_uuid:cohort["location_uuid"]};
+	d = {name:cohort["name"], date_created:cohort["date_created"],location_uuid:cohort["location_uuid"],id:cohort["id"]};
 	var patients = {};
 	for(var i=0; i< cohort["patients"].length; i++) {
 	    var row = cohort["patients"][i];
@@ -67,7 +68,13 @@ function getCohort(id) {
 
 function setCohort(cohort) {
     var key = "defaulter_cohort_id_" + cohort["id"];
-    localStorage.setItem(key,JSON.stringify(d));
+    localStorage.setItem(key,JSON.stringify(cohort));
+}
+
+
+function getPatient(cohort_id,patient_uuid){
+    var cohort = getCohort(cohort_id);
+    return cohort["patients"][patient_uuid];
 }
 
 
@@ -84,9 +91,7 @@ function getHashCode(s) {
 
 
 function saveEncounter(encounter_data) {
-    console.log("Saving encounter_date");
-    console.log(encounter_date);
-
+    console.log("Saving encounter to localStorage");
     var u_forms = localStorage.getItem("unsubmitted_forms");
     if(u_forms === null) {
 	u_forms = {};
@@ -96,19 +101,20 @@ function saveEncounter(encounter_data) {
     }    
     var s = JSON.stringify(encounter_data);             
     var hash = getHashCode(s);
-    u_forms[hash] = d;
+    u_forms[hash] = encounter_data;
     localStorage.setItem("unsubmitted_forms",JSON.stringify(u_forms));
 }
 
+
 function submitEncounter(data) {
-    if(!(navigator.onLine)){
+    if(navigator.onLine){
 	console.log('Online : Submitting form to server');                    
 	var response =  $.ajax({
 		type: "POST",
-		url: url,
+		url: "/ltfu/ajax_submit_encounter",
 		data: data,
 		dataType: "json",
-		fail : saveEncounter(data)				
+		error : function() { console.log("AJAX error: saving form to localStorage"); saveEncounter(data);}
 	    });    
     } else {
 	console.log("Offline : saving form to localStorage");
@@ -117,27 +123,24 @@ function submitEncounter(data) {
 }
 
 
-function submitSavedEncounter(encounterData) {
-    if(!(navigator.onLine)){
+function submitSavedEncounter(encounter_data) {
+    if(navigator.onLine){
 	console.log('Online : Submitting form to server');                    
 	var response = $.ajax({
 		type: "POST",		
-		url: url,
-		data: data,
+		url: "/ltfu/ajax_submit_encounter",
+		data: encounter_data,
 		dataType: "json",
 		success: onSuccessSubmitSavedEncounter,
-		fail : function(xhr,errmsg,err) {
-		    alert(xhr.status + ": " + errmsg);
+		error : function(xhr,errmsg,err) {
+		    console.log("submitSavedForm : AJAX Error : " + xhr.status + ": " + errmsg);
 		}	    
 	    }); 
-    } else {
-	console.log("Offline : saving form to localStorage");
-	saveEncounter(data);
     }
 }
 
 
-function onSuccessSubmitSavedForm(response) {
+function onSuccessSubmitSavedEncounter(response) {
     var key = response["key"];
     console.log("Saved form submitted successfully. Key = " + key);
     var u_forms = JSON.parse(localStorage.getItem("unsubmitted_forms"));
@@ -147,10 +150,10 @@ function onSuccessSubmitSavedForm(response) {
 }
 
 
-function getSavedForms(response) {
-    u_forms = localStorage.getItem("unsubmitted_forms");    
-    if(u_forms !== null) {
-	u_forms = JSON.parse(u_forms);
+function getSavedEncounters(response) {
+    encounters = localStorage.getItem("unsubmitted_forms");    
+    if(encounters !== null) {
+	encounters = JSON.parse(encounters);
     }
-    return u_forms;
+    return encounters;
 }

@@ -192,3 +192,15 @@ h3.banner {
 font-size: 20px;
 }
 
+
+#storageSpaceBar {
+    background-color: #000000;
+    color:#FFFFFF; 
+}
+
+#storageSpaceValue {
+    padding: 3px;
+    margin-bottom: 5px;
+    background-color: #1BA1E2; 
+    width: 0%;
+}

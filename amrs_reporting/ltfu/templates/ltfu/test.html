@@ -16,6 +16,7 @@
   <link rel="stylesheet" type="text/css" href="{% static 'js/jquery-ui-1.10.4.datepicker/css/ui-lightness/jquery-ui-1.10.4.custom.min.css'%}" />
   <script type="text/javascript" src="{% static 'js/jquery-validation-1.13.0/dist/jquery.validate.min.js'%}"></script>
   <script type="text/javascript" src="{% static 'amrs_reports/js/outreach_form.js' %}"></script>
+  <script type="text/javascript" src="{% static 'amrs_reports/js/ltfu_db.js' %}"></script>
 
 <script>
 
@@ -50,120 +51,13 @@
   }
 
 
-  function ajaxPOST(url,data,onSuccessFunction){     
-     var response =  $.ajax({
-                       type: "POST",
-                       url: url,
-                       data: data,
-                       dataType: "json",
-                       success: onSuccessFunction,
-                       fail : function(xhr,errmsg,err) {
-                                alert(xhr.status + ": " + errmsg);
-                       }
-                     });
-    return response;
-  }
 
 
-  function onSuccessSubmitOutreachForm(response) {
-     console.log('Response From Server: ' + response);
-  }
-
-
-      function onSuccessGetDefaulterCohort(response) {                    
-          var d = {name:response["name"], date_created:response["date_created"],location_uuid:response["location_uuid"]};
-          var patients = {};
-          for(var i=0; i< response["patients"].length; i++) {
-              var row = response["patients"][i];
-              var uuid = row["patient_uuid"];
-              patients[uuid] = row;
-          }
-          d["patients"] = patients;
-          var key = "defaulter_cohort_id_" + response["id"];
-          localStorage.setItem(key,JSON.stringify(d));
-          defaulterCohortToList(key);
-      }
-
-
-      //key : defaulter_cohort_id_NN
-      function defaulterCohortToList(key) {
-                             
-         $("#defaulter_cohort_list").empty();
-         console.log('getting cohort id: ' + key);
-               
-         var cohort = JSON.parse(localStorage.getItem(key));
-         var patients = cohort["patients"];
-         var total_patients = Object.keys(patients).length; 
-         var num_remaining = total_patients;
-         console.log("Num remaining: " + num_remaining);
-         for(var uuid in patients) {           
-            var row = patients[uuid];
-            var s = "<li";
-            if(row['retired']) {
-               s += " class='retired'";
-               num_remaining = num_remaining - 1;
-            }
-            s += "><a onClick=\"viewPatientDashboard('" + row["patient_uuid"] + "','" + key + "')\">";
-            s += row["family_name"] + ", " + row["given_name"] + " " + row["middle_name"] + "<br/>";
-            s += row["identifier"] + "<br/>";
-            s += "Phone: " + row["phone_number"];
-            $("#defaulter_cohort_list").append(s).listview("refresh");    	  
-          }
-          $("#list_location_uuid").val(cohort["location_uuid"]);
-			  console.log("location_uuid: " + $("#list_location_uuid").val());
-          var id = key.substring(key.lastIndexOf("_")+1)
-          $("#list_defaulter_cohort_id").val(id);
-          $("#defaulter_cohort_list_view #num_remaining").text("Patients remaining to be traced: " + num_remaining + " / " + total_patients);
-
-
-      }
-
-
-  function submitSavedForms(){
-     if(navigator.onLine){
-         u_forms = localStorage.getItem("unsubmitted_forms");
-         if(u_forms === null) {
-              alert("There are no forms to process.");
-         }
-         else {
-             u_forms = JSON.parse(u_forms);
-             for(var key in u_forms) {
-                 var form_data = u_forms[key];
-                 
-                 form_data["key"] = key;
-                 var response = ajaxPOST('/ltfu/ajax_submit_form',form_data,onSuccessSubmitSavedForm);
-             }
-             
-         }
-      }
-      else {
-           alert('You are currently offline. You must be online to process saved forms');
-      }                     
-  }
-
-
-  function onSuccessSubmitSavedForm(response) {
-      var key = response["key"];
-      console.log("Saved form submitted successfully. Key = " + key);
-      var u_forms = JSON.parse(localStorage.getItem("unsubmitted_forms"));
-      delete u_forms[key];
-      var s = $("#submit_saved_forms_link").text("Submit Saved Forms(" + Object.keys(u_forms).length + ")");
-      localStorage.setItem("unsubmitted_forms",JSON.stringify(u_forms));
-  }
 
   
   $(document).ready(function() {
-     var csrftoken = getCookie('csrftoken');
-     $.ajaxSetup({
-        headers: { "X-CSRFToken": csrftoken }
-     });
-
-     $("#test_btn").click(function() {
-           ajaxPOST('',onSuccessTest);
-     });
-
      $(".to_apps").click(function() {
-         viewApps();
+         appsView();
      });
 
      var u_forms = JSON.parse(localStorage.getItem("unsubmitted_forms"));
@@ -176,177 +70,57 @@
      }
                 
      $("#defaulter_list_btn").click(function(){
-         viewDefaulterCohortList();	
+         defaulterCohortListView();	
      });
 
    
      $("#submit_saved_forms_link").click(function() {
-        submitSavedForms();
+           submitSavedFormsView();
      });
 
     
 
      $("#outreach_form_btn").click(function() {
-         submitOutreachForm();
-         viewDefaulterCohortList();
+         var has_errors = submitOutreachFormView();
+         if(!has_errors) { viewDefaulterCohortList(); }
       });
 
+
+var storageSpace = 1024 * 1024 * 2.5;
+var currentStorageSpace = storageSpace - unescape(encodeURIComponent(JSON.stringify(localStorage))).length; 
+var percentageLeft = Math.round((currentStorageSpace / storageSpace) * 100);
+
+
+$('#storageSpaceValue').css('width', percentageLeft + "%");
+$('#storageSpaceText').text("Remaining Storage: " + percentageLeft + "%");
       
    });
 
-  function getHashCode(s) {
-      var hash = 0, i, chr, len;
-      if (s.length == 0) return hash;
-      for (i = 0, len = s.length; i < len; i++) {
-         chr   = s.charCodeAt(i);
-         hash  = ((hash << 5) - hash) + chr;
-         hash |= 0; // Convert to 32bit integer
-      }
-      return hash;
-   }
-
-    function submitOutreachForm() {
-        var d = getFormData($("#outreach_form"));
-	if(!(navigator.onLine)){
-          console.log('online');                    
-          ajaxPOST('/ltfu/ajax_submit_form',d,onSuccessSubmitOutreachForm);
-        } else {
-             console.log("offline");
-       	     var u_forms = localStorage.getItem("unsubmitted_forms");
-             if(u_forms === null) {
-                 u_forms = {};
-                 console.log("Creating new unsubmitted_forms array");
-             }
-             else {
-                 u_forms = JSON.parse(u_forms);
-                 console.log("Loaded unsubmitted_forms array");
-             }
-             
-             var s = JSON.stringify(d);             
-             var hash = getHashCode(s);
-             console.log("hash: " + hash);
-             u_forms[hash] = d;
-             localStorage.setItem("unsubmitted_forms",JSON.stringify(u_forms));
-             alert("You are working offline. This form has been saved for later processing");
-             var s = $("#submit_saved_forms_link").text("Submit Saved Forms(" + Object.keys(u_forms).length + ")");
-        }
-        $("#outreach_form").trigger("reset");        
-        var id = $("#outreach_form #defaulter_cohort_id").val();
-        var patient_uuid = $("#outreach_form #patient_uuid").val();
-        console.log("id = " + id + " ; patient_uuid = " + patient_uuid);
-        retirePatient(id,patient_uuid);
-        $("#defaulter_cohort_list").empty();
-    }
-
-
-function retirePatient(defaulter_cohort_id,patient_uuid) {
-    var key = 'defaulter_cohort_id_' + defaulter_cohort_id;
-    var cohort = localStorage.getItem(key);
-    cohort = JSON.parse(cohort);
-    cohort.patients[patient_uuid].retired=1;
-    localStorage.setItem(key,JSON.stringify(cohort));
-}
-
-
-function getFormData($form){
-    var unindexed_array = $form.serializeArray();
-    var indexed_array = {};
-
-    $.map(unindexed_array, function(n, i){
-        if(n['value'] !== '') {
-            indexed_array[n['name']] = n['value'];
-        }
-    });
-
-    return indexed_array;
-}
-
-   function viewApps() {
-      $(".app").hide()
-      $("#apps_view").css("display","inline");
-   }
-
-   function viewPatientDashboard(uuid,key) {
-      $(".app").hide()
-      $("#patient_dashboard_view").css("display","inline");
-  
-      var cohort = JSON.parse(localStorage[key]);
-      var patient = cohort["patients"][uuid];
-      console.log("Patient Info: " + JSON.stringify(patient));
-      $("#dash_patient_name").text(patient["given_name"] + " " + patient["middle_name"] + " " + patient["family_name"]);
-      $("#dash_identifier").text(patient["identifier"]);
-      $("#dash_birthdate").text(patient["birthdate"].substring(0,10));
-      $("#dash_phone_number").val(patient["phone_number"]);
-      $("#dash_patient_uuid").val(patient["patient_uuid"]);
-      $("#dash_cohort_key").val(key);			  
-   }
-   
-
-   function viewDefaulterCohortList(){
-      $(".app").hide()
-      var cur_list_id = $("#list_defaulter_cohort_id").val();
-      var id = $("#defaulter_cohort").val();
-      if((id !== "") && ((id != cur_list_id) || ($("#defaulter_cohort_list li").length == 0)))  {                
-          var cohort = localStorage.getItem("defaulter_cohort_id_" + id);
-          if(cohort === null) {
-              var d = {defaulter_cohort_id:$("#defaulter_cohort").val()};
-              ajaxPOST('/ltfu/ajax_get_defaulter_cohort',d,onSuccessGetDefaulterCohort);
-          }
-          else {
-             defaulterCohortToList("defaulter_cohort_id_" + id);    
-          }
-          cohort = JSON.parse(cohort);
-          $("#defaulter_cohort_list_view #defaulter_cohort_name").text(cohort["name"]);
-          $("#defaulter_cohort_list_view #date_created").text(cohort["date_created"]);
-      }
-
-      $("#defaulter_cohort_list_view").css("display","inline");
-   }
-
-   function viewOutreachForm(){
-      $(".app").hide()
-      $("#outreach_form_view").css("display","inline");	
-
-      patient_uuid = $("#dash_patient_uuid").val();
-      cohort_key = $("#dash_cohort_key").val();
-      console.log("Outreach Form : patient_uuid = " + patient_uuid + "; cohort_key: " + cohort_key);
-
-      var cohort = JSON.parse(localStorage.getItem(cohort_key));
-      patient = cohort["patients"][patient_uuid];	
-      console.log(patient);
-
-
-      $("#return_to_dashboard").attr("onClick","viewPatientDashboard('" + patient["patient_uuid"] + "')");
-
-      $("#outreach_form_view input[auto-populate='True']").each(function(index) {
-           $(this).attr("value",(patient[$(this).attr("id")])); 
-      });
-
-      $("#outreach_form #location_uuid").val($("#list_location_uuid").val());
-      $("#outreach_form #defaulter_cohort_id").val($("#list_defaulter_cohort_id").val());
-
-      var t = new Date()
-      $("#encounter_datetime").val($.datepicker.formatDate('yy-mm-dd',new Date())); 
-      $("#encounter_datetime").datepicker({dateFormat:'yy-mm-dd'});
-    
-   }
 
    
   </script>
 </head>
 
 <body>
+
   <div data-role="header" data-theme='d'>
     <h2><span style="font-size:18px;text-align:center">AMPATH+<br/>Outreach</span></h2>
     <a href="https://testserver1.ampath.or.ke/ltfu/outreach_dashboard/" class="ui-btn-left" data-theme='b'>Home</a>
     <a href='https://testserver1.ampath.or.ke/amrs_user_validation/logout' class="ui-btn-right" data-theme='b'>Logout</a>
   </div>
 
+<div id='storageSpaceBar'>
+   <div id='storageSpaceValue'>
+      <div id='storageSpaceText'></div>
+   </div>
+</div>
+
+
   <div id="apps_view" class="app">
     <ul data-role="listview">
       <li><a id="defaulter_list_app" onClick="viewDefaulterCohortList()">Outreach Defaulter Lists</a></li>
       <li><a href='https://testserver1.ampath.or.ke/ltfu/patient_search'>Patient Search</a></li>
-      <li><a id="submit_saved_forms_link">Process Saved Forms</a></li>
+      <li><a id="submit_saved_forms_link"></a></li>
     </ul>
   </div>
 

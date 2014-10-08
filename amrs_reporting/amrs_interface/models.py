@@ -247,6 +247,7 @@ class Person():
         try:            
             headers = {'content-type': 'application/json','connection':'close'}
             url = amrs_settings.amrs_url + '/ws/rest/v1/person/' + person_uuid    
+            #death_date = "2014-05-10T00:00:00.000+0300"
             payload = {'deathDate':death_date,
                        'dead':'true',
                        'causeOfDeath':cause_of_death,
@@ -256,6 +257,8 @@ class Person():
             res = requests.post(url,data,auth=(amrs_settings.username,amrs_settings.password),headers=headers,verify=False)        
             result = json.loads(res.text)
             res.close()
+            print 'deathDate: ' + str(death_date)
+            if result.get("error") : print result["error"]["detail"][0:200]
             return result
 
             '''
@@ -743,9 +746,10 @@ class PersonAttribute():
     def create_person_attribute_rest(person_uuid=None,person_attribute_type_uuid=None,value=None,void_existing=True):
         headers = {'content-type': 'application/json','connection':'close'}
         url = amrs_settings.amrs_url + '/ws/rest/v1/person/' + person_uuid + '/attribute'    
-
+        '''
         if void_existing :
             result = RESTHandler.get(url)
+            print result
             vals = result['results']
             for v in vals:
                 type_uuid = v['attributeType']['uuid']
@@ -754,7 +758,7 @@ class PersonAttribute():
                     purge_url = url + '/' + uuid + '?!purge'
                     RESTHandler.post(purge_url,[])                    
             
-        
+        '''
         payload = {'attributeType':person_attribute_type_uuid,
                    'value':value
                    }        

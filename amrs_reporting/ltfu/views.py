@@ -102,10 +102,9 @@ def ajax_encounter_search(request):
 
 
 @login_required
-def ajax_submit_form(request):
+def ajax_submit_encounter(request):
     log = '' # EncounterForm.process_encounter(request.POST,request.user.id)           
     key = request.POST.get("key","")
-    print 'form key: ' + str(key)
     data = json.dumps({"key":key})
     return HttpResponse(data,content_type='application/json')
 

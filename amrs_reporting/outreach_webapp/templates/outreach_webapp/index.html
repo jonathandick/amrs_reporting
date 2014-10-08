@@ -1,0 +1,182 @@
+{% load staticfiles %}
+
+<!--html manifest="{% static 'amrs_reports/ltfu.manifest' %}"-->
+<html>
+
+<head>
+  <script type="text/javascript" src="{% static 'js/jquery-1.10.2.min.js'%}"></script>  
+
+  <script type="text/javascript" src="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.js'%}"></script>  
+  <link rel="stylesheet" type="text/css" href="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.css'%}" />     
+  
+  <meta content='initial-scale=0.25, maximum-scale=0.25, user-scalable=no' name='viewport' />   
+  <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_huawei.css'%}" />
+
+  <script type="text/javascript" src="{% static 'js/jquery-ui-1.10.4.datepicker/js/jquery-ui-1.10.4.custom.min.js'%}"></script>
+  <link rel="stylesheet" type="text/css" href="{% static 'js/jquery-ui-1.10.4.datepicker/css/ui-lightness/jquery-ui-1.10.4.custom.min.css'%}" />
+  <script type="text/javascript" src="{% static 'js/jquery-validation-1.13.0/dist/jquery.validate.min.js'%}"></script>
+  <script type="text/javascript" src="{% static 'amrs_reports/js/outreach_form.js' %}"></script>
+  <script type="text/javascript" src="{% static 'amrs_reports/js/outreach_db.js' %}"></script>
+  <script type="text/javascript" src="{% static 'amrs_reports/js/outreach_views.js' %}"></script>
+
+<script>
+
+  function createDefaulterCohort(location_uuid) {
+     if(confirm('This will retire the current list. Are you sure you want to create a new defaulter list?')) {
+         window.location = '/ltfu/create_defaulter_cohort?location_uuid=' + location_uuid;
+     }
+  }
+
+
+  window.applicationCache.addEventListener('updateready',function() {
+     window.applicationCache.swapCache();
+     alert('Cache updated');
+     window.location.reload();
+  },false);
+
+
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+  }
+
+  
+  $(document).ready(function() {
+     $(".to_apps").click(function() {
+         appsView();
+     });
+
+     var u_forms = JSON.parse(localStorage.getItem("unsubmitted_forms"));
+     
+     if(u_forms === null) {
+          $("#submit_saved_forms_link").text("Submit Saved Forms");      
+     } else {
+          var i = Object.keys(u_forms).length; 
+          $("#submit_saved_forms_link").text("Submit Saved Forms (" + i + ")");      
+     }
+                
+     $("#defaulter_list_btn").click(function(){
+         defaulterCohortListView();	
+     });
+
+   
+     $("#submit_saved_forms_link").click(function() {
+           submitSavedFormsView();
+     });
+
+    
+
+     $("#outreach_form_btn").click(function() {
+         var has_errors = submitOutreachFormView();
+         if(!has_errors) { defaulterCohortListView(); }
+      });
+
+
+     $("#search_string").on("keyup change",function() {
+          patientSearchToListView();
+     });
+
+
+
+var storageSpace = 1024 * 1024 * 2.5;
+var currentStorageSpace = storageSpace - unescape(encodeURIComponent(JSON.stringify(localStorage))).length; 
+var percentageLeft = Math.round((currentStorageSpace / storageSpace) * 100);
+
+
+$('#storageSpaceValue').css('width', percentageLeft + "%");
+$('#storageSpaceText').text("Remaining Storage: " + percentageLeft + "%");
+      
+   });
+
+
+   
+  </script>
+</head>
+
+<body>
+
+  <div data-role="header" data-theme='d'>
+    <h2><span style="font-size:18px;text-align:center">AMPATH+<br/>Outreach</span></h2>
+    <a href="https://testserver1.ampath.or.ke/outreach_webapp/" class="ui-btn-left" data-theme='b'>Home</a>
+    <a href='https://testserver1.ampath.or.ke/amrs_user_validation/logout' class="ui-btn-right" data-theme='b'>Logout</a>
+  </div>
+
+<div id='storageSpaceBar'>
+   <div id='storageSpaceValue'>
+      <div id='storageSpaceText'></div>
+   </div>
+</div>
+
+
+  <div id="apps_view" class="app">
+    <ul data-role="listview">
+      <li><a id="defaulter_list_app" onClick="defaulterCohortListView()">Outreach Defaulter Lists</a></li>
+      <li><a onClick="patientSearchView()">Patient Search</a></li>
+      <li><a id="submit_saved_forms_link"></a></li>
+    </ul>
+  </div>
+
+  <div id='defaulter_cohort_list_view' style="display:none" class="app">
+    <input type="button" class="to_apps" value="Back to Apps"/>
+    <input type="hidden" id="list_defaulter_cohort_id"/>
+    <input type="hidden" id="list_location_uuid"/>
+
+    <div class='ui-grid-b'>
+      <div class='ui-block-a' style="width:50%">
+	<select id='defaulter_cohort'>
+	  <option value="">Choose clinic...</option>
+	  {% for dc in defaulter_cohorts %}
+	  <option value='{{dc.id}}'>{{dc.name}}</option>
+	  {%endfor%}
+	</select>
+      </div>
+      <div class='ui-block-b' style="width:50%">
+	<input type='button' value='Get Defaulter List' id='defaulter_list_btn'/>    
+      </div>
+    </div>
+
+    
+    <span id='defaulter_cohort_name'></span><br/>
+    <span id='date_created'></span><br/>
+    <span id='num_remaining'></span><br/>
+    
+    <input type='button' name='create_defaulter_cohort' id='create_defaulter_cohort' value='Get New list' onClick='createDefaulterCohort()'/>
+    
+    <ul data-role="listview" data-filter="true" id="defaulter_cohort_list">
+    </ul>
+  </div>
+
+
+  <div id="patient_dashboard_view" style="display:none" class="app">
+     {% include "outreach_webapp/patient_dashboard.html" %}
+  </div>
+
+
+  <div id="outreach_form_view" style="display:none" class="app">
+    {% include "outreach_webapp/outreach_form.html" %}
+  </div>
+
+
+  <div id="saved_forms_view" style="display:none" class="app">    
+  </div>
+
+
+  <div id="patient_search_view" class="app">
+    <label for="search_string">Enter Patient Name or Identifier</label>
+    <input type='text' name='search_string' id='search_string'/>
+    <ul id="patient_list" data-role="listview"/>
+  </div>
+  
+
+</body>

@@ -3,34 +3,7 @@
 
 {% block content %}
 
-<script type="text/javascript">
-  $(document).ready(function() {
-
-  $('#report_tables').dataTable( {
-  "sScrollY": "250px",
-  "bJQueryUI": true,
-  "bPaginate": false,
-  "bLengthChange": false,
-  "bFilter": true,
-  "bSort": true,
-  "bInfo": false,
-  "bAutoWidth": false } );
-
-  $('#reports').dataTable( {
-  "sScrollY": "100px",
-  "bJQueryUI": true,
-  "bPaginate": false,
-  "bLengthChange": false,
-  "bFilter": true,
-  "bSort": true,
-  "bInfo": false,
-  "bAutoWidth": false } );
-
-  } );
-
-</script>
-
-<form method='post' action='/amrs_user_validation/login'>
+<form method='post' action='/amrs_user_validation/login' id="login_form">
   {%csrf_token%}
   <table>
     <tr>
@@ -40,7 +13,7 @@
       <td>Password: </td><td><input type='password' name='password'/></td>
     </tr>
     <tr>
-      <td><input type='submit' value='Login'/></td><td></td>
+      <td><input type='button' value='Login' onClick="javascript:document.getElementById('login_form').submit()"/></td><td></td>
     </tr>
   </table>
 </form>

@@ -1,7 +1,6 @@
 {% load staticfiles %}
-
-<!--html manifest="{% static 'amrs_reports/ltfu.manifest' %}"-->
-<html>
+<!DOCTYPE html>
+<html><!-- manifest="{% static 'amrs_reports/outreach_webapp.manifest' %}"-->
 
 <head>
   <script type="text/javascript" src="{% static 'js/jquery-1.10.2.min.js'%}"></script>  
@@ -9,63 +8,37 @@
   <script type="text/javascript" src="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.js'%}"></script>  
   <link rel="stylesheet" type="text/css" href="{% static 'js/jquery.mobile-1.4.4/jquery.mobile-1.4.4.css'%}" />     
   
-  <meta content='initial-scale=0.25, maximum-scale=0.25, user-scalable=no' name='viewport' />   
+  <meta content='initial-scale=1.0, maximum-scale=1.0, user-scalable=no' name='viewport' />   
   <link type="text/css" rel="stylesheet" href="{% static 'amrs_reports/css/mobile_huawei.css'%}" />
 
-  <script type="text/javascript" src="{% static 'js/jquery-ui-1.10.4.datepicker/js/jquery-ui-1.10.4.custom.min.js'%}"></script>
-  <link rel="stylesheet" type="text/css" href="{% static 'js/jquery-ui-1.10.4.datepicker/css/ui-lightness/jquery-ui-1.10.4.custom.min.css'%}" />
   <script type="text/javascript" src="{% static 'js/jquery-validation-1.13.0/dist/jquery.validate.min.js'%}"></script>
-  <script type="text/javascript" src="{% static 'amrs_reports/js/outreach_form.js' %}"></script>
-  <script type="text/javascript" src="{% static 'amrs_reports/js/outreach_db.js' %}"></script>
-  <script type="text/javascript" src="{% static 'amrs_reports/js/outreach_views.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/outreach_form.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/outreach_db.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/outreach_views.js' %}"></script>
 
 <script>
 
-  function createDefaulterCohort(location_uuid) {
-     if(confirm('This will retire the current list. Are you sure you want to create a new defaulter list?')) {
-         window.location = '/ltfu/create_defaulter_cohort?location_uuid=' + location_uuid;
-     }
-  }
-
-
+  
   window.applicationCache.addEventListener('updateready',function() {
      window.applicationCache.swapCache();
      alert('Cache updated');
      window.location.reload();
   },false);
 
-
-  function getCookie(name) {
-    var cookieValue = null;
-    if (document.cookie && document.cookie != '') {
-        var cookies = document.cookie.split(';');
-        for (var i = 0; i < cookies.length; i++) {
-            var cookie = jQuery.trim(cookies[i]);
-            // Does this cookie string begin with the name we want?
-            if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-  }
-
   
   $(document).ready(function() {
      $(".to_apps").click(function() {
          appsView();
      });
-
-     var u_forms = JSON.parse(localStorage.getItem("unsubmitted_forms"));
-     
-     if(u_forms === null) {
-          $("#submit_saved_forms_link").text("Submit Saved Forms");      
-     } else {
-          var i = Object.keys(u_forms).length; 
-          $("#submit_saved_forms_link").text("Submit Saved Forms (" + i + ")");      
+     var encounters = getSavedEncounters();
+     var numEncounters = 0;
+     if(encounters !== null) {
+         numEncounters = Object.keys(encounters).length;
      }
-                
+
+     $("#apps_view #num_saved_encounters").text(numEncounters)
+
+
      $("#defaulter_list_btn").click(function(){
          defaulterCohortListView();	
      });
@@ -74,8 +47,7 @@
      $("#submit_saved_forms_link").click(function() {
            submitSavedFormsView();
      });
-
-    
+  
 
      $("#outreach_form_btn").click(function() {
          var has_errors = submitOutreachFormView();
@@ -84,20 +56,20 @@
 
 
      $("#search_string").on("keyup change",function() {
-          patientSearchToListView();
+          patientSearchView();
      });
 
 
 
-var storageSpace = 1024 * 1024 * 2.5;
-var currentStorageSpace = storageSpace - unescape(encodeURIComponent(JSON.stringify(localStorage))).length; 
-var percentageLeft = Math.round((currentStorageSpace / storageSpace) * 100);
+  var storageSpace = 1024 * 1024 * 2.5;
+  var currentStorageSpace = storageSpace - unescape(encodeURIComponent(JSON.stringify(localStorage))).length; 
+  var percentageLeft = Math.round((currentStorageSpace / storageSpace) * 100);
+  
 
-
-$('#storageSpaceValue').css('width', percentageLeft + "%");
-$('#storageSpaceText').text("Remaining Storage: " + percentageLeft + "%");
+  $('#storageSpaceValue').css('width', percentageLeft + "%");
+  $('#storageSpaceText').text("Remaining Storage: " + percentageLeft + "%");
       
-   });
+  });
 
 
    
@@ -108,25 +80,27 @@ $('#storageSpaceText').text("Remaining Storage: " + percentageLeft + "%");
 
   <div data-role="header" data-theme='d'>
     <h2><span style="font-size:18px;text-align:center">AMPATH+<br/>Outreach</span></h2>
-    <a href="https://testserver1.ampath.or.ke/outreach_webapp/" class="ui-btn-left" data-theme='b'>Home</a>
-    <a href='https://testserver1.ampath.or.ke/amrs_user_validation/logout' class="ui-btn-right" data-theme='b'>Logout</a>
+    <!--a href="/outreach/" class="ui-btn-left" data-theme='b'>Home</a-->
+    <a href='/amrs_user_validation/logout' class="ui-btn-right" data-theme='b'>Logout</a>
   </div>
 
-<div id='storageSpaceBar'>
-   <div id='storageSpaceValue'>
+  <div id='storageSpaceBar'>
+    <div id='storageSpaceValue'>
       <div id='storageSpaceText'></div>
-   </div>
-</div>
-
-
+    </div>
+  </div>
+  
+  
   <div id="apps_view" class="app">
     <ul data-role="listview">
       <li><a id="defaulter_list_app" onClick="defaulterCohortListView()">Outreach Defaulter Lists</a></li>
       <li><a onClick="patientSearchView()">Patient Search</a></li>
-      <li><a id="submit_saved_forms_link"></a></li>
+      <li><a id="submit_saved_forms_link">Submit Saved Encounters (<span id="num_saved_encounters"></span>)</a></li>
+      <li><a onClick="javascript:window.open('/hiv_dashboard/index','_self')">HIV Care Dashboard</a></li>
+      <li><a onClick="javascript:window.open('/ltfu/index','_self')">Retention</a></li>
     </ul>
   </div>
-
+  
   <div id='defaulter_cohort_list_view' style="display:none" class="app">
     <input type="button" class="to_apps" value="Back to Apps"/>
     <input type="hidden" id="list_defaulter_cohort_id"/>
@@ -151,7 +125,7 @@ $('#storageSpaceText').text("Remaining Storage: " + percentageLeft + "%");
     <span id='date_created'></span><br/>
     <span id='num_remaining'></span><br/>
     
-    <input type='button' name='create_defaulter_cohort' id='create_defaulter_cohort' value='Get New list' onClick='createDefaulterCohort()'/>
+    <input type='button' name='create_defaulter_cohort' id='create_defaulter_cohort' value='Get Updated List' onClick='updateDefaulterCohortView()'/>
     
     <ul data-role="listview" data-filter="true" id="defaulter_cohort_list">
     </ul>
@@ -159,7 +133,7 @@ $('#storageSpaceText').text("Remaining Storage: " + percentageLeft + "%");
 
 
   <div id="patient_dashboard_view" style="display:none" class="app">
-     {% include "outreach_webapp/patient_dashboard.html" %}
+    {% include "outreach_webapp/patient_dashboard.html" %}
   </div>
 
 
@@ -168,15 +142,14 @@ $('#storageSpaceText').text("Remaining Storage: " + percentageLeft + "%");
   </div>
 
 
-  <div id="saved_forms_view" style="display:none" class="app">    
-  </div>
-
-
-  <div id="patient_search_view" class="app">
+  <div id="patient_search_view" style="display:none" class="app">
+    <input type="button" class="to_apps" value="Back to Apps"/>
     <label for="search_string">Enter Patient Name or Identifier</label>
     <input type='text' name='search_string' id='search_string'/>
     <ul id="patient_list" data-role="listview"/>
   </div>
+ 
   
 
 </body>
+</html>

@@ -50,18 +50,22 @@ class EncounterForm():
 
     @staticmethod
     def is_equal(enc1, enc2):
-        obs1 = {}
-        obs = enc1.pop('obs')
+        try :
+            obs1 = {}
+            obs = enc1.pop('obs')
 
-        for o in obs:
-            enc1[o['concept']] = o['value']
+            for o in obs:
+                enc1[o['concept']] = o['value']
         
-        obs = enc2.pop('obs')
-        for o in obs:
-            enc2[o['concept']] = o['value']
+            obs = enc2.pop('obs')
+            for o in obs:
+                enc2[o['concept']] = o['value']
         
-        shared = set(enc1.items()) & set(enc2.items())
-        return ((len(enc1) - len(shared)) == 0) and ((len(enc2) - len(shared)) == 0)
+            shared = set(enc1.items()) & set(enc2.items())
+            return ((len(enc1) - len(shared)) == 0) and ((len(enc2) - len(shared)) == 0)
+        except Exception, e:
+            print e
+        return False
     
     
     '''

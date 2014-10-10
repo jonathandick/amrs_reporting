@@ -4,7 +4,6 @@ from amrs_interface.models import *
 import requests
 import json
 
-
 class DefaulterCohortMember(models.Model):
     defaulter_cohort_id = models.IntegerField()
     patient_uuid = models.CharField(max_length=500)
@@ -45,7 +44,7 @@ class DefaulterCohortMember(models.Model):
         patient['retired'] = self.retired
         patient['risk_category'] = self.risk_category
         patient['defaulter_cohort_member_id'] = self.id
-        patient['patient_uuid'] = self.patient_uuid
+        patient['uuid'] = self.patient_uuid
 
         if self.last_rtc_date and self.next_encounter_date is None :
             patient['days_since_rtc_date'] = (datetime.date.today() - self.last_rtc_date).days
@@ -53,6 +52,7 @@ class DefaulterCohortMember(models.Model):
         return patient
 
 
+        
 
 class DefaulterCohort(models.Model):
     name = models.CharField(max_length=500)
@@ -138,8 +138,12 @@ class DefaulterCohort(models.Model):
 
 
     @staticmethod
-    def create_defaulter_cohort(location_uuid):
-        dcs = DefaulterCohort.objects.filter(location_uuid=location_uuid,retired=False)
+    def create_defaulter_cohort(location_uuid=None,old_defaulter_cohort_id=None):
+        if location_uuid:
+            dcs = DefaulterCohort.objects.filter(location_uuid=location_uuid,retired=False)
+        elif old_defaulter_cohort_id :
+            dcs = DefaulterCohort.objects.filter(id=old_defaulter_cohort_id,retired=False)
+        else : return None
         for dc in dcs :
             dc.retire()
         dc = dcs[0]

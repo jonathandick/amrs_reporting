@@ -101,14 +101,6 @@ def ajax_encounter_search(request):
     return HttpResponse(data,content_type='application/json')
 
 
-@login_required
-def ajax_submit_encounter(request):
-    log = '' # EncounterForm.process_encounter(request.POST,request.user.id)           
-    key = request.POST.get("key","")
-    data = json.dumps({"key":key})
-    return HttpResponse(data,content_type='application/json')
-
-
 
 @login_required    
 def test(request):
@@ -173,7 +165,7 @@ def view_patient(request):
     if dcm_id is not None :        
         member = DefaulterCohortMember.objects.get(id=dcm_id)        
         p = member.get_patient_info()
-        patient_uuid = p['patient_uuid']
+        patient_uuid = p['uuid']
     else : 
         qs = DefaulterCohortMember.objects.filter(patient_uuid=patient_uuid,retired=0)
         if qs.count() > 0 :

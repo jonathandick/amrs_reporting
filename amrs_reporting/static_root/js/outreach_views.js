@@ -1,7 +1,9 @@
-
 function appsView() {
-    $(".app").hide()
-	$("#apps_view").css("display","inline");
+    $(".app").hide();
+    $("#apps_view").css("display","inline");
+    var encounters = getSavedEncounters();
+    var numEncounters = Object.keys(encounters).length;
+    $("#apps_view #num_saved_encounters").text(numEncounters)
 }
 
 
@@ -35,7 +37,7 @@ function defaulterCohortToList(cohort) {
 	    s += " class='retired'";
 	    num_remaining = num_remaining - 1;
 	}
-	s += "><a onClick=\"patientDashboardView('" + row["patient_uuid"] + "','" + cohort["id"] + "')\">";
+	s += "><a onClick=\"patientDashboardView('" + row["uuid"] + "','" + cohort["id"] + "')\">";
 	s += row["family_name"] + ", " + row["given_name"] + " " + row["middle_name"] + "<br/>";
 	s += row["identifier"] + "<br/>";
             s += "Phone: " + row["phone_number"];
@@ -49,18 +51,30 @@ function defaulterCohortToList(cohort) {
 }
 
 
+function updateDefaulterCohortView() {
+    var id = $("#list_defaulter_cohort_id").val();
+    if(id === "") {
+	alert("You must first load a clinic.");
+    }
+    else if(confirm('This will retire the current list. Are you sure you want to create a new defaulter list?')) {
+	var cohort = updateCohort(id);
+	$("#defaulter_cohort_list_view #defaulter_cohort_name").text(cohort["name"]);
+	$("#defaulter_cohort_list_view #date_created").text(cohort["date_created"]);
+	defaulterCohortToList(cohort);
+    }
+}
+
 function patientDashboardView(patient_uuid,cohort_id) {
     $(".app").hide();
     
     $("#patient_dashboard_view").css("display","inline");    
     var patient = getPatient(patient_uuid,cohort_id);
 
-    console.log("Patient Info: " + JSON.stringify(patient));
     $("#dash_patient_name").text(patient["given_name"] + " " + patient["middle_name"] + " " + patient["family_name"]);
     $("#dash_identifier").text(patient["identifier"]);
     $("#dash_birthdate").text(patient["birthdate"].substring(0,10));
     $("#dash_phone_number").val(patient["phone_number"]);
-    $("#dash_patient_uuid").val(patient["patient_uuid"]);
+    $("#dash_patient_uuid").val(patient["uuid"]);
 }
 
 
@@ -71,11 +85,9 @@ function outreachFormView(){
     
     var cohort_id = $("#list_defaulter_cohort_id").val();    
     var patient_uuid = $("#dash_patient_uuid").val();
-    var patient = getPatient(cohort_id,patient_uuid);
+    var patient = getPatient(patient_uuid,cohort_id);
 
-    console.log(patient);
-        
-    $("#return_to_dashboard").attr("onClick","viewPatientDashboard('" + patient["patient_uuid"] + "')");
+    $("#return_to_dashboard").attr("onClick","patientDashboardView('" + patient["uuid"] + "')");
 
     $("#outreach_form_view input[auto-populate='True']").each(function(index) {
 	    $(this).attr("value",(patient[$(this).attr("id")])); 
@@ -86,8 +98,6 @@ function outreachFormView(){
     $("#outreach_form #defaulter_cohort_id").val($("#list_defaulter_cohort_id").val());
     
     var t = new Date();
-    $("#encounter_datetime").val($.datepicker.formatDate('yy-mm-dd',new Date())); 
-    $("#encounter_datetime").datepicker({dateFormat:'yy-mm-dd'});    
 }    
 
 
@@ -98,13 +108,16 @@ function submitOutreachFormView() {
 	submitEncounter(d);
         $("#outreach_form").trigger("reset");
         var id = $("#outreach_form #defaulter_cohort_id").val();
-        var patient_uuid = $("#outreach_form #patient_uuid").val();
+        var patient_uuid = $("#outreach_form #uuid").val();
 	if(id !== null && id !== "") {
 	    retirePatient(id,patient_uuid);
 	    $("#defaulter_cohort_list").empty();
 	    defaulterCohortListView();
 	}
-	else { appsView(); }
+	else { 
+	    $("#patient_search_view #search_string").val("");
+	    appsView(); 
+	}
     } else {
 	alert("This form has errors. Please correct them before submitting");
     }
@@ -112,7 +125,7 @@ function submitOutreachFormView() {
 
 
 function retirePatient(cohort_id,patient_uuid) {
-    var cohort = getCohort(cohort_id)
+    var cohort = getCohort(cohort_id);
     cohort.patients[patient_uuid].retired=1;
     setCohort(cohort);
 }
@@ -160,16 +173,35 @@ function patientSearchView() {
     
     var s = $("#search_string").val();
     if(s.length > 3) {
-	var response = patientSearch(s);
-	$("#patient_list").empty();    
-	for(var i=0; i<response.length;i++) {
-	    var row =  response[i];        
-	    var html = "<li><a onClick=\"patientDashboardView('"+ row['uuid'] + "')\">";
-	    html += row['family_name'] + ", " + row['given_name'] + " " + row['middle_name'] + "<br/>";
-	    html += "Sex: " + row['gender'] + "; Birthdate: " + row['birthdate'] + "<br/>";
-	    html += "Identifier(s): " + row['identifier'];
-	    html += "</a></li>";
-	    $("#patient_list").append(html).listview("refresh");
+	patientSearch(s,patientsToList);	
+    }
+}
+
+function patientsToList(patients) {
+    $("#patient_list").empty();    
+    for(var i=0; i<patients.length;i++) {
+	var row =  patients[i];        
+	var html = "<li><a onClick=\"patientDashboardView('"+ row['uuid'] + "')\">";
+	html += row['family_name'] + ", " + row['given_name'] + " " + row['middle_name'] + "<br/>";
+	html += "Sex: " + row['gender'] + "; Birthdate: " + row['birthdate'] + "<br/>";
+	html += "Identifier(s): " + row['identifier'];
+	html += "</a></li>";
+	$("#patient_list").append(html).listview("refresh");
+    }
+}
+
+function updatePhoneNumberView() {
+    var num = $("#patient_dashboard_view #dash_phone_number").val();
+    var patient_uuid = $("#patient_dashboard_view #dash_patient_uuid").val();
+    console.log("Updating phone number: " + num + " patient_uuid: " + patient_uuid);
+    if(num.length != 10) {
+	alert('This phone number has ' + num.length + ' digits. Phone number must be 10 digits and contain no spaces. For example: 0724123456.');
+    }
+    else {
+	if(confirm('Are you sure you want to update this phone number to ' + num + '?')) {
+	    updatePhoneNumber(patient_uuid,num);
 	}
     }
+
+
 }

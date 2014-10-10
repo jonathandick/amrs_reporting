@@ -1,23 +1,23 @@
-    <form id="outreach_form" name="outreach_form" method='post'>
+<form id="outreach_form" name="outreach_form" method='post'>
 
-      <input auto-populate="True" id="patient_uuid" name="patient_uuid" type="hidden" value=''/>	     
-      <input type='hidden' name='encounter_type_uuid' id="encounter_type_uuid" value="df5547bc-1350-11df-a1f1-0026b9348838"/>
-      
-      <input type='hidden' name='defaulter_cohort_id' id="defaulter_cohort_id"/>
+  <input auto-populate="True" id="uuid" name="patient_uuid" type="hidden"/>	     
+  <input type='hidden' name='encounter_type_uuid' id="encounter_type_uuid" value="df5547bc-1350-11df-a1f1-0026b9348838"/>
+  
+  <input type='hidden' name='defaulter_cohort_id' id="defaulter_cohort_id"/>
 
   
     <div data-role="navbar">
       <ul>
-	<li><a href='#tabs-1' data-ajax="false" id='tabs-1-link'>Demographics</a></li>
-	<li><a href='#tabs-2' data-ajax="false" id='tabs-2-link'>Phone Follow-up</a></li>
-	<li><a href='#tabs-3' data-ajax="false" id='tabs-3-link'>Field Follow-up</a></li>
-	<li><a href='#tabs-4' data-ajax="false" id='tabs-4-link'>If Found</a></li>
-	<li><a href='#tabs-5' data-ajax="false" id='tabs-5-link'>Finish</a></li>
+	<li><a href='' data-ajax="false" id='tabs-1-link'>Demographics</a></li>
+	<li><a href='' data-ajax="false" id='tabs-2-link'>Phone Follow-up</a></li>
+	<li><a href='' data-ajax="false" id='tabs-3-link'>Field Follow-up</a></li>
+	<li><a href='' data-ajax="false" id='tabs-4-link'>If Found</a></li>
+	<li><a href='' data-ajax="false" id='tabs-5-link'>Finish</a></li>
 	<li><a onClick="viewPatientDashboard()" data-ajax="false" id="return_to_dashboard">Patient Dashboard</a></li>
       </ul>
     </div>
 
-
+    
     <div id="tabs-1">
       <div class="form-group">
         <label for="encounter_datetime">Encounter Date:</label>
@@ -26,25 +26,28 @@
       </div>
       <div>
 	<label for="location_uuid">Clinic</label>
-	<select id="location_uuid" name="location_uuid">
+	<select id="location_uuid" name="location_uuid" required="true">
 	  <option/>
 	  {% for l in locations %}
 	  <option value='{{l.uuid}}'>{{l.name}}</option>
 	  {%endfor%}
 	</select>
       </div>
-
+      
       <div class="form-group">
 	<label for="phone_number">Phone:</label>
 	<input auto-populate="True" id="phone_number" name="attr__72a759a8-1359-11df-a1f1-0026b9348838" type="tel"/>
+      </div>
       <div class="form-group">
         <label for="missed_return_visit_date">Missed appointment date:</label>
         <input auto-populate="True" id="missed_return_visit_date" 
 	       name="obs__a89e3896-1350-11df-a1f1-0026b9348838" value='' type="date"/>
       </div>
-      <label for="form_identifier">AMRS ID Number:</label>
-      <input auto-populate="True" id="identifier"
-	     name="identifier" type="text" readonly/>
+      <div>
+	<label for="form_identifier">AMRS ID Number:</label>
+	<input auto-populate="True" id="identifier"
+	       name="identifier" type="text" readonly/>
+      </div>
       <div class="form-group">
 	<label for="family_name">Family Name:</label>
 	<input auto-populate="True" id="family_name" name="patient.family_name" type="text"
@@ -69,12 +72,7 @@
 	<input auto-populate="True" id="birthdate" name="patient.birthdate" type="text"
 	       readonly="readonly" value=''/>
       </div>
-      </div>   
-      <div class="form-group">
-        <label for="clinic_name">Clinic:</label>
-        <input type="text" readonly id='clinic_name'/>
-      </div>
-
+      
       <div class="form-group">	   
         <label for="last_encounter_date">Last Encounter Date:</label>
         <input auto-populate="True" id="last_encounter_date" type="date" readonly/>
@@ -89,7 +87,7 @@
       <div class="form-group">
 	<label for="obs.number_of_call_attempts">Number of call attempts:</label>
 	<select id="obs.number_of_call_attempts" type="text" name="obs__e6c52d7e-3e25-4a83-8f9c-55a03bdc653a">
-	  <option/>
+	  <option></option>
 	  <option>1</option>
 	  <option>2</option>
 	  <option>3</option>
@@ -126,7 +124,7 @@
 	<label for='refor_for_field_follow_up'>If not contacted, refer for field follow-up?</label>
         <select class="form-control" id='refer_for_field_follow_up' name="obs__3cef9756-ae0e-4b35-9ee2-b0fb96556971"
 		data-concept="9067^REFER FOR FIELD FOLLOW-UP^99DCT">
-	  <option/>
+	  <option><option>
 	  <option value='a899b35c-1350-11df-a1f1-0026b9348838'  oldvalue='1065^Yes^99DCT'>Yes</option>
 	  <option value='a89de526-1350-11df-a1f1-0026b9348838' oldvalue='1551^DISTANCE TOO FAR^99DCT'>No, in catchment but distant too far</option>
           <option value='83df5f26-f97a-4cda-9c05-d0bdc6e4ebee' 
@@ -140,7 +138,7 @@
       <div class="form-group">
         <label for="contacted_in_field">Was the patient found?:</label>
 	<select class="form-control" id="contacted_in_field" name="obs__3cef9756-ae0e-4b35-9ee2-b0fb96556971">
-	  <option/>
+	  <option></option>
 	  <option value='true'>Yes</option>
 	  <option value='false'>No</option>
 	</select>
@@ -274,7 +272,7 @@
 	  <div class="form-group">
 	    <label for="date_of_death">Death date:</label>
 	    <input class="form-control datepicker" data-concept="1570^DATE OF DEATH^99DCT" id="date_of_death" 
-		   name="obs__a89df3d6-1350-11df-a1f1-0026b9348838" type="text"/>               
+		   name="obs__a89df3d6-1350-11df-a1f1-0026b9348838" type="date"/>               
 	    
 	  </div>
 	  <div class="form-group">
@@ -330,7 +328,7 @@
       <div class="form-group">
 	<label for='patient_status'>What's the patients clinical status?</label>
 	<select id='patient_status' name="obs__7c579743-5ef7-4e2c-839f-5b95597cb01c" data-concept="9082^PATIENT CARE STATUS^99DCT" required>
-	  <option/>
+	  <option></option>
 	  <option value="a8af5018-1350-11df-a1f1-0026b9348838" oldvalue='6101^CONTINUE^99DCT'>Patient wishes to remain in care at AMPATH</option>
 	  <option value="a89335d6-1350-11df-a1f1-0026b9348838" oldvalue='159^DECEASED^99DCT'>Patient Dead</option>
 	  <option value="a89c2f42-1350-11df-a1f1-0026b9348838" oldvalue='1286^AMPATH^99DCT'> Transfer out - to AMPATH AMRS alinic</option>  
@@ -362,7 +360,7 @@
       <div class="form-group">
 	<label for='transfer_location'>If patient transferred to another AMPATH clinic, clinic name:</label>
 	<select name='attr__8d87236c-c2cc-11de-8d13-0010c6dffd0f' id='transfer_location'>
-	  <option/>
+	  <option></option>
 	  {% for l in locations %}
 	  <option value='{{l.uuid}}'>{{l.name}}</option>
 	  {%endfor%}
@@ -371,7 +369,7 @@
       <div class="form-group">
 	<label for="provider_uuid">Provider</label>
 	<select name='provider_uuid' id='provider_uuid' required>
-	  <option/>
+	  <option></option>
 	  {% for provider in providers %}
 	  <option value='{{provider.uuid}}'>{{provider.given_name}} {{provider.family_name}}</option>
 	  {%endfor%}

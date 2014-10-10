@@ -10,6 +10,23 @@ $(document).ready(function() {
     });
 
 
+//Needed for Django
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie != '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
 
 function ajaxPOST(url,data,onSuccessFunction){     
     var response =  $.ajax({
@@ -44,25 +61,37 @@ function ajaxPOSTSync(url,data){
 
 
 
+//Cohort is expected to be from server. In this case patients are an array. 
+//We need to convert to object indexed by patient uuid for local storage.
+function saveCohort(cohort) {
+    var c = {name:cohort["name"], date_created:cohort["date_created"],location_uuid:cohort["location_uuid"],id:cohort["id"]};
+    var patients = {};
+    for(var i=0; i< cohort["patients"].length; i++) {
+	var row = cohort["patients"][i];
+	var uuid = row["uuid"];
+	patients[uuid] = row;
+    }
+    c["patients"] = patients;
+    var key = "defaulter_cohort_id_" + cohort["id"];
+    localStorage.setItem(key,JSON.stringify(c));
+    console.log("saveCohort() : cohort saved to localStorage");
+}
+
+
 function getCohort(id) {
     var key = "defaulter_cohort_id_" + id;
-
     var cohort = localStorage.getItem(key);
     if(cohort === null) {
+	console.log("getCohort() : Cohort not in localStorage. Querying server...");
 	var d = {defaulter_cohort_id:id};
-        cohort = ajaxPOSTSync('/ltfu/ajax_get_defaulter_cohort',d);       
- 
-	d = {name:cohort["name"], date_created:cohort["date_created"],location_uuid:cohort["location_uuid"],id:cohort["id"]};
-	var patients = {};
-	for(var i=0; i< cohort["patients"].length; i++) {
-	    var row = cohort["patients"][i];
-	    var uuid = row["patient_uuid"];
-	    patients[uuid] = row;
-	}
-	d["patients"] = patients;	
-	localStorage.setItem(key,JSON.stringify(d));
-	
-    } else { cohort = JSON.parse(cohort) };    
+        cohort = ajaxPOSTSync('/outreach/ajax_get_defaulter_cohort',d);       
+	console.log("getCohort() : got cohort");
+	saveCohort(cohort)
+    } else { 
+	console.log("getCohort() : cohort in localStorage");
+	cohort = JSON.parse(cohort);	
+    }
+    
     return cohort;
 }
 
@@ -72,23 +101,40 @@ function setCohort(cohort) {
 }
 
 
+function updateCohort(id) {
+    var key = "defaulter_cohort_id_" + id;
+    var d = {defaulter_cohort_id:id};
+    var cohort = ajaxPOSTSync('/outreach/ajax_update_defaulter_cohort',d);
+
+    if(cohort !== null) {
+	localStorage.removeItem(key);
+	saveCohort(cohort);
+    }
+    return cohort;
+}
+
+
 function getPatient(patient_uuid,cohort_id){
     console.log("getPatient(): patient_uuid: " + patient_uuid + " cohort_id: " + cohort_id);
     var patient;
     if(cohort_id === undefined || cohort_id === "") {
-	console.log("getPatient: AJAX request for patient");
-	var data = {patient_uuid:patient_uuid};
-	var response =  $.ajax({
-		type: "GET",
-		url: "/outreach_webapp/ajax_get_patient",
-		data: data,
-		dataType: "json",
-		success: function(data) { patient = data; },
-		async:false,
-		error : function(xhr,errmsg,err) {
-		    alert(xhr.status + ": " + errmsg);
-		}
-	    });	
+	var patient = sessionStorage.getItem(patient_uuid);
+	if (patient === null) {
+	    console.log("getPatient: AJAX request for patient");
+	    var data = {patient_uuid:patient_uuid};
+	    var response =  $.ajax({
+		    type: "GET",
+		    url: "/outreach/ajax_get_patient",
+		    data: data,
+		    dataType: "json",
+		    success: function(data) { patient = data; },
+		    async:false,
+		    error : function(xhr,errmsg,err) {
+			alert(xhr.status + ": " + errmsg);
+		    }
+		});	
+	    sessionStorage.setItem(patient_uuid,JSON.stringify(patient));
+	} else { patient = JSON.parse(patient); }
     }
     else {
 	var cohort = getCohort(cohort_id);
@@ -131,9 +177,10 @@ function submitEncounter(data) {
 	console.log('Online : Submitting form to server');                    
 	var response =  $.ajax({
 		type: "POST",
-		url: "/ltfu/ajax_submit_encounter",
+		url: "/outreach/ajax_submit_encounter",
 		data: data,
 		dataType: "json",
+		success: function() { alert("Form submitted"); },
 		error : function() { console.log("AJAX error: saving form to localStorage"); saveEncounter(data);}
 	    });    
     } else {
@@ -148,7 +195,7 @@ function submitSavedEncounter(encounter_data) {
 	console.log('Online : Submitting form to server');                    
 	var response = $.ajax({
 		type: "POST",		
-		url: "/ltfu/ajax_submit_encounter",
+		url: "/outreach/ajax_submit_encounter",
 		data: encounter_data,
 		dataType: "json",
 		success: onSuccessSubmitSavedEncounter,
@@ -180,19 +227,52 @@ function getSavedEncounters(response) {
 
 
 
-function patientSearch(search_string) {
+function patientSearch(search_string,onSuccessFunction) {    
     var data = {search_string:search_string};
-    var result;
-    var response =  $.ajax({
-	    type: "GET",
-	    url: "/outreach_webapp/patient_search",
-	    data: data,
+    console.log("patientSearch : " + search_string);
+    if(onSuccessFunction === undefined || onSuccessFunction === "") {	
+	var result;    
+	var response =  $.ajax({
+		type: "GET",
+		url: "/outreach/ajax_patient_search",
+		data: data,
+		dataType: "json",
+		success: function(data) { result = data; },
+		async:false,
+		error : function(xhr,errmsg,err) {
+		    console.log(xhr.status + ": " + errmsg);
+		}
+	    });	
+	return result;
+    }
+    else {
+	console.log("async");
+	var response = $.ajax({
+                type: "GET",
+		url: "/outreach/ajax_patient_search",
+		data: data,
+		dataType: "json",
+		success: onSuccessFunction,
+		error : function(xhr,errmsg,err) {
+                    console.log(xhr.status + ": " + errmsg);
+                }
+	    });
+    }
+}
+
+
+function updatePhoneNumber(patient_uuid,number) {
+    var d = {phone_number:number,patient_uuid:patient_uuid};
+    var response = $.ajax({
+	    type: "POST",
+	    url: "/outreach/ajax_update_phone_number",
+	    data: d,
 	    dataType: "json",
-	    success: function(data) { result = data; },
-            async:false,
+	    success: function() {
+               alert("Phone number updated.");
+            },
 	    error : function(xhr,errmsg,err) {
-		alert(xhr.status + ": " + errmsg);
+		alert("ERROR: Phone number not updated : " + err);
 	    }
 	});
-    return result;
 }

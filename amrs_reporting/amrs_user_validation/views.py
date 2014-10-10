@@ -23,12 +23,16 @@ def my_login(request):
     if request.method == 'POST' :        
         username = request.POST['username']
         password = request.POST['password']
+        next = get_var_from_request(request,"next")
+        print "next: " + str(next)
         user = authenticate(username=username, password=password)
         if user is not None:
             if user.is_active: 
                 login(request,user)
                 request.session.set_expiry(3600)
-                return HttpResponseRedirect('../')
+                if next : return HttpResponseRedirect(next)
+                else : return HttpResponseRedirect("/")
+                    
             else : error = 'User is not active.'
         else : error = 'Username and password do not match'
         return render(request,'amrs_user_validation/login.html',

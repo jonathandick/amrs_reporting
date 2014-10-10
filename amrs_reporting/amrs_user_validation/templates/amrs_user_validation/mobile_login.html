@@ -7,7 +7,7 @@
 
 <h3>Please login below:</h3>
 <br/>
-<form method='post' action='/amrs_user_validation/login'>
+<form method='post' action='/amrs_user_validation/login' id="login_form">
   {%csrf_token%}
   <div class="form-group">
     <label for="username">Username:</label>
@@ -20,7 +20,7 @@
   </div>
 
   <div class="form-group">
-    <input type='submit' value='Login'/>
+    <input type='button' value='Login' onClick="javascript:document.getElementById('login_form').submit()"></input>
   </div>
 
 </form>

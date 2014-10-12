@@ -78,6 +78,38 @@ function patientDashboardView(patient_uuid,cohort_id) {
 }
 
 
+function initOutreachFormView() {
+    var outreach_locations = $("#outreach_form_view #location_uuid");
+    var transfer_locations = $("#outreach_form_view #transfer_location");
+    if(outreach_locations.size() == 1) {
+	var locations = getOutreachLocations();	
+	for(var i=0; i <locations.locations.length; i++) {
+	    l = locations.locations[i];
+	    outreach_locations.append("<option value='" + l.uuid + "'>" + l.name + "</option>");
+	    transfer_locations.append("<option value='" + l.uuid + "'>" + l.name + "</option>");
+	}
+    }
+    
+    var outreach_providers = $("#outreach_form_view #provider_uuid");
+    if(outreach_providers.size() == 1) {
+	var providers = getOutreachProviders();
+	for(var i=0; i<providers.providers.length;i++) {
+	    var p = providers.providers[i];
+	    outreach_providers.append("<option value='" + p.uuid + "'>" + p.given_name + " " + p.family_name + "</option>");
+	}
+    }
+}
+
+
+function initDefaulterCohortListView() {
+    var list = $("#defaulter_cohort_list_view #defaulter_cohort");
+    var dcs = getDefaulterCohorts();
+    for(var i=0; i < dcs.defaulter_cohorts.length; i++) {
+	dc = dcs.defaulter_cohorts[i];
+	list.append("<option value='" + dc.id + "'>" + dc.name + "</option>");
+    }
+}
+
 
 function outreachFormView(){
     $(".app").hide();
@@ -86,6 +118,7 @@ function outreachFormView(){
     var cohort_id = $("#list_defaulter_cohort_id").val();    
     var patient_uuid = $("#dash_patient_uuid").val();
     var patient = getPatient(patient_uuid,cohort_id);
+    
 
     $("#return_to_dashboard").attr("onClick","patientDashboardView('" + patient["uuid"] + "')");
 

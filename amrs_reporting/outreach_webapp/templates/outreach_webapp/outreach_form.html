@@ -22,15 +22,12 @@
       <div class="form-group">
         <label for="encounter_datetime">Encounter Date:</label>
         <input id="encounter_datetime" name="encounter_datetime" 
-	       type="date" {%if form.encounter_datetime %}value=""{%endif%}required/>
+	       type="date" required/>
       </div>
       <div>
 	<label for="location_uuid">Clinic</label>
 	<select id="location_uuid" name="location_uuid" required="true">
 	  <option/>
-	  {% for l in locations %}
-	  <option value='{{l.uuid}}'>{{l.name}}</option>
-	  {%endfor%}
 	</select>
       </div>
       
@@ -361,18 +358,12 @@
 	<label for='transfer_location'>If patient transferred to another AMPATH clinic, clinic name:</label>
 	<select name='attr__8d87236c-c2cc-11de-8d13-0010c6dffd0f' id='transfer_location'>
 	  <option></option>
-	  {% for l in locations %}
-	  <option value='{{l.uuid}}'>{{l.name}}</option>
-	  {%endfor%}
 	</select>
       </div>
       <div class="form-group">
 	<label for="provider_uuid">Provider</label>
 	<select name='provider_uuid' id='provider_uuid' required>
 	  <option></option>
-	  {% for provider in providers %}
-	  <option value='{{provider.uuid}}'>{{provider.given_name}} {{provider.family_name}}</option>
-	  {%endfor%}
 	</select>
       </div>      
       

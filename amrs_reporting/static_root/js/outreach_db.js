@@ -276,3 +276,85 @@ function updatePhoneNumber(patient_uuid,number) {
 	    }
 	});
 }
+
+
+function getOutreachProviders() {
+    var providers = localStorage.getItem("outreach_providers");
+    var seven_days_ago = new Date();
+    seven_days_ago.setDate(seven_days_ago.getDate() - 7);
+
+    if(navigator.onLine) {
+	if(providers === null || (new Date(JSON.parse(providers).date_created )) < seven_days_ago) { 
+	    console.log("Loading providers...");
+	    providers = {date_created:new Date()};    
+	    var response = $.ajax({
+		    type: "GET",
+		    url: "/outreach/ajax_get_outreach_providers",
+		    dataType: "json",
+		    async: false,
+		    success: function(data) { providers['providers'] = data; },
+		    error : function(xhr,errmsg,err) {
+			console.log("ERROR: Could not load providers : " + err);
+		    }
+		});	
+	    localStorage.setItem("outreach_providers",JSON.stringify(providers));
+	}    
+	else { providers = JSON.parse(providers); }
+    }
+    return providers;   
+}
+
+function getOutreachLocations() {
+    var locations = localStorage.getItem("outreach_locations");
+    var seven_days_ago = new Date();
+    seven_days_ago.setDate(seven_days_ago.getDate() - 7);
+
+    if(navigator.onLine) {
+	if(locations === null || (new Date(JSON.parse(locations).date_created)) < seven_days_ago) { 
+	    console.log("Loading locations...");
+	    locations = {date_created:new Date()};    
+	    var response = $.ajax({
+		    type: "GET",
+		    url: "/outreach/ajax_get_locations",
+		    dataType: "json",
+		    async: false,
+		    success: function(data) { locations['locations'] = data; },
+		    error : function(xhr,errmsg,err) {
+			console.log("ERROR: could not load locations : " + err);
+		    }
+		});	
+	    localStorage.setItem("outreach_locations",JSON.stringify(locations));
+	}    
+	else { locations = JSON.parse(locations); }
+    }
+    return locations;   
+}
+
+
+function getDefaulterCohorts() {
+    var defaulter_cohorts = localStorage.getItem("defaulter_cohorts");
+    var seven_days_ago = new Date();
+    seven_days_ago.setDate(seven_days_ago.getDate() - 7);
+
+    if(navigator.onLine) {
+	if(defaulter_cohorts === null || (new Date(JSON.parse(defaulter_cohorts).date_created)) < seven_days_ago) { 
+	    console.log("Loading defaulter_cohorts...");
+	    defaulter_cohorts = {date_created:new Date()};    
+	    var response = $.ajax({
+		    type: "GET",
+		    url: "/outreach/ajax_get_defaulter_cohorts",
+		    dataType: "json",
+		    async: false,
+		    success: function(data) { defaulter_cohorts['defaulter_cohorts'] = data; },
+		    error : function(xhr,errmsg,err) {
+			console.log("ERROR: could not load defaulter cohorts : " + err);
+		    }
+		});	
+	    localStorage.setItem("defaulter_cohorts",JSON.stringify(defaulter_cohorts));
+	}    
+	else { defaulter_cohorts = JSON.parse(defaulter_cohorts); }
+    }
+    return defaulter_cohorts;   
+}
+
+

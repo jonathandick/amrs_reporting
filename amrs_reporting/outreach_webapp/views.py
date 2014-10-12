@@ -119,3 +119,30 @@ def ajax_get_patient(request):
     p = Patient.get_patient_by_uuid(patient_uuid)
     data = json.dumps(p)
     return HttpResponse(data,content_type='application/json')
+
+
+@login_required
+def ajax_get_outreach_providers(request):
+    providers = Provider.get_outreach_providers()
+    data = json.dumps(providers)
+    return HttpResponse(data,content_type="application/json")
+
+
+@login_required
+def ajax_get_locations(request):
+    locations = Location.get_locations()
+    data = json.dumps(locations)
+    return HttpResponse(data,content_type="application/json")
+
+
+@login_required
+def ajax_get_defaulter_cohorts(request):
+    dcs = DefaulterCohort.objects.filter(retired=0)
+    cohorts = []
+    for dc in dcs :
+        cohorts.append({"id":dc.id,"name":dc.name})
+    data = json.dumps(cohorts)
+    return HttpResponse(data,content_type="application/json")
+
+
+

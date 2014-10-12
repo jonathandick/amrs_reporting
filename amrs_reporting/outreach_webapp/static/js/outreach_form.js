@@ -67,6 +67,7 @@ $(document).ready(function() {
 	
   
 	$("#tabs-1-link").click(function() { 
+		console.log("tabs-1");
 		$("#tabs-1").show();
 		$("#tabs-2").hide();
 		$("#tabs-3").hide();
@@ -76,6 +77,7 @@ $(document).ready(function() {
 	
 
 	$("#tabs-2-link").click(function() { 
+                console.log("tabs2");
 		$("#tabs-2").show();
 		$("#tabs-1").hide();
 		$("#tabs-3").hide();
@@ -109,41 +111,31 @@ $(document).ready(function() {
 		$("#tabs-3").hide();
 		$("#tabs-4").hide();
 	    });
+
     
-
-	var t = new Date();
-	$("#encounter_datetime").val($.datepicker.formatDate('yy-mm-dd',new Date()));
-	$("#encounter_datetime").datepicker({dateFormat:'yy-mm-dd'});
-	$("#missed_return_visit_date").datepicker({dateFormat:'yy-mm-dd'});
-	$("#date_found").datepicker({dateFormat:'yy-mm-dd'});
-	$("#return_visit_date").datepicker({dateFormat:'yy-mm-dd'});
-	$("#date_of_death").datepicker({dateFormat:'yy-mm-dd'});
-
-
-
 }); //END Document.ready
 
-  $("#outreach_form").validate();
+$("#outreach_form").validate();
 
-  jQuery.validator.addMethod("needs_date_found", function(value, element) {
-     if(value === '') {
-        return ($("#contacted_in_field option:selected").text().toLowerCase() != 'yes'
-               && $("#contacted_by_phone option:selected").text().toLowerCase() != 'yes');
-     }
-     else { return true; }
-     }, "* Must provide date found"
-  );
+jQuery.validator.addMethod("needs_date_found", function(value, element) {
+	if(value === '') {
+	    return ($("#contacted_in_field option:selected").text().toLowerCase() != 'yes'
+		    && $("#contacted_by_phone option:selected").text().toLowerCase() != 'yes');
+	}
+	else { return true; }
+    }, "* Must provide date found"
+    );
 
 
-  jQuery.validator.addMethod("needs_location_of_contact", function(value, element) {
-     if(value === '') {
-        return ($("#contacted_in_field option:selected").text().toLowerCase() != 'yes'
-               && $("#contacted_by_phone option:selected").text().toLowerCase() != 'yes')
-               && $("#date_found").val() == ''
-     }
-     else { return true;}
-     }, "* Must provide location of contact"
-  );
+jQuery.validator.addMethod("needs_location_of_contact", function(value, element) {
+	if(value === '') {
+	    return ($("#contacted_in_field option:selected").text().toLowerCase() != 'yes'
+		    && $("#contacted_by_phone option:selected").text().toLowerCase() != 'yes')
+		&& $("#date_found").val() == ''
+		}
+	else { return true;}
+    }, "* Must provide location of contact"
+    );
 
 
   jQuery.validator.addMethod("needs_rtc_date", function(value, element) {
@@ -155,49 +147,48 @@ $(document).ready(function() {
   );
 
 
-  jQuery.validator.addMethod("needs_likelihood_of_return", function(value, element) {
-     if($("#patient_status option:selected").text().toLowerCase().match('^patient wishes')) {
-	 console.log("validate: needs_likelihood_of_return");
-        return value != '';
-     }
-     else { return true; }
-     }, "* Must provide likelihood of patient returning"
-  );
+jQuery.validator.addMethod("needs_likelihood_of_return", function(value, element) {
+	if($("#patient_status option:selected").text().toLowerCase().match('^patient wishes')) {
+	    console.log("validate: needs_likelihood_of_return");
+	    return value != '';
+	}
+	else { return true; }
+    }, "* Must provide likelihood of patient returning"
+    );
 
 
-  jQuery.validator.addMethod("needs_transfer_location", function(value, element) {
-     if($("#patient_status option:selected").text().toLowerCase().match('to ampath')) {
-        return value != '';
-     }
-     else { return true; }
-     }, "* Must provide transfer location"
-  );
+jQuery.validator.addMethod("needs_transfer_location", function(value, element) {
+	if($("#patient_status option:selected").text().toLowerCase().match('to ampath')) {
+	    return value != '';
+	}
+	else { return true; }
+    }, "* Must provide transfer location"
+    );
 
-  jQuery.validator.addMethod("needs_phone_number", function(value, element) {
-     if($("#contacted_by_phone option:selected").text().toLowerCase() === 'yes') {
-        return value != '';
-     }
-     else { return true; }
-     }, "* Must provide phone number"
-  );
-  
+jQuery.validator.addMethod("needs_phone_number", function(value, element) {
+	if($("#contacted_by_phone option:selected").text().toLowerCase() === 'yes') {
+	    return value != '';
+	}
+	else { return true; }
+    }, "* Must provide phone number"
+    );
 
-  jQuery.validator.addMethod("needs_death_info", function(value, element) {
-     if($("#patient_status option:selected").text().toLowerCase() === 'patient dead') {
-        return value != '';
-     }
-     else { return true; }
-     }, "* Must provide death date and cause for death"
-  );
 
-    jQuery.validator.addMethod("check_death_date", function(value, element) {
-	    console.log("validator: checking death date");	    
-	    var re = /^\d{4}-\d{2}-\d{2}$/;
-	    // valid if optional and empty OR if it passes the regex test
-	    return (this.optional(element) && value=="") || re.test(value);
-	},
-	function(params,element) { return 'Date is in invalid format. Please use YYYY-MM-DD';}
-	);
+jQuery.validator.addMethod("needs_death_info", function(value, element) {
+	if($("#patient_status option:selected").text().toLowerCase() === 'patient dead') {
+	    return value != '';
+	}
+	else { return true; }
+    }, "* Must provide death date and cause for death"
+    );
 
+jQuery.validator.addMethod("check_death_date", function(value, element) {
+	console.log("validator: checking death date");	    
+	var re = /^\d{4}-\d{2}-\d{2}$/;
+	// valid if optional and empty OR if it passes the regex test
+	return (this.optional(element) && value=="") || re.test(value);
+    },
+    function(params,element) { return 'Date is in invalid format. Please use YYYY-MM-DD';}
+    );
 
 

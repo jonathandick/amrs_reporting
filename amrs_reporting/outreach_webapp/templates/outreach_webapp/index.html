@@ -36,9 +36,11 @@
          numEncounters = Object.keys(encounters).length;
      }
 
+     initOutreachFormView();
      $("#apps_view #num_saved_encounters").text(numEncounters)
 
 
+     initDefaulterCohortListView();
      $("#defaulter_list_btn").click(function(){
          defaulterCohortListView();	
      });
@@ -110,9 +112,6 @@
       <div class='ui-block-a' style="width:50%">
 	<select id='defaulter_cohort'>
 	  <option value="">Choose clinic...</option>
-	  {% for dc in defaulter_cohorts %}
-	  <option value='{{dc.id}}'>{{dc.name}}</option>
-	  {%endfor%}
 	</select>
       </div>
       <div class='ui-block-b' style="width:50%">

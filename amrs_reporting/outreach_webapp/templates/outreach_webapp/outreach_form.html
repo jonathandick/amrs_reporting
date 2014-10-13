@@ -1,3 +1,4 @@
+
 <form id="outreach_form" name="outreach_form" method='post'>
 
   <input auto-populate="True" id="uuid" name="patient_uuid" type="hidden"/>	     
@@ -26,8 +27,8 @@
       </div>
       <div>
 	<label for="location_uuid">Clinic</label>
-	<select id="location_uuid" name="location_uuid" required="true">
-	  <option/>
+	<select id="location_uuid" name="location_uuid">
+	  <option></option>
 	</select>
       </div>
       
@@ -118,7 +119,7 @@
 	</select>
       </div>
       <div class="form_group">
-	<label for='refor_for_field_follow_up'>If not contacted, refer for field follow-up?</label>
+	<label for='refer_for_field_follow_up'>If not contacted, refer for field follow-up?</label>
         <select class="form-control" id='refer_for_field_follow_up' name="obs__3cef9756-ae0e-4b35-9ee2-b0fb96556971"
 		data-concept="9067^REFER FOR FIELD FOLLOW-UP^99DCT">
 	  <option><option>
@@ -168,8 +169,7 @@
     <div id='tabs-4'>
       <div class="form-group"> 
 	<label for="date_found">Date Found:</label>
-        <input class="form-control datepicker" data-concept="1568^DATE FOUND^99DCT" id="date_found" 
-	       name="obs__a89df246-1350-11df-a1f1-0026b9348838" type="date"/>
+        <input id="date_found" name="obs__a89df246-1350-11df-a1f1-0026b9348838" type="date"></input>	       
       </div>
       <div class="form-group">
         <label for="location_of_contact">Location of contact:</label>
@@ -369,8 +369,6 @@
       
       <div class="form-group text-center">
 	<input id="outreach_form_btn" type="button" value="Submit"/>
-      </div>
-      
-    </div>    
-  </div>	
+      </div>      
+    </div>	
 </form>

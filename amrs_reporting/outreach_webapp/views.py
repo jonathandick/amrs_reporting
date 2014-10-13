@@ -17,14 +17,9 @@ from amrs_user_validation.models import Authorize
 
 @login_required    
 def index(request):    
-    cohorts = DefaulterCohort.objects.filter(retired=0).order_by('name')
-    locations = Location.get_locations()
-    print "getting providers..."
-    providers = Provider.get_outreach_providers()
     print 'rendering outreach webapp'
-    return render(request,'outreach_webapp/index.html',{'defaulter_cohorts':cohorts,
-                                                        'locations':locations,
-                                                        'providers':providers})
+    return render(request,'outreach_webapp/index.html',{})
+
 
 @login_required
 def ajax_get_defaulter_cohort(request):
@@ -145,4 +140,7 @@ def ajax_get_defaulter_cohorts(request):
     return HttpResponse(data,content_type="application/json")
 
 
+@login_required
+def test(request):
+    return render(request,"outreach_webapp/test.html",{})
 

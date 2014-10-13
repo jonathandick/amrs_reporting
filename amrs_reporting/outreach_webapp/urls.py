@@ -15,6 +15,7 @@ urlpatterns = patterns('',
                        url(r'^' + app_name + '/ajax_get_outreach_providers/?$',views.ajax_get_outreach_providers),
                        url(r'^' + app_name + '/ajax_get_locations/?$',views.ajax_get_locations),
                        url(r'^' + app_name + '/ajax_get_defaulter_cohorts/?$',views.ajax_get_defaulter_cohorts),
+                       url(r'^' + app_name + '/test/?$',views.test),
                        )
                        
 

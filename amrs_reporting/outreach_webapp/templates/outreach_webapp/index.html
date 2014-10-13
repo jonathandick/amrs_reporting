@@ -26,7 +26,7 @@
   },false);
 
   
-  $(document).ready(function() {
+  $(document).ready(function() {  
      $(".to_apps").click(function() {
          appsView();
      });
@@ -52,8 +52,7 @@
   
 
      $("#outreach_form_btn").click(function() {
-         var has_errors = submitOutreachFormView();
-         if(!has_errors) { defaulterCohortListView(); }
+         submitOutreachFormView();
       });
 
 
@@ -64,14 +63,17 @@
 
 
   var storageSpace = 1024 * 1024 * 2.5;
-  var currentStorageSpace = storageSpace - unescape(encodeURIComponent(JSON.stringify(localStorage))).length; 
-  var percentageLeft = Math.round((currentStorageSpace / storageSpace) * 100);
+  var localStorageSpace = storageSpace - unescape(encodeURIComponent(JSON.stringify(localStorage))).length; 
+  var percentageLeftLocal = Math.round((localStorageSpace / storageSpace) * 100);
+  var sessionStorageSpace = storageSpace - unescape(encodeURIComponent(JSON.stringify(sessionStorage))).length; 
+  var percentageLeftSession = Math.round((sessionStorageSpace / storageSpace) * 100);
   
 
-  $('#storageSpaceValue').css('width', percentageLeft + "%");
-  $('#storageSpaceText').text("Remaining Storage: " + percentageLeft + "%");
+
+  $('#storageSpaceText').text("Storage Remaining : Local Storage: " + percentageLeftLocal + "% ; Session Storage: " + percentageLeftSession + "%");
       
   });
+
 
 
    
@@ -145,10 +147,9 @@
     <input type="button" class="to_apps" value="Back to Apps"/>
     <label for="search_string">Enter Patient Name or Identifier</label>
     <input type='text' name='search_string' id='search_string'/>
-    <ul id="patient_list" data-role="listview"/>
+    <ul id="patient_list" data-role="listview"></ul>
   </div>
  
-  
-
+ 
 </body>
 </html>

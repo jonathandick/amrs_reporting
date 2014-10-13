@@ -12,8 +12,10 @@ function defaulterCohortListView(){
     $(".app").hide();
     var cur_list_id = $("#list_defaulter_cohort_id").val();
     var id = $("#defaulter_cohort").val();
-    if((id !== "") && ((id != cur_list_id) || ($("#defaulter_cohort_list li").length == 0)))  {
+    if((id !== "") && ((id != cur_list_id) || ($("#defaulter_cohort_list li").length == 0)))  {	
+	$.mobile.loading("show");		
 	var cohort = getCohort(id);
+	$.mobile.loading("hide");    
 	$("#defaulter_cohort_list_view #defaulter_cohort_name").text(cohort["name"]);
 	$("#defaulter_cohort_list_view #date_created").text(cohort["date_created"]);
 	defaulterCohortToList(cohort);
@@ -98,6 +100,21 @@ function initOutreachFormView() {
 	    outreach_providers.append("<option value='" + p.uuid + "'>" + p.given_name + " " + p.family_name + "</option>");
 	}
     }
+
+    $("#date_found").rules("add",{required:true});
+    $("#patient_status").rules("add",{required:true});
+    $("#date_found").rules("add",{needs_date_found:true});
+    $("#location_of_contact").rules("add",{needs_location_of_contact:true});
+    $("#return_visit_date").rules("add",{needs_rtc_date:true});
+    $("#likelihood_of_return").rules("add",{needs_likelihood_of_return:true});
+    $("#transfer_location").rules("add",{needs_transfer_location:true});
+    $("#phone_number").rules("add",{needs_phone_number:true});
+    $("#date_of_death").rules("add",{needs_death_info:true});
+    $("#date_of_death").rules("add",{check_death_date:true});
+    $("#cause_for_death").rules("add",{needs_death_info:true});
+    $("#provider_uuid").rules("add",{required:true});
+    $("#encounter_datetime").rules("add",{required:true});
+    
 }
 
 
@@ -130,13 +147,22 @@ function outreachFormView(){
     $("#outreach_form #location_uuid").val($("#list_location_uuid").val()).selectmenu("refresh");
     $("#outreach_form #defaulter_cohort_id").val($("#list_defaulter_cohort_id").val());
     
-    var t = new Date();
+    var today = new Date();
+    var yyyy = today.getFullYear().toString();
+    var mm = (today.getMonth()+1).toString(); // getMonth() is zero-based
+    var dd  = today.getDate().toString();
+    var s = yyyy + "-" + (mm[1]?mm:"0"+mm[0]) + "-" + (dd[1]?dd:"0"+dd[0]); // padding
+    console.log(s);
+    $("#encounter_datetime").val(s);
 }    
 
 
 
 function submitOutreachFormView() {
-    if($("#outreach_form").valid()) {
+    errors = validateDates();
+   
+
+    if($("#outreach_form").valid() && errors === "") {
         var d = getFormData($("#outreach_form"));
 	submitEncounter(d);
         $("#outreach_form").trigger("reset");

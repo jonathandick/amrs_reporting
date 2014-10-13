@@ -1,3 +1,16 @@
+//Function to obtain the option for how to write to local file system. By default configured to localStorage
+
+function getLocalStorage() {
+    return localStorage;
+}
+
+function getSessionStorage() {
+    return sessionStorage;
+}
+
+var local = getLocalStorage();
+var session = getSessionStorage();
+
 $(document).ready(function() {
 	var csrftoken = getCookie('csrftoken');
 	$.ajaxSetup({
@@ -46,6 +59,8 @@ function ajaxPOST(url,data,onSuccessFunction){
 function ajaxPOSTSync(url,data){     
     var result;
     var response =  $.ajax({
+	    beforeSend: function() { $.mobile.loading("show"); }, //Show spinner
+            complete: function() { $.mobile.loading("hide"); },
 	    type: "POST",
 	    url: url,
 	    data: data,
@@ -72,32 +87,31 @@ function saveCohort(cohort) {
 	patients[uuid] = row;
     }
     c["patients"] = patients;
-    var key = "defaulter_cohort_id_" + cohort["id"];
-    localStorage.setItem(key,JSON.stringify(c));
-    console.log("saveCohort() : cohort saved to localStorage");
+    var key = "defaulter_cohort_id_" + cohort["id"];    
+    session.setItem(key,JSON.stringify(c));
+    console.log("saveCohort() : cohort saved to session");
 }
 
 
 function getCohort(id) {
     var key = "defaulter_cohort_id_" + id;
-    var cohort = localStorage.getItem(key);
+    var cohort = session.getItem(key);
     if(cohort === null) {
-	console.log("getCohort() : Cohort not in localStorage. Querying server...");
+	console.log("getCohort() : Cohort not in session. Querying server...");
 	var d = {defaulter_cohort_id:id};
         cohort = ajaxPOSTSync('/outreach/ajax_get_defaulter_cohort',d);       
 	console.log("getCohort() : got cohort");
 	saveCohort(cohort)
     } else { 
-	console.log("getCohort() : cohort in localStorage");
+	console.log("getCohort() : cohort in session");
 	cohort = JSON.parse(cohort);	
     }
-    
     return cohort;
 }
 
 function setCohort(cohort) {
     var key = "defaulter_cohort_id_" + cohort["id"];
-    localStorage.setItem(key,JSON.stringify(cohort));
+    session.setItem(key,JSON.stringify(cohort));
 }
 
 
@@ -107,7 +121,7 @@ function updateCohort(id) {
     var cohort = ajaxPOSTSync('/outreach/ajax_update_defaulter_cohort',d);
 
     if(cohort !== null) {
-	localStorage.removeItem(key);
+	session.removeItem(key);
 	saveCohort(cohort);
     }
     return cohort;
@@ -118,7 +132,7 @@ function getPatient(patient_uuid,cohort_id){
     console.log("getPatient(): patient_uuid: " + patient_uuid + " cohort_id: " + cohort_id);
     var patient;
     if(cohort_id === undefined || cohort_id === "") {
-	var patient = sessionStorage.getItem(patient_uuid);
+	var patient = session.getItem(patient_uuid);
 	if (patient === null) {
 	    console.log("getPatient: AJAX request for patient");
 	    var data = {patient_uuid:patient_uuid};
@@ -133,7 +147,7 @@ function getPatient(patient_uuid,cohort_id){
 			alert(xhr.status + ": " + errmsg);
 		    }
 		});	
-	    sessionStorage.setItem(patient_uuid,JSON.stringify(patient));
+	    session.setItem(patient_uuid,JSON.stringify(patient));
 	} else { patient = JSON.parse(patient); }
     }
     else {
@@ -157,8 +171,8 @@ function getHashCode(s) {
 
 
 function saveEncounter(encounter_data) {
-    console.log("Saving encounter to localStorage");
-    var u_forms = localStorage.getItem("unsubmitted_forms");
+    console.log("Saving encounter to local");
+    var u_forms = local.getItem("unsubmitted_forms");
     if(u_forms === null) {
 	u_forms = {};
     }
@@ -168,7 +182,7 @@ function saveEncounter(encounter_data) {
     var s = JSON.stringify(encounter_data);             
     var hash = getHashCode(s);
     u_forms[hash] = encounter_data;
-    localStorage.setItem("unsubmitted_forms",JSON.stringify(u_forms));
+    local.setItem("unsubmitted_forms",JSON.stringify(u_forms));
 }
 
 
@@ -181,10 +195,10 @@ function submitEncounter(data) {
 		data: data,
 		dataType: "json",
 		success: function() { alert("Form submitted"); },
-		error : function() { console.log("AJAX error: saving form to localStorage"); saveEncounter(data);}
+		error : function() { console.log("AJAX error: saving form to local"); saveEncounter(data);}
 	    });    
     } else {
-	console.log("Offline : saving form to localStorage");
+	console.log("Offline : saving form to local");
 	saveEncounter(data);
     }
 }
@@ -210,15 +224,15 @@ function submitSavedEncounter(encounter_data) {
 function onSuccessSubmitSavedEncounter(response) {
     var key = response["key"];
     console.log("Saved form submitted successfully. Key = " + key);
-    var u_forms = JSON.parse(localStorage.getItem("unsubmitted_forms"));
+    var u_forms = JSON.parse(local.getItem("unsubmitted_forms"));
     delete u_forms[key];
     var s = $("#submit_saved_forms_link").text("Submit Saved Forms (" + Object.keys(u_forms).length + ")");
-    localStorage.setItem("unsubmitted_forms",JSON.stringify(u_forms));
+    local.setItem("unsubmitted_forms",JSON.stringify(u_forms));
 }
 
 
 function getSavedEncounters(response) {
-    var encounters = localStorage.getItem("unsubmitted_forms");    
+    var encounters = local.getItem("unsubmitted_forms");    
     if(encounters !== null) {
 	encounters = JSON.parse(encounters);
     }
@@ -279,7 +293,7 @@ function updatePhoneNumber(patient_uuid,number) {
 
 
 function getOutreachProviders() {
-    var providers = localStorage.getItem("outreach_providers");
+    var providers = local.getItem("outreach_providers");
     var seven_days_ago = new Date();
     seven_days_ago.setDate(seven_days_ago.getDate() - 7);
 
@@ -297,7 +311,7 @@ function getOutreachProviders() {
 			console.log("ERROR: Could not load providers : " + err);
 		    }
 		});	
-	    localStorage.setItem("outreach_providers",JSON.stringify(providers));
+	    local.setItem("outreach_providers",JSON.stringify(providers));
 	}    
 	else { providers = JSON.parse(providers); }
     }
@@ -305,7 +319,7 @@ function getOutreachProviders() {
 }
 
 function getOutreachLocations() {
-    var locations = localStorage.getItem("outreach_locations");
+    var locations = local.getItem("outreach_locations");
     var seven_days_ago = new Date();
     seven_days_ago.setDate(seven_days_ago.getDate() - 7);
 
@@ -323,7 +337,7 @@ function getOutreachLocations() {
 			console.log("ERROR: could not load locations : " + err);
 		    }
 		});	
-	    localStorage.setItem("outreach_locations",JSON.stringify(locations));
+	    local.setItem("outreach_locations",JSON.stringify(locations));
 	}    
 	else { locations = JSON.parse(locations); }
     }
@@ -331,8 +345,10 @@ function getOutreachLocations() {
 }
 
 
+
 function getDefaulterCohorts() {
-    var defaulter_cohorts = localStorage.getItem("defaulter_cohorts");
+    var defaulter_cohorts = local.getItem("defaulter_cohorts");
+    
     var seven_days_ago = new Date();
     seven_days_ago.setDate(seven_days_ago.getDate() - 7);
 
@@ -350,7 +366,7 @@ function getDefaulterCohorts() {
 			console.log("ERROR: could not load defaulter cohorts : " + err);
 		    }
 		});	
-	    localStorage.setItem("defaulter_cohorts",JSON.stringify(defaulter_cohorts));
+	    local.setItem("defaulter_cohorts",JSON.stringify(defaulter_cohorts));
 	}    
 	else { defaulter_cohorts = JSON.parse(defaulter_cohorts); }
     }

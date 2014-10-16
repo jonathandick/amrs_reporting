@@ -10,6 +10,10 @@ import amrs_user_validation.views as amrs_user_validation_views
 import hiv_dashboard.urls as hiv_dashboard_urls
 import outreach_webapp.urls as outreach_webapp_urls
 import outreach_webapp.views as outreach_webapp_views
+
+import encounter_form.urls as encounter_form_urls
+import encounter_form.views as encounter_form_views
+
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
 # admin.autodiscover()
@@ -35,6 +39,7 @@ urlpatterns += amrs_interface_urls.urlpatterns
 urlpatterns += ltfu_urls.urlpatterns
 urlpatterns += hiv_dashboard_urls.urlpatterns
 urlpatterns += outreach_webapp_urls.urlpatterns
+urlpatterns += encounter_form_urls.urlpatterns
 
 
 

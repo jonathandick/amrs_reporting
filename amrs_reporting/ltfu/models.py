@@ -521,25 +521,6 @@ class OutreachFormSubmissionLog(models.Model):
         return errors
 
 
-    def get_form_vals(self):
-        vals = json.loads(self.values)
-        form_vals = {'patient_uuid':vals['patient_uuid'],
-                     'encounter_datetime':vals['encounter_datetime'],
-                     'encounter_type_uuid':vals['encounter_type_uuid'],
-                     'provider_uuid':vals['provider_uuid'],
-                     'location_uuid':vals['location_uuid'],
-                     }
-                
-        print vals['obs']
-        obs = []
-        for o in vals['obs']:            
-            question = Concept.get_concept_info(o['concept'])            
-            question['answer'] = o['value']
-            obs.append(question)
-                
-        form_vals['obs'] = obs
-
-        return form_vals
             
             
 

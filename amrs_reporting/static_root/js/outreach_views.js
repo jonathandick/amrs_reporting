@@ -13,13 +13,17 @@ function defaulterCohortListView(){
     var cur_list_id = $("#list_defaulter_cohort_id").val();
     var id = $("#defaulter_cohort").val();
     if((id !== "") && ((id != cur_list_id) || ($("#defaulter_cohort_list li").length == 0)))  {	
-	$.mobile.loading("show");		
 	var cohort = getCohort(id);
-	$.mobile.loading("hide");    
+	initDefaulterCohortListView();
 	$("#defaulter_cohort_list_view #defaulter_cohort_name").text(cohort["name"]);
 	$("#defaulter_cohort_list_view #date_created").text(cohort["date_created"]);
 	defaulterCohortToList(cohort);
-    }      
+    }
+    /*
+    else {
+	updateCohort(cur_list_id);
+    }
+    */
     $("#defaulter_cohort_list_view").css("display","inline");
 }
 
@@ -32,6 +36,8 @@ function defaulterCohortToList(cohort) {
     var key = "defaulter_cohort_id_" + cohort["id"];
     var total_patients = Object.keys(patients).length; 
     var num_remaining = total_patients;
+    var risk_categories = {0:'Being Traced',1:'High',2:'Medium',3:'Low',4:'LTFU',5:'no_rtc_date',6:'Untraceable'};
+
     for(var uuid in patients) {           
 	var row = patients[uuid];
 	var s = "<li";
@@ -42,8 +48,9 @@ function defaulterCohortToList(cohort) {
 	s += "><a onClick=\"patientDashboardView('" + row["uuid"] + "','" + cohort["id"] + "')\">";
 	s += row["family_name"] + ", " + row["given_name"] + " " + row["middle_name"] + "<br/>";
 	s += row["identifier"] + "<br/>";
-            s += "Phone: " + row["phone_number"];
-            $("#defaulter_cohort_list").append(s).listview("refresh");    	  
+	s += "Phone: " + row["phone_number"] + "<br/>";
+	s += "Risk Category: " + risk_categories[row.risk_category]
+	$("#defaulter_cohort_list").append(s).listview("refresh");    	  
     }
     $("#list_location_uuid").val(cohort["location_uuid"]);
     
@@ -53,18 +60,36 @@ function defaulterCohortToList(cohort) {
 }
 
 
-function updateDefaulterCohortView() {
+function getNewDefaulterCohortView() {
     var id = $("#list_defaulter_cohort_id").val();
     if(id === "") {
 	alert("You must first load a clinic.");
     }
     else if(confirm('This will retire the current list. Are you sure you want to create a new defaulter list?')) {
-	var cohort = updateCohort(id);
+	var cohort = getNewCohort(id);
 	$("#defaulter_cohort_list_view #defaulter_cohort_name").text(cohort["name"]);
 	$("#defaulter_cohort_list_view #date_created").text(cohort["date_created"]);
 	defaulterCohortToList(cohort);
+	initDefaulterCohortListView();
+	$("#list_defaulter_cohort_id").val(cohort.id);
+	$("#defaulter_cohort").val(cohort.id);
+	$("#defaulter_cohort").selectmenu("refresh");	
     }
 }
+
+
+function updateDefaulterCohortView() {
+    var id = $("#list_defaulter_cohort_id").val();
+    if(id === "") {
+	alert("You must first load a clinic.");
+    }
+    else {
+	var cohort = updateCohort(id);
+	defaulterCohortToList(cohort);
+    }
+}
+
+
 
 function patientDashboardView(patient_uuid,cohort_id) {
     $(".app").hide();
@@ -77,6 +102,27 @@ function patientDashboardView(patient_uuid,cohort_id) {
     $("#dash_birthdate").text(patient["birthdate"].substring(0,10));
     $("#dash_phone_number").val(patient["phone_number"]);
     $("#dash_patient_uuid").val(patient["uuid"]);
+
+    $("#dash_last_encounter_date").text(patient.last_encounter_date);
+    $("#dash_last_encounter_type").text(patient["last_encounter_type"]);
+    $("#dash_last_rtc_date").text(patient["last_rtc_date"]);
+
+    $("#dash_encounters").find("tr:gt(0)").remove();
+
+    console.log("cohort_id: " + cohort_id);
+    if(cohort_id === undefined || cohort_id === null || cohort_id === "") {
+	$("#dash_back_button").attr("onClick","patientSearchView()");
+    }
+    else {
+	$("#dash_back_button").attr("onClick","defaulterCohortListView()");
+    }
+
+    var s = "";
+    for(var i=0;i<patient.encounters.length;i++) {
+	var e = patient.encounters[i];
+	s += "<tr><td>" + e.encounterDatetime.substring(0,10) + "</td><td>" + e.location.name + "</td><td>" + e.encounterType.name + "</td></tr>";	
+    }
+    $("#dash_encounters tr:last").after(s);
 }
 
 
@@ -101,7 +147,6 @@ function initOutreachFormView() {
 	}
     }
 
-    $("#date_found").rules("add",{required:true});
     $("#patient_status").rules("add",{required:true});
     $("#date_found").rules("add",{needs_date_found:true});
     $("#location_of_contact").rules("add",{needs_location_of_contact:true});
@@ -119,7 +164,8 @@ function initOutreachFormView() {
 
 
 function initDefaulterCohortListView() {
-    var list = $("#defaulter_cohort_list_view #defaulter_cohort");
+    var list = $("#defaulter_cohort_list_view #defaulter_cohort").empty();
+    list.append("<option/>");
     var dcs = getDefaulterCohorts();
     for(var i=0; i < dcs.defaulter_cohorts.length; i++) {
 	dc = dcs.defaulter_cohorts[i];

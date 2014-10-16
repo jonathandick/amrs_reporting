@@ -188,12 +188,6 @@ $(document).ready(function() {
 	    function(params,element) { return 'Date is in invalid format. Please use YYYY-MM-DD';}
 	    );
 	
-	$.validator.addMethod("testMe",function(value,element) {
-		console.log("testing");
-		return false;
-	    },"this is mandatory");
-
-
 
 	$("#outreach_form").validate();
     });

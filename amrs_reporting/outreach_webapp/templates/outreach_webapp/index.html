@@ -94,7 +94,6 @@
     </div>
   </div>
   
-  
   <div id="apps_view" class="app">
     <ul data-role="listview">
       <li><a id="defaulter_list_app" onClick="defaulterCohortListView()">Outreach Defaulter Lists</a></li>
@@ -108,6 +107,7 @@
   <div id='defaulter_cohort_list_view' style="display:none" class="app">
     <input type="button" class="to_apps" value="Back to Apps"/>
     <input type="hidden" id="list_defaulter_cohort_id"/>
+
     <input type="hidden" id="list_location_uuid"/>
 
     <div class='ui-grid-b'>
@@ -120,13 +120,17 @@
 	<input type='button' value='Get Defaulter List' id='defaulter_list_btn'/>    
       </div>
     </div>
+    <div id="loading_image" style="display:none">    
+      <img src="{% static 'js/jquery.mobile-1.4.4/images/ajax-loader.gif'%}"></img>
+    </div> 
 
     
     <span id='defaulter_cohort_name'></span><br/>
     <span id='date_created'></span><br/>
     <span id='num_remaining'></span><br/>
     
-    <input type='button' name='create_defaulter_cohort' id='create_defaulter_cohort' value='Get Updated List' onClick='updateDefaulterCohortView()'/>
+    <input type='button' name='update_defaulter_cohort' id='update_defaulter_cohort' value='Update List' onClick='updateDefaulterCohortView()'/>
+    <input type='button' name='create_defaulter_cohort' id='create_defaulter_cohort' value='Get New List' onClick='getNewDefaulterCohortView()'/>
     
     <ul data-role="listview" data-filter="true" id="defaulter_cohort_list">
     </ul>

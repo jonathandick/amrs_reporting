@@ -92,7 +92,7 @@ class EncounterForm():
 
 
     @staticmethod
-    def process_encounter(form_args,creator):        
+    def submit(form_args):
         patient_uuid = form_args['patient_uuid']        
         location_uuid = form_args['location_uuid']        
         provider_uuid = form_args['provider_uuid']
@@ -102,7 +102,7 @@ class EncounterForm():
         obs = EncounterForm.get_obs(form_args)
         if EncounterForm.is_duplicate(patient_uuid,encounter_datetime,location_uuid,encounter_type_uuid,provider_uuid,obs):
             print 'ERROR: this form has already been submitted'
-            return 'ERROR: this form has already been submitted'
+            return None
 
         rest_log = Encounter.create_encounter_rest(patient_uuid=patient_uuid,
                                                    encounter_datetime=encounter_datetime,
@@ -110,15 +110,47 @@ class EncounterForm():
                                                    encounter_type_uuid=encounter_type_uuid,
                                                    provider_uuid=provider_uuid,
                                                    obs=obs)
+        return rest_log
 
-        print 'result uuid: ' + str(rest_log.result_uuid)
-        print 'error: ' + str(rest_log.error)
 
-        log = EncounterLog.log(creator,patient_uuid,encounter_type_uuid,encounter_datetime,rest_log.id)
+    @staticmethod
+    def process_encounter(form_args,creator):
+        log = ""
+        try:
+            patient_uuid = form_args['patient_uuid']        
+            print "process_encounter() : " + str(form_args['location_uuid'])
 
-        EncounterForm.set_person_attributes(form_args)
-        EncounterForm.set_dead(form_args)
+            location_uuid = form_args['location_uuid']
+            provider_uuid = form_args['provider_uuid']
+            encounter_type_uuid = form_args['encounter_type_uuid']
+            encounter_datetime = form_args['encounter_datetime']
+
+            rest_log = EncounterForm.submit(form_args)
+            #rest_log is None when the encounter is a duplicate
+            print "process_encounter()"
+            print rest_log
+
+            if rest_log :
+                log = EncounterLog.log(creator,patient_uuid,encounter_type_uuid,encounter_datetime,rest_log.id)
+                EncounterForm.set_person_attributes(form_args)
+                EncounterForm.set_dead(form_args)
+        except Exception,e:
+            print "Exception: " + str(e)
+            print str(form_args)
         return log
+
+
+
+    @staticmethod
+    def reprocess_encounter(log_id,form_args):
+        log = EncounterLog.objects.get(id=log_id)
+        rest_log = RESTLog.objects.get(id=log.rest_log_id)
+        rest_log.retire()
+
+        rest_log = EncounterForm.submit(form_args)
+        log.id=rest_log.id
+        log.save()
+        EncounterForm.set_dead(form_args)
 
 
 
@@ -139,6 +171,41 @@ class EncounterLog(models.Model):
                            rest_log_id=rest_log_id)
         log.save()
         return log
+
+
+    def resubmit(self):
+        log = RESTLog.objects.get(id=self.rest_log_id)
+        if log.result_uuid is None :
+            log = RESTHandler.repost(log)            
+        return log
+
+
+    def get_patient_name(self):
+        p = Patient.get_patient_by_uuid(self.patient_uuid)
+        name = p['given_name'] + ' ' + p['middle_name'] + ' ' + p['family_name']
+        return name
+
+
+    def get_form_vals(self):
+        rest_log = RESTLog.objects.get(id=self.rest_log_id)
+        vals = json.loads(rest_log.payload)
+        form_vals = {'patient_uuid':vals['patient'],
+                     'encounter_datetime':vals['encounterDatetime'],
+                     'encounter_type_uuid':vals['encounterType'],
+                     'provider_uuid':vals['provider'],
+                     'location_uuid':vals['location'],
+                     }
+                
+        print vals['obs']
+        obs = []
+        for o in vals['obs']:            
+            question = Concept.get_concept_info(o['concept'])            
+            question['answer'] = o['value']
+            obs.append(question)
+                
+        form_vals['obs'] = obs
+
+        return form_vals
 
 
 

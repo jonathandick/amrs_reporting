@@ -310,66 +310,8 @@ def outreach_form(request):
             return render(request,'ltfu/outreach_dashboard_mobile.html',{'clinics':clinics})
 
 
-@login_required
-def view_rest_submission_errors(request):
-    
-    qs = OutreachFormSubmissionLog.objects.filter(enc_uuid=None)
-    errors = []
-    return render(request,'ltfu/view_rest_submission_errors.html',{'errors':qs})
 
 
-@login_required
-def ajax_resubmit_outreach_form(request):
-    log_id = request.POST['outreach_form_submission_log_id']
-    print 'LOG ID: ' + str(log_id)
-    log = OutreachFormSubmissionLog.objects.get(id=log_id)
-    result = log.resubmit_form()
-    return HttpResponse(result,content_type='application/json')
-
-
-@login_required
-def resubmit_outreach_form(request):
-    log_id = request.POST['outreach_form_submission_log_id']
-    print 'LOG ID: ' + str(log_id)
-    log = OutreachFormSubmissionLog.objects.get(id=log_id)
-    result = log.resubmit_form()
-    return view_rest_submission_errors(request) 
-
-
-
-
-
-@login_required
-def delete_outreach_form_submission_log(request):
-    id = int(request.GET['id'])
-    OutreachFormSubmissionLog.objects.get(id=id).delete()
-    return HttpResponseRedirect('/ltfu/view_rest_submission_errors')
-
-
-
-def edit_outreach_form(request):
-    if request.method == "GET":
-        log_id = get_var_from_request(request,'outreach_form_submission_log_id')
-        #log_id = 563
-        log = OutreachFormSubmissionLog.objects.get(id=log_id)
-        form_vals = log.get_form_vals()
-        locations = Location.get_locations()
-        providers = Provider.get_outreach_providers()
-        patient = Patient.get_patient_by_uuid(log.patient_uuid)
-        device = get_device(request)
-        args = {'log':log,
-                'patient':patient,
-                'form_vals':form_vals,
-                'providers':providers,
-                'locations':locations,
-                'device':device,
-                }    
-        return render(request,'ltfu/edit_outreach_form.html',args)
-    else:
-        log_id = get_var_from_request(request,'outreach_form_submission_log_id')
-        log = OutreachFormSubmissionLog.objects.get(id=log_id)
-        log.reprocess_form(request.POST)
-        return HttpResponseRedirect('/ltfu/view_rest_submission_errors')
 
 
         

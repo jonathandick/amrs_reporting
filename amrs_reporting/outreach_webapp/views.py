@@ -12,7 +12,7 @@ from defaulter_cohort.models import *
 from encounter_form.models import *
 from amrs_interface.models import *
 from amrs_user_validation.models import Authorize
-
+from outreach_webapp.models import *
 
 
 @login_required    
@@ -26,42 +26,35 @@ def ajax_get_defaulter_cohort(request):
     if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
     defaulter_cohort_id = request.POST['defaulter_cohort_id']
+    print 'getting defaulter list'
+    d = CohortCache.get_cohort(defaulter_cohort_id)
+    return HttpResponse(d,content_type='application/json')
 
-    dc = DefaulterCohort.objects.get(id=defaulter_cohort_id)
 
-    data = request.session.get(dc.location_uuid,'')
-    if data is not None and data != '':
-        patients = json.loads(request.session.get(dc.location_uuid,''))
-    else :
-        patients = dc.get_patients()
-        request.session[dc.location_uuid] = json.dumps(patients, cls=DjangoJSONEncoder)
+@login_required
+def ajax_get_new_defaulter_cohort(request):
+    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :
+        return HttpResponseRedirect('/amrs_user_validation/access_denied')
 
-    d = {"name":dc.name,"date_created":dc.date_created,"patients":patients,"id":dc.id,"location_uuid":dc.location_uuid}
-    d = json.dumps(d,cls=DjangoJSONEncoder)
+    id = request.POST['defaulter_cohort_id']    
+    
+    dc = DefaulterCohort.create_defaulter_cohort(old_defaulter_cohort_id=id)
+    
+
+    d = CohortCache.get_cohort(id)
 
     return HttpResponse(d,content_type='application/json')
 
 
 @login_required
 def ajax_update_defaulter_cohort(request):
-    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :
-        return HttpResponseRedirect('/amrs_user_validation/access_denied')
-
-    id = request.POST['defaulter_cohort_id']    
-    print "removing dc with id: " + str(id)
-
-    dc = DefaulterCohort.create_defaulter_cohort(old_defaulter_cohort_id=id)
-    
-    patients = dc.get_patients()
-    request.session[dc.location_uuid] = json.dumps(patients, cls=DjangoJSONEncoder)
-
-    d = {"name":dc.name,"date_created":dc.date_created,"patients":patients,"id":dc.id,"location_uuid":dc.location_uuid}
-    d = json.dumps(d,cls=DjangoJSONEncoder)
-
+    cohort_id = get_var_from_request(request,"defaulter_cohort_id")
+    patient_uuids = list(DefaulterCohortMember.objects.filter(defaulter_cohort_id=cohort_id,retired=1).values_list("patient_uuid",flat=True))
+    if len(patient_uuids) > 0 : d = json.dumps(patient_uuids)
+    else : d = json.dumps([])
     return HttpResponse(d,content_type='application/json')
-
-
-
+    
+    
 
 @login_required
 def ajax_submit_encounter(request):
@@ -76,11 +69,15 @@ def ajax_submit_encounter(request):
         try :
             import datetime
             patient_uuid = get_var_from_request(request,'patient_uuid')
-            enc_date = datetime.strptime(get_var_from_request(request,"encounter_datetime"),"%Y-%m-%d")
+            enc_date = datetime.datetime.strptime(get_var_from_request(request,"encounter_datetime"),"%Y-%m-%d")
+            print "patient_uuid: " + patient_uuid
+            print "encounter date: " + str(enc_date)            
             member = DefaulterCohortMember.objects.filter(defaulter_cohort_id=defaulter_cohort_id,patient_uuid=patient_uuid)[0]
+            print "member: " + str(member)
+
             member.update_status({"next_appt_date":enc_date,"next_encounter_type":"OUTREACHFIELDFUP"})        
         except Exception, e:
-            print "ajax_submit_encounter(): error updating member : " + e
+            print "ajax_submit_encounter(): error updating member : " + str(e)
             
     return HttpResponse(data,content_type='application/json')
 
@@ -132,10 +129,10 @@ def ajax_get_locations(request):
 
 @login_required
 def ajax_get_defaulter_cohorts(request):
-    dcs = DefaulterCohort.objects.filter(retired=0)
+    dcs = DefaulterCohort.objects.filter(retired=0).order_by("name")
     cohorts = []
     for dc in dcs :
-        cohorts.append({"id":dc.id,"name":dc.name})
+        cohorts.append({"id":dc.id,"name":dc.name.capitalize()})
     data = json.dumps(cohorts)
     return HttpResponse(data,content_type="application/json")
 
@@ -144,3 +141,23 @@ def ajax_get_defaulter_cohorts(request):
 def test(request):
     return render(request,"outreach_webapp/test.html",{})
 
+
+
+# This function will save all non-retired cohorts as json strings to the db each morning.
+# It will then serve these jsons to the web client (rather than querying the amrs database each time)
+@login_required
+def ajax_update_cohort_cache(request):
+    try:
+        CohortCache.update_cohorts()
+    except Exception, e:
+        print e
+
+    return HttpResponse("",content_type="application/json")
+
+
+@login_required
+def update_datasets(request):
+    import subprocess
+    subprocess.call(["/home/amrs_reporting/amrs_reporting/database_updates/update_amrs_reporting_data"],shell=True)
+    return HttpResponse("",content_type="application/json")
+    

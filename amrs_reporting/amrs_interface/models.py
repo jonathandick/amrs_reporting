@@ -28,8 +28,6 @@ class RESTHandler():
         try :
             res = requests.post(url,payload,auth=(amrs_settings.username,amrs_settings.password),headers=RESTHandler.headers,verify=False)
             result = json.loads(res.text)
-            #print json.dumps(result,indent=2)
-            print json.dumps(payload,indent=2)
             e = result.get('error',None)
             if e :
                 print 'REST URL leading to error: ' + url
@@ -109,7 +107,7 @@ class RESTLog(models.Model):
     def retire(self):
         from datetime import datetime
         self.retired = True
-        self.date_retired = datetime.datetime.today()
+        self.date_retired = datetime.today()
         self.save()
 
 
@@ -322,7 +320,9 @@ class Patient():
 
     @staticmethod
     def get_patient_by_uuid(patient_uuid):
-        url = amrs_settings.amrs_url + '/ws/rest/v1/patient/' + patient_uuid
+        url = amrs_settings.amrs_url + '/ws/rest/v1/patient/' + patient_uuid 
+        #url += '?v=custom:(uuid,person:(uuid,gender,birthdate,preferredName:(givenName,middleName,familyName),birthdate),identifiers:(identifier)'
+
         data = RESTHandler.get(url)
         
         names = data['person']['display']
@@ -348,7 +348,7 @@ class Patient():
                 split = a['display'].split(' = ')
                 phone_number += split[1] + ' '
         
-
+        encounters = {} #Encounter.get_encounters(patient_uuid)
         patient = {'given_name':given_name,
                    'middle_name':middle_name,
                    'family_name':family_name,
@@ -356,7 +356,8 @@ class Patient():
                    'gender':gender,
                    'birthdate':birthdate,
                    'uuid':patient_uuid,
-                   'phone_number':phone_number
+                   'phone_number':phone_number,
+                   'encounters':encounters,
                    }
         return patient
     
@@ -605,21 +606,12 @@ class Encounter():
     @staticmethod
     def get_encounters(patient_uuid):
         url = amrs_settings.amrs_url + '/ws/rest/v1/encounter?patient=' + patient_uuid
+        url += '&v=custom:(uuid,encounterType:(uuid,name),encounterDatetime,location:(uuid,name))'
         result = RESTHandler.get(url)
         data = result['results']
-        encounters = []
-        for r in data:
-            parts = r['display'].split(' ')
-            d = parts[1].split('/')
-            if len(d) == 3 :
-                encounter_date = d[2]+'/'+d[1]+'/'+d[0]
-            else : encounter_date = ''
-            encounter = {'encounter_date': encounter_date,
-                         'encounter_type':parts[0],
-                         }
-            encounters.append(encounter)
-        return list(reversed(encounters))
+        return data
             
+    
             
 
 class RetentionDataset():

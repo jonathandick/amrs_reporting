@@ -2,7 +2,7 @@
     <input type="hidden" name="patient_uuid" id="dash_patient_uuid"/>
     <input type="hidden" name="dash_cohort_key" id="dash_cohort_key"/>
 
-    <input type="button" onClick="defaulterCohortListView()" value="Back to defaulter list"/>
+    <input type="button" onClick="defaulterCohortListView()" value="Back" id="dash_back_button"/>
     <ul data-role="listview">
       <li data-role="header">
 	<span id="dash_patient_name"></span>
@@ -19,10 +19,12 @@
 	  </div>
 	</div>
       </li>
-      
+      <li style="font-size:large">
+	Last Appt Date: <span id="dash_last_encounter_date"></span><br/>
+	Last Appt Type: <span id="dash_last_encounter_type"></span><br/>
+	Last RTC Date: <span id="dash_last_rtc_date"></span><br/>	
+      </li>	
     </ul>
-    
-    <b>This patient had a </b>    
     
     <div data-role='collapsible'>
       <h2>Encounters</h2>  

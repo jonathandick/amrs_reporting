@@ -1,4 +1,5 @@
 from django.db import models
+from django.core.serializers.json import DjangoJSONEncoder
 import amrs_settings
 from amrs_interface.models import *
 import requests
@@ -144,9 +145,12 @@ class DefaulterCohort(models.Model):
         elif old_defaulter_cohort_id :
             dcs = DefaulterCohort.objects.filter(id=old_defaulter_cohort_id,retired=False)
         else : return None
+        print dcs
+
         for dc in dcs :
             dc.retire()
         dc = dcs[0]
+
         new_dc = DefaulterCohort(name=dc.name,
                                  description = dc.description,
                                  location_id = dc.location_id,
@@ -197,7 +201,14 @@ class DefaulterCohort(models.Model):
                     
             
         return patients
-    
+
+
+    def get_json(self):
+        patients = self.get_patients()
+        d = {"name":self.name,"date_created":self.date_created,"patients":patients,"id":self.id,"location_uuid":self.location_uuid}
+        d = json.dumps(d,cls=DjangoJSONEncoder)
+        return d
+
                 
     def get_cohort_stats(self):
         risk_categories = {0:'Being Traced',1:'high',2:'medium',3:'low',4:'LTFU',5:'no_rtc_date',6:'untraceable'}                

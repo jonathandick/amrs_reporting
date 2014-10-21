@@ -504,7 +504,7 @@ class EncounterType():
 
 class Encounter():
     @staticmethod
-    def create_encounter_rest(patient_uuid=None, encounter_datetime=None,encounter_type_uuid=None,provider_uuid=None,location_uuid=None,obs=[]):
+    def create_encounter_rest(patient_uuid=None, encounter_datetime=None,encounter_type_uuid=None,provider_uuid=None,location_uuid=None,form_uuid="",obs=[]):
         import datetime
         url = amrs_settings.amrs_url + '/ws/rest/v1/encounter'    
         payload = {'patient':patient_uuid,
@@ -512,6 +512,7 @@ class Encounter():
                    'location':location_uuid,
                    'encounterType':encounter_type_uuid,
                    'provider':provider_uuid,
+                   'form':form_uuid,
                    'obs': obs
                    }
 

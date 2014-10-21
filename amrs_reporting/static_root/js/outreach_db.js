@@ -146,7 +146,7 @@ function getNewCohort(id) {
 	session.removeItem(key);
 	saveCohort(response["defaulter_cohort"]);
     }
-    
+        
     return response["defaulter_cohort"];
 }
 

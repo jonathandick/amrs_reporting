@@ -98,7 +98,8 @@ class EncounterForm():
         provider_uuid = form_args['provider_uuid']
         encounter_type_uuid = form_args['encounter_type_uuid']
         encounter_datetime = form_args['encounter_datetime']
-        
+        form_uuid = form_args.get("form_uuid",None)
+        print "EncounterForm.submit() : form_uuid = " + str(form_uuid)
         obs = EncounterForm.get_obs(form_args)
         if EncounterForm.is_duplicate(patient_uuid,encounter_datetime,location_uuid,encounter_type_uuid,provider_uuid,obs):
             print 'ERROR: this form has already been submitted'
@@ -109,6 +110,7 @@ class EncounterForm():
                                                    location_uuid=location_uuid,
                                                    encounter_type_uuid=encounter_type_uuid,
                                                    provider_uuid=provider_uuid,
+                                                   form_uuid=form_uuid,
                                                    obs=obs)
         return rest_log
 

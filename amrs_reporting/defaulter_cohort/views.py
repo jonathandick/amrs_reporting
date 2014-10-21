@@ -59,7 +59,7 @@ def ajax_get_defaulter_cohort(request):
     return HttpResponse(d,content_type='application/json')
 
 
-@login_required
+
 def update_defaulter_cohorts(request):
     if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :        
         return HttpResponseRedirect('/amrs_user_validation/access_denied')

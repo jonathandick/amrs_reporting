@@ -30,31 +30,44 @@ class CohortCache(models.Model):
         dc = DefaulterCohort.objects.get(id=cohort_id)
         response = {}
         
-        if dc.retired :
-            new_dc = DefaulterCohort.objects.filter(location_uuid=dc.location_uuid,retired=0)[0]
+        if dc.retired :            
+            response['messages'] = ["The requested cohort is retired. You have been updated with the most recent " + dc.name]                        
+            qs = DefaulterCohort.objects.filter(location_uuid=dc.location_uuid,retired=0)
+            if qs.count() == 0:
+                new_dc = DefaulterCohort.create_defaulter_cohort(location_uuid=dc.location_uuid)
+            else : 
+                new_dc = qs[0]
 
+            #Build a new list of defaulter cohorts as this is based on id and the id for this newest cohort has changed
             dcs = DefaulterCohort.objects.filter(retired=0).order_by("name")
             cohorts = []
-            for dc in dcs :
-                cohorts.append({"id":dc.id,"name":dc.name.capitalize()})                
+            for d in dcs :
+                cohorts.append({"id":d.id,"name":d.name.title()})                
             response['defaulter_cohorts'] = cohorts
-            response['messages'] = ["The requested cohort is retired. You have been updated with the most recent " + dc.name]                        
+
+
+            #delete cohort cache if it exists for this old cohort
             CohortCache.objects.filter(defaulter_cohort_id=cohort_id).delete()
-            cache = CohortCache(defaulter_cohort_id=new_dc.id,
-                                location_uuid=new_dc.location_uuid,
-                                json = new_dc.get_json())
-            cache.save()
+
+            #Check if a cache already exists; if not create it.
+            qs = CohortCache.objects.filter(defaulter_cohort_id=new_dc.id)
+            if qs.count() > 0 : cache = qs[0]                
+            else :
+                cache = CohortCache(defaulter_cohort_id=new_dc.id,
+                                    location_uuid=new_dc.location_uuid,
+                                    json = new_dc.get_json())
+                cache.save()
+
         elif qs.count() > 0:
-            print "found cached cohort"
+            print "CohortCache.getCohort(): found cached cohort"
             cache = qs[0]
             today = datetime.date.today()            
             if cache.date_modified < today :
-                print "cache is old, getting new cohort"
-                cache.set_json()
-
-        else :
+                print "CohortCache.getCohort(): cache is old, getting new cohort"
+                cache.set_json()        
+        else : # there is no cache yet
             try:
-                print "writing cohort to cache"
+                print "CohortCache.getCohort(): writing cohort to cache"
                 dc = DefaulterCohort.objects.get(id=cohort_id)
                 
                 cache = CohortCache(defaulter_cohort_id=cohort_id,
@@ -63,8 +76,7 @@ class CohortCache(models.Model):
                                     )
                 cache.save()
             except Exception, e:
-                print "No defaulter cohort exists with id : " + str(cohort_id)
-                print e
+                print "CohortCache.getCohort(): No defaulter cohort exists with id : " + str(cohort_id) + " : exception: " + str(e)                
                 return response
 
         response["defaulter_cohort"] = json.loads(cache.json)

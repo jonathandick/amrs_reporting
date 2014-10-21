@@ -15,6 +15,7 @@ function defaulterCohortListView(){
     if((id !== "") && ((id != cur_list_id) || ($("#defaulter_cohort_list li").length == 0)))  {	
 	var cohort = getCohort(id);
 	initDefaulterCohortListView();
+	console.log(cohort);
 	$("#defaulter_cohort_list_view #defaulter_cohort_name").text(cohort["name"]);
 	$("#defaulter_cohort_list_view #date_created").text(cohort["date_created"]);
 	defaulterCohortToList(cohort);
@@ -74,7 +75,8 @@ function getNewDefaulterCohortView() {
 	$("#list_defaulter_cohort_id").val(cohort.id);
 	$("#defaulter_cohort").val(cohort.id);
 	$("#defaulter_cohort").selectmenu("refresh");	
-    }
+	alert("New cohort loaded");
+    }    
 }
 
 

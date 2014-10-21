@@ -19,6 +19,7 @@ class RESTHandler():
             result = json.loads(res.text)
             res.close()
         except Exception, e:
+            print 'exception: ' + str(e)
             result = {'error':{'message':e}}
         return result
         
@@ -322,9 +323,7 @@ class Patient():
     def get_patient_by_uuid(patient_uuid):
         url = amrs_settings.amrs_url + '/ws/rest/v1/patient/' + patient_uuid 
         #url += '?v=custom:(uuid,person:(uuid,gender,birthdate,preferredName:(givenName,middleName,familyName),birthdate),identifiers:(identifier)'
-
         data = RESTHandler.get(url)
-        
         names = data['person']['display']
         split = names.split(' ')
         num_names = len(split)

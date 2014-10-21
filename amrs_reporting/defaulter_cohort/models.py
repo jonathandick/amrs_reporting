@@ -140,12 +140,11 @@ class DefaulterCohort(models.Model):
 
     @staticmethod
     def create_defaulter_cohort(location_uuid=None,old_defaulter_cohort_id=None):
-        if location_uuid:
-            dcs = DefaulterCohort.objects.filter(location_uuid=location_uuid,retired=False)
-        elif old_defaulter_cohort_id :
-            dcs = DefaulterCohort.objects.filter(id=old_defaulter_cohort_id,retired=False)
-        else : return None
-        print dcs
+        print "DefaulterCohort.create_defaulter_cohort() : old id = " + str(old_defaulter_cohort_id)
+        if location_uuid is None:
+            dc = DefaulterCohort.objects.get(id=old_defaulter_cohort_id)
+            location_uuid = dc.location_uuid
+        dcs = DefaulterCohort.objects.filter(location_uuid=location_uuid,retired=False)
 
         for dc in dcs :
             dc.retire()
@@ -157,6 +156,7 @@ class DefaulterCohort(models.Model):
                                  location_uuid = dc.location_uuid)
         new_dc.save()
         new_dc.set_members()
+        print "DefaulterCohort.create_defaulter_cohort() : finished creating new defaulter cohort"
         return new_dc
         
 

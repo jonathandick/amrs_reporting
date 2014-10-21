@@ -14,6 +14,9 @@ import outreach_webapp.views as outreach_webapp_views
 import encounter_form.urls as encounter_form_urls
 import encounter_form.views as encounter_form_views
 
+import defaulter_cohort.urls as defaulter_cohort_urls
+import defaulter_cohort.views as defaulter_cohort_views
+
 # Uncomment the next two lines to enable the admin:
 # from django.contrib import admin
 # admin.autodiscover()
@@ -40,6 +43,7 @@ urlpatterns += ltfu_urls.urlpatterns
 urlpatterns += hiv_dashboard_urls.urlpatterns
 urlpatterns += outreach_webapp_urls.urlpatterns
 urlpatterns += encounter_form_urls.urlpatterns
+urlpatterns += defaulter_cohort_urls.urlpatterns
 
 
 

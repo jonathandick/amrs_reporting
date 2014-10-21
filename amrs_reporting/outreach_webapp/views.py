@@ -38,9 +38,7 @@ def ajax_get_new_defaulter_cohort(request):
 
     id = request.POST['defaulter_cohort_id']    
     
-    dc = DefaulterCohort.create_defaulter_cohort(old_defaulter_cohort_id=id)
-    
-
+    dc = DefaulterCohort.create_defaulter_cohort(old_defaulter_cohort_id=id)    
     d = CohortCache.get_cohort(id)
 
     return HttpResponse(d,content_type='application/json')
@@ -132,7 +130,7 @@ def ajax_get_defaulter_cohorts(request):
     dcs = DefaulterCohort.objects.filter(retired=0).order_by("name")
     cohorts = []
     for dc in dcs :
-        cohorts.append({"id":dc.id,"name":dc.name.capitalize()})
+        cohorts.append({"id":dc.id,"name":dc.name.title()})
     data = json.dumps(cohorts)
     return HttpResponse(data,content_type="application/json")
 
@@ -161,3 +159,4 @@ def update_datasets(request):
     subprocess.call(["/home/amrs_reporting/amrs_reporting/database_updates/update_amrs_reporting_data"],shell=True)
     return HttpResponse("",content_type="application/json")
     
+

@@ -108,7 +108,6 @@ function getCohort(id) {
         var response = ajaxPOSTSync('/outreach/ajax_get_defaulter_cohort',d);
 	console.log(response);
 	var cohort = response["defaulter_cohort"];
-	console.log("getCohort() : got cohort");
 	saveCohort(cohort);
 	if("messages" in response) {
 	    alert(response["messages"]);
@@ -118,11 +117,12 @@ function getCohort(id) {
 	    defaulter_cohorts["defaulter_cohorts"] = response["defaulter_cohorts"];
 	    local.setItem("defaulter_cohorts",JSON.stringify(defaulter_cohorts));
 	}
-	   
+	cohort = updateCohort(cohort.id);
     } else { 
 	console.log("getCohort() : cohort in session");
 	cohort = JSON.parse(cohort);	
     }
+    //
     return cohort;
 }
 
@@ -152,22 +152,32 @@ function getNewCohort(id) {
 
 
 function updateCohort(id) {
-    console.log("updateCohort : updating cohort...");
+    console.log("updateCohort() : updating cohort...");
     var key = "defaulter_cohort_id_" + id;
     var d = {defaulter_cohort_id:id};
     var updatedPatients = ajaxPOSTSync('/outreach/ajax_update_defaulter_cohort',d);
-    console.log(updatedPatients.length + " retired patients");
+    console.log("updateCohort() " + updatedPatients.length + " retired patients");
 
     var cohort = JSON.parse(session.getItem(key));
+    console.log("updateCohort() : key = " + key);
+    console.log(cohort);
+    var numUpdated = 0;
     if(updatedPatients !== null) {
 	for(var i=0; i<updatedPatients.length; i++) {
 	    var patient_uuid = updatedPatients[i];
-	    cohort.patients[patient_uuid].retired=1;
-	    console.log(patient_uuid + " now retired");
+	    if(patient_uuid in cohort.patients) {
+		var p = cohort.patients[patient_uuid];
+		if(p.retired == 0) {
+		    cohort.patients[patient_uuid].retired=1;
+		    numUpdated++;
+		}
+	    }
 	}
 	session.setItem(key,JSON.stringify(cohort));
     }
-    alert(updatedPatients.length + " patients from this list have been seen.");
+    if(numUpdated !== 0) {
+	alert(numUpdated + " patients updated.");
+    }
     return cohort;
 }
 

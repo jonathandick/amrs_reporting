@@ -10,4 +10,6 @@ urlpatterns = patterns('',
                        url(r'^' + app_name + '/resubmit_encounter/?$',views.resubmit_encounter),
                        url(r'^' + app_name + '/delete_encounter_log/?$',views.delete_encounter_log),
                        url(r'^' + app_name + '/edit_encounter/?$',views.edit_encounter),
+                       url(r'^' + app_name + '/ajax_concept_search/?$',views.ajax_concept_search),
+                       url(r'^' + app_name + '/build_schema/?$',views.build_schema),
                        )

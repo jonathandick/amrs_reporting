@@ -74,7 +74,11 @@
       
   });
 
+  function toggleRetired() {
+      $("#defaulter_cohort_list .retired").toggle();  
+  }
 
+  
 
    
   </script>
@@ -99,6 +103,7 @@
       <li><a id="defaulter_list_app" onClick="defaulterCohortListView()">Outreach Defaulter Lists</a></li>
       <li><a onClick="patientSearchView()">Patient Search</a></li>
       <li><a id="submit_saved_forms_link">Submit Saved Encounters (<span id="num_saved_encounters"></span>)</a></li>
+      <li><a onClick="javascript:window.open('/encounter_form/view_rest_errors','_self')">View REST Errors</a></li>
       <li><a onClick="javascript:window.open('/hiv_dashboard/index','_self')">HIV Care Dashboard</a></li>
       <li><a onClick="javascript:window.open('/ltfu/index','_self')">Retention</a></li>
     </ul>
@@ -131,6 +136,7 @@
     
     <input type='button' name='update_defaulter_cohort' id='update_defaulter_cohort' value='Update List' onClick='updateDefaulterCohortView()'/>
     <input type='button' name='create_defaulter_cohort' id='create_defaulter_cohort' value='Get New List' onClick='getNewDefaulterCohortView()'/>
+    <input type='button' name='toggle_retired_btn' id='toggle_retired_btn' value='Show/Hide Retired' onClick='toggleRetired()'/>
     
     <ul data-role="listview" data-filter="true" id="defaulter_cohort_list">
     </ul>

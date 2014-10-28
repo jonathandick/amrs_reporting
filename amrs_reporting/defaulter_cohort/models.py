@@ -69,7 +69,7 @@ class DefaulterCohort(models.Model):
     
     @staticmethod
     def get_outreach_locations():
-        location_ids = [1,2,3,4,7,8,9,11,12,13,14,15,17,19,20,23,24,25,26,27,28,31,50,54,55,64,65,69,70,72,73,78,82,83,100,130,135]
+        location_ids = [1,2,3,4,7,8,9,11,12,13,14,15,17,19,20,23,24,25,26,27,28,31,50,54,55,64,65,69,70,71,72,73,78,82,83,100,130,135]
         return Location.get_locations(location_ids=location_ids)
 
 
@@ -85,7 +85,7 @@ class DefaulterCohort(models.Model):
     # get first 100 patients currently meeting criteria as a defaulter
     def set_members(self,limit = 100):
         location_ids = (self.location_id,)
-        start_range_high_risk = 14
+        start_range_high_risk = 30
         start_range = 30
         end_range = 89
 
@@ -131,10 +131,13 @@ class DefaulterCohort(models.Model):
             if encounter['next_appt_date'] is not None :
                 d[encounter['encounter_id']] = encounter
 
+        num_updated = 0
         for member in members:
             if member.last_encounter_id in d:
                 encounter = d[member.last_encounter_id]
                 member.update_status(encounter)
+                num_updated += 1
+        print "DefaulterCohort.update_defaulter_cohorts() : number of patients updated = " + str(num_updated)
             
 
 
@@ -328,7 +331,7 @@ class DefaulterCohort(models.Model):
     @staticmethod
     def update_defaulter_cohorts_2():
         import time
-        location_ids = [1,2,3,4,7,8,9,11,12,13,14,15,17,19,20,23,24,25,26,27,28,31,50,54,55,64,65,69,70,72,73,78,82,83,100,130,135]
+        location_ids = [1,2,3,4,7,8,9,11,12,13,14,15,17,19,20,23,24,25,26,27,28,31,50,54,55,64,65,69,70,71,72,73,78,82,83,100,130,135]
         #location_ids = [1,2,3]
         cohorts = []
         for location_id in location_ids :

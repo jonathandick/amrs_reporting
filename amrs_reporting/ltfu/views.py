@@ -70,14 +70,10 @@ def test(request):
     print result
     '''
 
-    cohorts = DefaulterCohort.objects.filter(retired=0).order_by('name')
-    locations = Location.get_locations()
-    providers = Provider.get_outreach_providers()
-    print 'rendering ltfu app'
-    return render(request,'ltfu/test.html',{'defaulter_cohorts':cohorts,
-                                            'locations':locations,
-                                            'providers':providers})
+    Patient.get_encounter_data('5ead313e-1359-11df-a1f1-0026b9348838')
 
+
+    return render(request,'ltfu/test.html',{})
 
     
     
@@ -1066,54 +1062,11 @@ def ajax_patient_search(request):
     return HttpResponse(data,content_type='application/json')
 
 
-@login_required
-def ajax_concept_search(request):
-    search_string = request.POST['search_string']
-    concepts = ''
-    if len(search_string) >= 3 :
-        concepts = Concept.search_concepts(search_string)
-    data = json.dumps(concepts)
-    print 'returning ajax concept search'
-    return HttpResponse(data,content_type='application/json')
-
 
 
     
 
 
-def toHTML(concept_uuid,data_type):
-    concept = Concept.get_concept_info(concept_uuid)
-    s = ''    
-    id = concept['name'].lower().replace(' ','_')
-
-    if data_type == 'select':
-        s = "<label for='" + id + "'>" + concept['name'].capitalize() + "</label>\n"
-        s += "<select id='" + id + "' name='obs__" + concept_uuid + "'>\n"
-        for a in concept['answers'] :
-            s += "\t<option value='" + a['uuid'] + "'>" + a['name'].capitalize() + "</option>\n"
-        s += "</select>"
-    
-    if data_type == 'text':
-        s = "<label for='" + id + "'>" + concept['name'].capitalize() + "</label>\n"
-        s += "<input id='" + id + "' name='obs__" + concept_uuid + "' type='text'/>"
-    return s
         
 
 
-@login_required
-def build_schema(request):
-    if request.method == "GET":
-        return render(request,'ltfu/build_schema.html',{})
-    else :        
-        args = request.POST
-        s = ''
-        for k,v in args.iteritems() :
-            parts = k.split('__')
-            if len(parts) > 0 and parts[0] == 'input':
-                concept_uuid = parts[1]
-                data_type = str(v)
-                html = toHTML(concept_uuid,data_type)
-                s += html + "\n\n"
-            
-        data = json.dumps(s)
-        return HttpResponse(data,content_type='application/json')

@@ -29,6 +29,4 @@ urlpatterns = patterns('',
                        url(r'^' + app_name + '/test/?$',views.test),
                        url(r'^' + app_name + '/ajax_patient_search/?$',views.ajax_patient_search),
                        url(r'^' + app_name + '/ajax_encounter_search/?$',views.ajax_encounter_search),
-                       url(r'^' + app_name + '/ajax_concept_search/?$',views.ajax_concept_search),
-                       url(r'^' + app_name + '/build_schema/?$',views.build_schema),
                        )

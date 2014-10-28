@@ -119,6 +119,16 @@ def ajax_get_outreach_providers(request):
 
 
 @login_required
+def ajax_is_defaulter_cohort_retired(request):
+    id = get_var_from_request(request,'defaulter_cohort_id')
+    dc = DefaulterCohort.objects.get(id=id)
+    data = "false"
+    if dc.retired : data = "true"
+    return HttpResponse(data,content_type="application/json")
+
+
+
+@login_required
 def ajax_get_locations(request):
     locations = Location.get_locations()
     data = json.dumps(locations)
@@ -151,6 +161,15 @@ def ajax_update_cohort_cache(request):
         print e
 
     return HttpResponse("",content_type="application/json")
+
+
+@login_required
+def ajax_get_encounter_data(request):
+    patient_uuid = get_var_from_request(request,"patient_uuid")
+    print "ajax_get_encounter_data() : getting data for patient uuid = " + str(patient_uuid)
+    encounter_data = Patient.get_encounter_data(patient_uuid)
+    data = json.dumps(encounter_data)
+    return HttpResponse(data,content_type="application/json")
 
 
 @login_required

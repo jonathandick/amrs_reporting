@@ -65,3 +65,62 @@ def edit_encounter(request):
         log_id = get_var_from_request(request,'encounter_log_id')
         log = EncounterForm.reprocess_encounter(log_id,request.POST)
         return HttpResponseRedirect('/encounter_form/view_rest_errors')
+
+
+
+def toHTML(concept_uuid,data_type):
+    concept = Concept.get_concept_info(concept_uuid)
+    s = ''    
+    id = concept['name'].lower().replace(' ','_')
+
+    if data_type == 'select':
+        s = "<label for='" + id + "'>" + concept['name'].capitalize() + "</label>\n"
+        s += "<select id='" + id + "' name='obs__" + concept_uuid + "'>\n"
+        for a in concept['answers'] :
+            s += "\t<option value='" + a['uuid'] + "'>" + a['name'].capitalize() + "</option>\n"
+        s += "</select>"
+    
+    if data_type == 'text':
+        s = "<label for='" + id + "'>" + concept['name'].capitalize() + "</label>\n"
+        s += "<input id='" + id + "' name='obs__" + concept_uuid + "' type='text'/>"
+
+    if data_type == "checkbox":
+        s = "<legend>" + concept['name'].title() + "</legend>\n"
+        for a in concept['answers'] :
+            key = id + "." + a['name'].lower().replace(' ','_')
+            s += "<input name='" + a['uuid'] + "' id='" + key + "' type='checkbox' value='" + a['uuid'] + "'/>\n"
+            s += "<label for='" + key + "'>" + a['name'].capitalize() + "</label>\n"        
+
+    return s
+
+
+
+@login_required
+def build_schema(request):
+    if request.method == "GET":
+        return render(request,'encounter_form/build_schema.html',{})
+    else :        
+        args = request.POST
+        s = ''
+        for k,v in args.iteritems() :
+            parts = k.split('__')
+            if len(parts) > 0 and parts[0] == 'input':
+                concept_uuid = parts[1]
+                data_type = str(v)
+                html = toHTML(concept_uuid,data_type)
+                s += html + "\n\n"
+            
+        data = json.dumps(s)
+        return HttpResponse(data,content_type='application/json')
+
+
+@login_required
+def ajax_concept_search(request):
+    search_string = request.POST['search_string']
+    concepts = ''
+    if len(search_string) >= 3 :
+        concepts = Concept.search_concepts(search_string)
+    data = json.dumps(concepts)
+    print 'returning ajax concept search'
+    return HttpResponse(data,content_type='application/json')
+

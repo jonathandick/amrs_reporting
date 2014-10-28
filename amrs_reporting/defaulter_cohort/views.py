@@ -15,7 +15,8 @@ import utilities as utilities
 
 
 
-# Create your views here.
+
+
 @login_required
 def view_defaulter_cohort(request):
     if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :        
@@ -61,8 +62,6 @@ def ajax_get_defaulter_cohort(request):
 
 
 def update_defaulter_cohorts(request):
-    if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :        
-        return HttpResponseRedirect('/amrs_user_validation/access_denied')
     
     print 'Updating cohorts .......................................'
     start = datetime.today()

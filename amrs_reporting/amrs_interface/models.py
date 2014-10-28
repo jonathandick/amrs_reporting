@@ -26,6 +26,7 @@ class RESTHandler():
 
     @staticmethod
     def post(url,payload):
+        print "REST: do POST : " + str(url)
         try :
             res = requests.post(url,payload,auth=(amrs_settings.username,amrs_settings.password),headers=RESTHandler.headers,verify=False)
             result = json.loads(res.text)
@@ -361,6 +362,70 @@ class Patient():
         return patient
     
 
+    @staticmethod
+    def get_encounter_data(patient_uuid):
+        url = amrs_settings.amrs_url + '/ws/rest/v1/patient/' + patient_uuid 
+                
+        encounters = {}
+        encounter_url = amrs_settings.amrs_url + '/ws/rest/v1/encounter?patient=' + patient_uuid         
+        encounter_url += "&v=custom:(uuid,location:(uuid,name),encounterDatetime,encounterType:(uuid,name),provider)&limit=200"
+        data = RESTHandler.get(encounter_url)
+        for e in data['results']:            
+            provider_name = e["provider"]["display"]
+            encounter = {"encounter_datetime":e["encounterDatetime"],
+                         "provider": provider_name,
+                         "encounter_type":e["encounterType"]["name"].title(),
+                         "location":e["location"]["name"].title(),
+                         "obs":{},
+                         }
+            print encounter
+            encounters[str(e["encounterDatetime"])] = encounter
+            
+                         
+
+        concepts = [{"name":"WEIGHT (KG)","concept_id":5089,"uuid":"a8a660ca-1350-11df-a1f1-0026b9348838"},
+                    {"name":"TESTS ORDERED","concept_id":1271,"uuid":"a89c2268-1350-11df-a1f1-0026b9348838"},                    
+                    {"name":"CD4, BY FACS","concept_id":5497,"uuid":"a8a8bb18-1350-11df-a1f1-0026b9348838"},
+                    {"name":"HIV VIRAL LOAD, QUANTITATIVE","concept_id":856, "uuid":"a8982474-1350-11df-a1f1-0026b9348838"},
+                    {"name":"ANTIRETROVIRAL PLAN","concept_id":1255,"uuid":"a89b75d4-1350-11df-a1f1-0026b9348838"},
+                    {"name":"ANTIRETROVIRALS STARTED","concept_id":1250,"uuid":"a89b6a62-1350-11df-a1f1-0026b9348838"},
+                    {"name":"CURRENT ANTIRETROVIRAL DRUGS USED FOR TREATMENT","concept_id":1088,"uuid":"a899cf5e-1350-11df-a1f1-0026b9348838"},
+                    {"name":"PROBLEM ADDED","concept_id":6042,"uuid" : "a8ae835e-1350-11df-a1f1-0026b9348838"},
+                    {"name":"RETURN VISIT DATE","concept_id":5096,"uuid" : "a8a666ba-1350-11df-a1f1-0026b9348838"}
+                    ]
+        obs_url = amrs_settings.amrs_url + '/ws/rest/v1/obs?patient=' + patient_uuid
+
+        for c in concepts :
+            c_url = obs_url + "&concept=" + c["uuid"]
+            c_url += "&v=custom:(uuid,obsDatetime,encounter:(uuid,encounterDatetime),value:(uuid,name:(name,uuid),uuid),concept:(uuid,name:(name)))"
+            data = RESTHandler.get(c_url)
+            
+            for o in data['results'] :                
+                e = o.get("encounter",None)
+                if e : encounter_datetime = o["encounter"]['encounterDatetime']                    
+                else :  
+                    encounter_datetime = str(o['obsDatetime']) + " - lab"                    
+
+                value = o['value']
+                if isinstance(value,dict) : value = o['value']['name']['name']                
+                value = str(value).title()
+                if encounter_datetime in encounters : 
+                    if c['name'] in encounters[encounter_datetime]['obs'] :
+                        encounters[encounter_datetime]['obs'][c['name']].append(value)
+                    else : 
+                        encounters[encounter_datetime]['obs'][c['name']] = [value]
+
+                else : encounters[encounter_datetime] = {"encounter_datetime":encounter_datetime,"obs":{c['name']:[value]}}
+                    
+
+        return encounters
+
+
+
+        '''
+        url += '?v=custom:(uuid,person:(uuid,gender,birthdate,preferredName:(givenName,middleName,familyName),birthdate),identifiers:(identifier)'
+        '''
+        
 
                        
 class Provider(models.Model):
@@ -754,6 +819,17 @@ class PersonAttribute():
         payload = {'attributeType':person_attribute_type_uuid,
                    'value':value
                    }        
+        log = RESTHandler.post_and_log(url,payload)
+        return log
+
+
+    @staticmethod
+    def test_hydrated(person_uuid=None,person_attribute_type_uuid=None,value=None,void_existing=True):
+        headers = {'content-type': 'application/json','connection':'close'}
+        url = amrs_settings.amrs_url + '/ws/rest/v1/person/' + person_uuid + '/attribute'
+        payload = {'attributeType':person_attribute_type_uuid,
+                   'hydratedObject':value
+                   }
         log = RESTHandler.post_and_log(url,payload)
         return log
 

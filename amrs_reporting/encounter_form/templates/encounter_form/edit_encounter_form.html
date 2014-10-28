@@ -9,11 +9,12 @@
   <input type='hidden' name='encounter_log_id' value='{{log.id}}'/>
   <input type='hidden' name='patient_uuid' value='{{form_vals.patient_uuid}}'/>
   <input type='hidden' name='encounter_type_uuid' value='{{form_vals.encounter_type_uuid}}'/>
+  <input type='hidden' name='form_uuid' id="form_uuid" value="1eb7938a-8a2a-410c-908a-23f154bf05c0"/>
 
 <table>  
   <tr>
     <td>Patient</td>
-    <td>{{patient.given_name}} {{patient.family_name}}</td>
+    <td>{{patient.given_name}} {{patient.middle_name}} {{patient.family_name}}</td>
   </tr>
   <tr>
     <td>Date Submitted</td>
@@ -29,7 +30,7 @@
       <select name='provider_uuid'>
 	<option/>
 	{% for p in providers %}
-	<option value="{{p.uuid}}" {%if p.uuid == form_vals.provider_uuid %}selected{%endif%}>{{p.family_name}}, {{p.given_name}}</option>
+	<option value="{{p.uuid}}" {%if p.uuid == form_vals.provider_uuid %}selected{%endif%}>{{p.given_name}} {{p.family_name}}</option>
 	{%endfor%}
       </select>
     </td>

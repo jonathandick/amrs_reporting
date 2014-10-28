@@ -27,14 +27,9 @@
     </ul>
     
     <div data-role='collapsible'>
-      <h2>Encounters</h2>  
-      <div class="CSSTableGenerator">
-	<table id="dash_encounters">
-	  <tr>
-	    <td>Date</td>
-	    <td>Type</td>
-	  </tr>
-	</table>	
+      <h2>Encounters</h2>        
+      <input type="button" onClick="javascript:getEncounterDataView()" value="Get Data"/>
+      <div id="dash_encounter_data" style="height:260px; overflow:scroll">
       </div>
     </div>
 

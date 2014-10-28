@@ -150,8 +150,9 @@ class EncounterForm():
         rest_log.retire()
 
         rest_log = EncounterForm.submit(form_args)
-        log.id=rest_log.id
-        log.save()
+        if rest_log :
+            log.id=rest_log.id
+            log.save()
         EncounterForm.set_dead(form_args)
 
 

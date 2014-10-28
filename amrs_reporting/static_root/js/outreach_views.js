@@ -6,6 +6,15 @@ function appsView() {
     $("#apps_view #num_saved_encounters").text(numEncounters)
 }
 
+function initDefaulterCohortListView() {
+    var list = $("#defaulter_cohort_list_view #defaulter_cohort").empty();
+    list.append("<option/>");
+    var dcs = getDefaulterCohorts();
+    for(var i=0; i < dcs.defaulter_cohorts.length; i++) {
+	dc = dcs.defaulter_cohorts[i];
+	list.append("<option value='" + dc.id + "'>" + dc.name + "</option>");
+    }
+}
 
 
 function defaulterCohortListView(){
@@ -15,7 +24,6 @@ function defaulterCohortListView(){
     if((id !== "") && ((id != cur_list_id) || ($("#defaulter_cohort_list li").length == 0)))  {	
 	var cohort = getCohort(id);
 	initDefaulterCohortListView();
-	console.log(cohort);
 	$("#defaulter_cohort_list_view #defaulter_cohort_name").text(cohort["name"]);
 	$("#defaulter_cohort_list_view #date_created").text(cohort["date_created"]);
 	defaulterCohortToList(cohort);
@@ -58,8 +66,80 @@ function defaulterCohortToList(cohort) {
     var id = cohort["id"];
     $("#list_defaulter_cohort_id").val(id);
     $("#defaulter_cohort_list_view #num_remaining").text("Patients remaining to be traced: " + num_remaining + " / " + total_patients);        
+
 }
 
+
+
+function encounterDataToTable(encounterData) {
+    $("#dash_encounter_data > tbody").empty(); //).find("tr:gt(0)").remove();
+    var obs_order = ["WEIGHT (KG)","CD4, BY FACS","HIV VIRAL LOAD, QUANTITATIVE","TESTS ORDERED",
+		     "PROBLEM ADDED",
+		     "CURRENT ANTIRETROVIRAL DRUGS USED FOR TREATMENT","ANTIRETROVIRAL PLAN","ANTIRETROVIRALS STARTED"
+		     ];
+    
+    var keys = Object.keys(encounterData).sort();
+    console.log("encounterDataToTable() : number of encounters = " + keys.length);
+
+    $("#dash_encounter_data_table").remove();
+    s = '<table id="dash_encounter_data_table" data-role="table" data-mode="columntoggle" class="ui-responsive ui-body-d table-stripe">';
+    s += '<thead class="ui-bar-d" data-position="fixed"><tr>';
+    s += '<th>Date</th>';
+    s += '<th data-priority="1">Type</th>';
+    s += '<th data-priority="1">Clinic</th>';
+    s += '<th data-priority="1">Provider</th>';
+    s += '<th data-priority="1">RTC Date</th>';
+    s += '<th data-priority="1">Weight</th>';
+    s += '<th data-priority="1">CD4</th>';
+    s += '<th data-priority="1">VL</th>';
+    s += '<th data-priority="1">Tests Ordered</th>';
+    s += '<th data-priority="1">Problem(s)</th>';
+    s += '<th data-priority="1">ARVs</th>';
+    s += '<th data-priority="1">ARV Plan</th>';
+    s += '<th data-priority="1">New ARVs</th>';
+    s += '</tr></thead>';
+        
+
+    for(var i=0; i<keys.length; i++) {	
+	var row = encounterData[keys[i]];
+	s += "<tr>";
+	s += "<td>" + row["encounter_datetime"].substring(0,10) + "</td>";
+	s += "<td>" + row["encounter_type"] + "</td>";
+	s += "<td>" + row["location"] + "</td>";
+	s += "<td>" + row["provider"] + "</td>";
+	s += "<td>";
+	if(row.obs["RETURN VISIT DATE"] !== undefined) {
+	    s += row.obs["RETURN VISIT DATE"][0].substring(0,10);
+	}
+	s += "</td>";
+	for(var j=0; j<obs_order.length; j++) {
+	    s += "<td>";
+	    var vals = row.obs[obs_order[j]];
+	    if(vals !== undefined) {
+		for(var k=0; k<vals.length; k++) {
+		    s += " " + vals[k] + "<br/>";
+		}
+	    }
+	    s += "</td>";
+	}
+	s += "</tr>";
+    }
+    $("#dash_encounter_data_table-popup-popup").remove(); 
+    $("#dash_encounter_data").html(s).enhanceWithin();    
+}
+
+
+function getEncounterDataView() {
+    if(navigator.onLine) {
+	var patient_uuid = $("#dash_patient_uuid").val();
+	var encounter_data = getEncounterData(patient_uuid);
+	encounterDataToTable(encounter_data);
+	
+    }
+    else {
+	alert('You must be online to receive encounter data');
+    }
+}
 
 function getNewDefaulterCohortView() {
     var id = $("#list_defaulter_cohort_id").val();
@@ -95,7 +175,7 @@ function updateDefaulterCohortView() {
 
 function patientDashboardView(patient_uuid,cohort_id) {
     $(".app").hide();
-    
+    $("#dash_encounter_data > tbody").empty(); //).find("tr:gt(0)").remove();
     $("#patient_dashboard_view").css("display","inline");    
     var patient = getPatient(patient_uuid,cohort_id);
 
@@ -111,7 +191,6 @@ function patientDashboardView(patient_uuid,cohort_id) {
 
     $("#dash_encounters").find("tr:gt(0)").remove();
 
-    console.log("cohort_id: " + cohort_id);
     if(cohort_id === undefined || cohort_id === null || cohort_id === "") {
 	$("#dash_back_button").attr("onClick","patientSearchView()");
     }
@@ -136,7 +215,7 @@ function initOutreachFormView() {
 	for(var i=0; i <locations.locations.length; i++) {
 	    l = locations.locations[i];
 	    outreach_locations.append("<option value='" + l.uuid + "'>" + l.name + "</option>");
-	    transfer_locations.append("<option value='" + l.uuid + "'>" + l.name + "</option>");
+	    transfer_locations.append("<option value='" + l.location_id + "'>" + l.name + "</option>");
 	}
     }
     
@@ -176,6 +255,7 @@ function initDefaulterCohortListView() {
 }
 
 
+
 function outreachFormView(){
     $(".app").hide();
     $("#outreach_form_view").css("display","inline");	
@@ -200,7 +280,6 @@ function outreachFormView(){
     var mm = (today.getMonth()+1).toString(); // getMonth() is zero-based
     var dd  = today.getDate().toString();
     var s = yyyy + "-" + (mm[1]?mm:"0"+mm[0]) + "-" + (dd[1]?dd:"0"+dd[0]); // padding
-    console.log(s);
     $("#encounter_datetime").val(s);
 }    
 

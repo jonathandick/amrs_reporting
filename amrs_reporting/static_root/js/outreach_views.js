@@ -77,10 +77,8 @@ function tbDataToTable(tbData) {
 		     "TB Tx Start Date","Start Reason","Current TB Meds","TB tx Plan","Stop/Change Reason","New TB Drugs"
 		     ];
     
-    $("#dash_tb_data_table").remove();
-    
-    s = "<h2>TB History</h2>";
-    s += '<table id="dash_tb_data_table" data-role="table" data-mode="columntoggle" class="ui-responsive ui-body-d table-stripe">';
+    $("#dash_tb_data_table").remove();    
+    s = '<table id="dash_tb_data_table" data-role="table" data-mode="columntoggle" class="ui-responsive ui-body-d table-stripe">';
     s += '<thead class="ui-bar-d" data-position="fixed"><tr>';
     s += '<th>Date</th>';
     for(var i=0; i<obs_order.length; i++) {
@@ -115,7 +113,8 @@ function encounterDataToTable(encounterData) {
 
     var obs_order = ["WEIGHT (KG)","CD4, BY FACS","HIV VIRAL LOAD, QUANTITATIVE","LAB RESULTS","TESTS ORDERED",
 		     "PROBLEM ADDED",
-		     "CURRENT ANTIRETROVIRAL DRUGS USED FOR TREATMENT","ANTIRETROVIRAL PLAN","ANTIRETROVIRALS STARTED"
+		     "CURRENT ANTIRETROVIRAL DRUGS USED FOR TREATMENT","ANTIRETROVIRAL PLAN","ANTIRETROVIRALS STARTED",
+		     "MEDICATION ORDERS",
 		     ];
     
     var keys = Object.keys(encounterData.core).sort();
@@ -138,6 +137,7 @@ function encounterDataToTable(encounterData) {
     s += '<th data-priority="1">ARVs</th>';
     s += '<th data-priority="1">ARV Plan</th>';
     s += '<th data-priority="1">New ARVs</th>';
+    s += '<th data-priority="1">Med Orders</th>';
     s += '</tr></thead>';
         
 
@@ -150,10 +150,10 @@ function encounterDataToTable(encounterData) {
 	var row = encounterData.core[keys[i]];
 
 	s += "<tr";	
-	if(row["encounter_type"] !== undefined) {
+	if(row["encounter_type"] !== undefined && row.encounter_type.toLowerCase() != "outreachfieldfu") {
 	    curDate = new Date(row["encounter_datetime"]);
 	    if(curDate > deadline) {		
-		s += " style='background-color:#ffb6c1'>";
+		s += " style='background-color:#ffb6c1'";
 	    }
 	    if(row.obs["RETURN VISIT DATE"] !== undefined) {		
 		deadline = new Date(row.obs["RETURN VISIT DATE"]);
@@ -236,7 +236,8 @@ function updateDefaulterCohortView() {
 
 function patientDashboardView(patient_uuid,cohort_id) {
     $(".app").hide();
-    $("#dash_encounter_data > tbody").empty(); //).find("tr:gt(0)").remove();
+    $("#dash_encounter_data").empty(); //).find("tr:gt(0)").remove();
+
     $("#patient_dashboard_view").css("display","inline");    
     var patient = getPatient(patient_uuid,cohort_id);
 

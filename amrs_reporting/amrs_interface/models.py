@@ -433,6 +433,7 @@ class Patient():
             {"name":"TESTS ORDERED","concept_id":1271,"uuid":"a89c2268-1350-11df-a1f1-0026b9348838"},                    
             {"name":"CD4, BY FACS","concept_id":5497,"uuid":"a8a8bb18-1350-11df-a1f1-0026b9348838"},
             {"name":"HIV VIRAL LOAD, QUANTITATIVE","concept_id":856, "uuid":"a8982474-1350-11df-a1f1-0026b9348838"},
+            {"name":"MEDICATION ORDERS","concept_id":1895, "uuid":"a8a060c6-1350-11df-a1f1-0026b9348838"},
             ]
 
         lab_concepts = [
@@ -446,8 +447,8 @@ class Patient():
 
         tb_concepts = [
             {"name":"TB Prophylaxis","concept_id":1110,"uuid" : "a899e35e-1350-11df-a1f1-0026b9348838"},
-            {"name":"TB Propylaxis Plan","concept_id":1265,"uuid" : "a89c1cfa-1350-11df-a1f1-0026b9348838"},
-            {"name":"TB Prophlaxis Stop Reason","concept_id":1266,"uuid" : "a89c1e12-1350-11df-a1f1-0026b9348838"},
+            {"name":"TB Prophylaxis Plan","concept_id":1265,"uuid" : "a89c1cfa-1350-11df-a1f1-0026b9348838"},
+            {"name":"TB Prophylaxis Stop Reason","concept_id":1266,"uuid" : "a89c1e12-1350-11df-a1f1-0026b9348838"},
             {"name":"TB Tx Start Date","concept_id":1113,"uuid" : "a899e5f2-1350-11df-a1f1-0026b9348838"},
             {"name":"Current TB Meds","concept_id":1111,"uuid" : "a899e444-1350-11df-a1f1-0026b9348838"},
             {"name":"TB tx Plan","concept_id":1268,"uuid" : "a89c1fd4-1350-11df-a1f1-0026b9348838"},

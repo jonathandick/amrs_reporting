@@ -26,22 +26,36 @@
       </li>	
     </ul>
     
-    <div data-role='collapsible'>
-      <h2>Encounters</h2>        
-      <input type="button" onClick="javascript:getEncounterDataView()" value="Get Data"/>      
-      <div id="dash_encounter_data" style="height:400px; overflow:scroll;display:none">
+    <div data-role='collapsible' id="encounter_history_div">
+      <h2>Encounter History</h2>        
+      <div id="dash_encounter_data" style="height:350px; overflow:scroll;display:none">
       </div>      
-      <br/><br/>
-      <div id="dash_tb_data" style="height:400px; overflow:scroll; display:none">
-      </div>
+    </div>
 
-      
+    <div data-role='collapsible' id="tb_history_div">
+      <h3>TB History</h2>              
+      <div id="dash_tb_data" style="height:350px; overflow:scroll; display:none">
+      </div>
 
     </div>
 
     <div data-role='collapsible'>
-      <h2>Forms</h2>
+      <h3>Forms</h2>
       <ul data-role="listview">
 	<li><a id="form_link" d_id="" p_id="" onClick="outreachFormView()">Enter Outreach Form</a></li>
       </ul>
     </div>
+
+<script>
+  $(document).ready(function() {
+  $('#encounter_history_div').on('collapsibleexpand', function () {
+        getEncounterDataView();
+  });
+  $('#tb_history_div').on('collapsibleexpand', function () {
+        getEncounterDataView();
+  });
+  
+
+  });
+
+</script>

@@ -445,7 +445,7 @@ function getEncounterData(patient_uuid){
 		error : function(xhr,errmsg,err) {
 		    console.log("ERROR: could not load encounter data : " + err);
 		}
-	    });
+	    });	
 	session.setItem(patient_uuid,JSON.stringify(encounterData));
 	console.log("getEncounterData() : encounterData size = " + unescape(encodeURIComponent(JSON.stringify(encounterData))).length);
     }

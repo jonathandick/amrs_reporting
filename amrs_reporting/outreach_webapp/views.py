@@ -73,7 +73,7 @@ def ajax_submit_encounter(request):
             member = DefaulterCohortMember.objects.filter(defaulter_cohort_id=defaulter_cohort_id,patient_uuid=patient_uuid)[0]
             print "member: " + str(member)
 
-            member.update_status({"next_appt_date":enc_date,"next_encounter_type":"OUTREACHFIELDFUP"})        
+            member.update_status({"next_appt_date":enc_date,"next_encounter_type":"21"})        
         except Exception, e:
             print "ajax_submit_encounter(): error updating member : " + str(e)
             

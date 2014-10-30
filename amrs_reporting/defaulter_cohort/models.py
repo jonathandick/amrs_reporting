@@ -36,20 +36,26 @@ class DefaulterCohortMember(models.Model):
 
     def get_patient_info(self):
         import datetime
-        patient = Patient.get_patient_by_uuid(self.patient_uuid)
-        patient['last_encounter_date'] = self.last_encounter_date
-        patient['last_encounter_type'] = self.last_encounter_type
-        patient['last_rtc_date'] = self.last_rtc_date
-        patient['next_encounter_date'] = self.next_encounter_date
-        patient['next_encounter_type'] = self.next_encounter_type
-        patient['retired'] = self.retired
-        patient['risk_category'] = self.risk_category
-        patient['defaulter_cohort_member_id'] = self.id
-        patient['uuid'] = self.patient_uuid
+        patient = {}
+        try:
+            patient = Patient.get_patient_by_uuid(self.patient_uuid)
+            patient['last_encounter_date'] = self.last_encounter_date
+            patient['last_encounter_type'] = self.last_encounter_type
+            patient['last_rtc_date'] = self.last_rtc_date
+            patient['next_encounter_date'] = self.next_encounter_date
+            patient['next_encounter_type'] = self.next_encounter_type
+            patient['retired'] = self.retired
+            patient['risk_category'] = self.risk_category
+            patient['defaulter_cohort_member_id'] = self.id
+            patient['uuid'] = self.patient_uuid
 
-        if self.last_rtc_date and self.next_encounter_date is None :
-            patient['days_since_rtc_date'] = (datetime.date.today() - self.last_rtc_date).days
-        else : patient['days_since_rtc_date'] = None
+            if self.last_rtc_date and self.next_encounter_date is None :
+                patient['days_since_rtc_date'] = (datetime.date.today() - self.last_rtc_date).days
+            else : patient['days_since_rtc_date'] = None
+        except Exception, e:
+            print "DefaulterCohortMember.get_patient_info() : exception : " + str(e)
+            print patient
+
         return patient
 
 

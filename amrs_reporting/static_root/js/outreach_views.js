@@ -71,14 +71,54 @@ function defaulterCohortToList(cohort) {
 
 
 
+function tbDataToTable(tbData) {
+    $("#dash_tb_data > tbody").empty(); //).find("tr:gt(0)").remove();
+    var obs_order = ["TB Prophylaxis","TB Prophylaxis Plan","TB Prophylaxis Stop Reason",
+		     "TB Tx Start Date","Start Reason","Current TB Meds","TB tx Plan","Stop/Change Reason","New TB Drugs"
+		     ];
+    
+    $("#dash_tb_data_table").remove();
+    
+    s = "<h2>TB History</h2>";
+    s += '<table id="dash_tb_data_table" data-role="table" data-mode="columntoggle" class="ui-responsive ui-body-d table-stripe">';
+    s += '<thead class="ui-bar-d" data-position="fixed"><tr>';
+    s += '<th>Date</th>';
+    for(var i=0; i<obs_order.length; i++) {
+	s += '<th data-priority="1">' + obs_order[i] + "</th>";
+    }
+    s += '</tr></thead>';        
+       
+    var keys = Object.keys(tbData).sort();
+    for(var i=0; i<keys.length; i++) {	
+	var row = tbData[keys[i]];
+	s += "<tr>";
+	s += "<td>" + row["encounter_datetime"].substring(0,10) + "</td>";
+	for(var j=0; j<obs_order.length; j++) {
+	    s += "<td>";
+	    var vals = row.obs[obs_order[j]];
+	    if(vals !== undefined) {
+		for(var k=0; k<vals.length; k++) {
+		    s += " " + vals[k] + "<br/>";
+		}
+	    }
+	    s += "</td>";
+	}
+	s += "</tr>";
+    }
+    $("#dash_tb_data_table-popup-popup").remove(); 
+    $("#dash_tb_data").html(s).enhanceWithin();
+    $("#dash_tb_data").show();
+}
+
 function encounterDataToTable(encounterData) {
     $("#dash_encounter_data > tbody").empty(); //).find("tr:gt(0)").remove();
-    var obs_order = ["WEIGHT (KG)","CD4, BY FACS","HIV VIRAL LOAD, QUANTITATIVE","TESTS ORDERED",
+
+    var obs_order = ["WEIGHT (KG)","CD4, BY FACS","HIV VIRAL LOAD, QUANTITATIVE","LAB RESULTS","TESTS ORDERED",
 		     "PROBLEM ADDED",
 		     "CURRENT ANTIRETROVIRAL DRUGS USED FOR TREATMENT","ANTIRETROVIRAL PLAN","ANTIRETROVIRALS STARTED"
 		     ];
     
-    var keys = Object.keys(encounterData).sort();
+    var keys = Object.keys(encounterData.core).sort();
     console.log("encounterDataToTable() : number of encounters = " + keys.length);
 
     $("#dash_encounter_data_table").remove();
@@ -92,6 +132,7 @@ function encounterDataToTable(encounterData) {
     s += '<th data-priority="1">Weight</th>';
     s += '<th data-priority="1">CD4</th>';
     s += '<th data-priority="1">VL</th>';
+    s += '<th data-priority="1">Lab Data</th>';
     s += '<th data-priority="1">Tests Ordered</th>';
     s += '<th data-priority="1">Problem(s)</th>';
     s += '<th data-priority="1">ARVs</th>';
@@ -100,9 +141,28 @@ function encounterDataToTable(encounterData) {
     s += '</tr></thead>';
         
 
-    for(var i=0; i<keys.length; i++) {	
-	var row = encounterData[keys[i]];
-	s += "<tr>";
+
+    
+    var curDate,deadline = new Date(encounterData.core[keys[0]].obs["RETURN VISIT DATE"]);
+    deadline.setDate(deadline.getDate() + 30);
+
+    for(var i=0; i<keys.length; i++) {
+	var row = encounterData.core[keys[i]];
+
+	s += "<tr";	
+	if(row["encounter_type"] !== undefined) {
+	    curDate = new Date(row["encounter_datetime"]);
+	    if(curDate > deadline) {		
+		s += " style='background-color:#ffb6c1'>";
+	    }
+	    if(row.obs["RETURN VISIT DATE"] !== undefined) {		
+		deadline = new Date(row.obs["RETURN VISIT DATE"]);
+		deadline.setDate(deadline.getDate() + 30);
+	    }
+	}
+	s += ">";
+	
+
 	s += "<td>" + row["encounter_datetime"].substring(0,10) + "</td>";
 	s += "<td>" + row["encounter_type"] + "</td>";
 	s += "<td>" + row["location"] + "</td>";
@@ -125,19 +185,20 @@ function encounterDataToTable(encounterData) {
 	s += "</tr>";
     }
     $("#dash_encounter_data_table-popup-popup").remove(); 
-    $("#dash_encounter_data").html(s).enhanceWithin();    
+    $("#dash_encounter_data").html(s).enhanceWithin();
+    $("#dash_encounter_data").show();    
 }
 
 
 function getEncounterDataView() {
     if(navigator.onLine) {
-	var patient_uuid = $("#dash_patient_uuid").val();
-	var encounter_data = getEncounterData(patient_uuid);
-	encounterDataToTable(encounter_data);
-	
+	var patientUuid = $("#dash_patient_uuid").val();
+	var encounterData = getEncounterData(patientUuid);
+	encounterDataToTable(encounterData);
+	tbDataToTable(encounterData.tb);	
     }
     else {
-	alert('You must be online to receive encounter data');
+	alert('You must be online to access encounter data');
     }
 }
 

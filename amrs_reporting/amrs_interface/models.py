@@ -362,6 +362,45 @@ class Patient():
         return patient
     
 
+    '''
+    obs_info : {"name":"name",concept_id:123n,"uuid":"uuid"
+    container
+    combine : put all concepts into one column
+    '''
+    @staticmethod
+    def get_obs_data_pretty(patient_uuid,obs_info,container,combine=False,combine_column_name=None) :
+        
+        obs_url = amrs_settings.amrs_url + '/ws/rest/v1/obs?patient=' + patient_uuid
+        c_url = obs_url + "&concept=" + obs_info["uuid"]
+        c_url += "&v=custom:(uuid,obsDatetime,encounter:(uuid,encounterDatetime),value:(uuid,name:(name,uuid),uuid),concept:(uuid,name:(name)))"
+        data = RESTHandler.get(c_url)
+        
+        for o in data['results'] :                
+            e = o.get("encounter",None)
+            
+            if e : encounter_datetime = o["encounter"]['encounterDatetime']                    
+            else :  
+                encounter_datetime = str(o['obsDatetime']) + " - lab"                    
+            
+            value = o['value']
+            if isinstance(value,dict) : value = o['value']['name']['name']                
+            value = str(value).title()
+
+            col_name = obs_info['name']
+            if combine : 
+                col_name = combine_column_name
+                value = obs_info['name'].title() + " = " + value
+
+            if encounter_datetime in container : 
+                if col_name in container[encounter_datetime]['obs'] :
+                    container[encounter_datetime]['obs'][col_name].append(value)
+                else : 
+                    container[encounter_datetime]['obs'][col_name] = [value]
+            else : container[encounter_datetime] = {"encounter_datetime":encounter_datetime,"obs":{col_name:[value]}}
+        return container
+
+        
+
     @staticmethod
     def get_encounter_data(patient_uuid):
         url = amrs_settings.amrs_url + '/ws/rest/v1/patient/' + patient_uuid 
@@ -378,53 +417,61 @@ class Patient():
                          "location":e["location"]["name"].title(),
                          "obs":{},
                          }
-            print encounter
             encounters[str(e["encounterDatetime"])] = encounter
             
                          
 
-        concepts = [{"name":"WEIGHT (KG)","concept_id":5089,"uuid":"a8a660ca-1350-11df-a1f1-0026b9348838"},
-                    {"name":"TESTS ORDERED","concept_id":1271,"uuid":"a89c2268-1350-11df-a1f1-0026b9348838"},                    
-                    {"name":"CD4, BY FACS","concept_id":5497,"uuid":"a8a8bb18-1350-11df-a1f1-0026b9348838"},
-                    {"name":"HIV VIRAL LOAD, QUANTITATIVE","concept_id":856, "uuid":"a8982474-1350-11df-a1f1-0026b9348838"},
-                    {"name":"ANTIRETROVIRAL PLAN","concept_id":1255,"uuid":"a89b75d4-1350-11df-a1f1-0026b9348838"},
-                    {"name":"ANTIRETROVIRALS STARTED","concept_id":1250,"uuid":"a89b6a62-1350-11df-a1f1-0026b9348838"},
-                    {"name":"CURRENT ANTIRETROVIRAL DRUGS USED FOR TREATMENT","concept_id":1088,"uuid":"a899cf5e-1350-11df-a1f1-0026b9348838"},
-                    {"name":"PROBLEM ADDED","concept_id":6042,"uuid" : "a8ae835e-1350-11df-a1f1-0026b9348838"},
-                    {"name":"RETURN VISIT DATE","concept_id":5096,"uuid" : "a8a666ba-1350-11df-a1f1-0026b9348838"}
-                    ]
-        obs_url = amrs_settings.amrs_url + '/ws/rest/v1/obs?patient=' + patient_uuid
+        core_concepts = [
+            {"name":"WEIGHT (KG)","concept_id":5089,"uuid":"a8a660ca-1350-11df-a1f1-0026b9348838"},
+            {"name":"ANTIRETROVIRAL PLAN","concept_id":1255,"uuid":"a89b75d4-1350-11df-a1f1-0026b9348838"},
+            {"name":"ANTIRETROVIRALS STARTED","concept_id":1250,"uuid":"a89b6a62-1350-11df-a1f1-0026b9348838"},
+            {"name":"CURRENT ANTIRETROVIRAL DRUGS USED FOR TREATMENT","concept_id":1088,"uuid":"a899cf5e-1350-11df-a1f1-0026b9348838"},
+            {"name":"PROBLEM ADDED","concept_id":6042,"uuid" : "a8ae835e-1350-11df-a1f1-0026b9348838"},
+            {"name":"RETURN VISIT DATE","concept_id":5096,"uuid" : "a8a666ba-1350-11df-a1f1-0026b9348838"},
+            {"name":"MEDICATION ADDED","concept_id":1895,"uuid" : "a8a060c6-1350-11df-a1f1-0026b9348838"},
+            {"name":"PCP Prophylaxis","concept_id":1109,"uuid" : "a899e282-1350-11df-a1f1-0026b9348838"},
+            {"name":"TESTS ORDERED","concept_id":1271,"uuid":"a89c2268-1350-11df-a1f1-0026b9348838"},                    
+            {"name":"CD4, BY FACS","concept_id":5497,"uuid":"a8a8bb18-1350-11df-a1f1-0026b9348838"},
+            {"name":"HIV VIRAL LOAD, QUANTITATIVE","concept_id":856, "uuid":"a8982474-1350-11df-a1f1-0026b9348838"},
+            ]
 
-        for c in concepts :
-            c_url = obs_url + "&concept=" + c["uuid"]
-            c_url += "&v=custom:(uuid,obsDatetime,encounter:(uuid,encounterDatetime),value:(uuid,name:(name,uuid),uuid),concept:(uuid,name:(name)))"
-            data = RESTHandler.get(c_url)
-            
-            for o in data['results'] :                
-                e = o.get("encounter",None)
-                if e : encounter_datetime = o["encounter"]['encounterDatetime']                    
-                else :  
-                    encounter_datetime = str(o['obsDatetime']) + " - lab"                    
+        lab_concepts = [
+            {"name":"HEMOGLOBIN","concept_id":21,"uuid" : "a8908a16-1350-11df-a1f1-0026b9348838"},
+            {"name":"WBC","concept_id":678,"uuid" : "a896dea2-1350-11df-a1f1-0026b9348838"},
+            {"name":"SGPT","concept_id":654,"uuid" : "a896ca48-1350-11df-a1f1-0026b9348838"},                    
+            {"name":"Cr","concept_id":790,"uuid" : "a897e450-1350-11df-a1f1-0026b9348838"},                    
+            {"name":"SPUTUM FOR AFB","concept_id":307,"uuid" : "a8945d4e-1350-11df-a1f1-0026b9348838"},
+            {"name":"Gene xpert","concept_id":8070,"uuid" : "741517cf-8bac-4755-b289-8dd2a2df7962"},            
+            ]
 
-                value = o['value']
-                if isinstance(value,dict) : value = o['value']['name']['name']                
-                value = str(value).title()
-                if encounter_datetime in encounters : 
-                    if c['name'] in encounters[encounter_datetime]['obs'] :
-                        encounters[encounter_datetime]['obs'][c['name']].append(value)
-                    else : 
-                        encounters[encounter_datetime]['obs'][c['name']] = [value]
+        tb_concepts = [
+            {"name":"TB Prophylaxis","concept_id":1110,"uuid" : "a899e35e-1350-11df-a1f1-0026b9348838"},
+            {"name":"TB Propylaxis Plan","concept_id":1265,"uuid" : "a89c1cfa-1350-11df-a1f1-0026b9348838"},
+            {"name":"TB Prophlaxis Stop Reason","concept_id":1266,"uuid" : "a89c1e12-1350-11df-a1f1-0026b9348838"},
+            {"name":"TB Tx Start Date","concept_id":1113,"uuid" : "a899e5f2-1350-11df-a1f1-0026b9348838"},
+            {"name":"Current TB Meds","concept_id":1111,"uuid" : "a899e444-1350-11df-a1f1-0026b9348838"},
+            {"name":"TB tx Plan","concept_id":1268,"uuid" : "a89c1fd4-1350-11df-a1f1-0026b9348838"},
+            {"name":"Start Reason","concept_id":6981,"uuid" : "749d07cb-4994-4ce9-a39c-8a655a487fdd"},
+            {"name":"Stop/Change Reason","concept_id":1269,"uuid" : "749d07cb-4994-4ce9-a39c-8a655a487fdd"},
+            {"name":"New TB Drugs","concept_id":1270,"uuid" : "a89c218c-1350-11df-a1f1-0026b9348838"},
+            ]
 
-                else : encounters[encounter_datetime] = {"encounter_datetime":encounter_datetime,"obs":{c['name']:[value]}}
-                    
+        core_data = encounters
+        for c in core_concepts :
+            core_data = Patient.get_obs_data_pretty(patient_uuid,c,core_data)
 
-        return encounters
+        for c in lab_concepts :
+            core_data = Patient.get_obs_data_pretty(patient_uuid,c,core_data,combine=True,combine_column_name="LAB RESULTS")
 
+        tb_data = {}
+        for c in tb_concepts :
+            tb_data = Patient.get_obs_data_pretty(patient_uuid,c,tb_data)
+    
+        data = {"core":core_data,
+                "tb":tb_data,
+                }
+        return data
 
-
-        '''
-        url += '?v=custom:(uuid,person:(uuid,gender,birthdate,preferredName:(givenName,middleName,familyName),birthdate),identifiers:(identifier)'
-        '''
         
 
                        

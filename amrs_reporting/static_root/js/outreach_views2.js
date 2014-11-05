@@ -19,7 +19,7 @@ function initDefaultersCohortListViewCallback(dcs) {
     }
 }
 
-function defaulterCohortListView(){
+function defaulterCohortListView(cohort){
     $(".app").hide();
     var cur_list_id = $("#list_defaulter_cohort_id").val();
     var id = $("#defaulter_cohort").val();
@@ -108,8 +108,7 @@ function updateDefaulterCohortView() {
     }
 }
 
-function updateDefaulterCohortViewCallback(result) {
-    var cohort = result[0],numUpdated=result[1];
+function updateDefaulterCohortViewCallback(cohort,numUpdated) {
     alert(numUpdated + " patients updated.");
     defaulterCohortToList(cohort);
     initDefaulterCohortListView();
@@ -117,6 +116,33 @@ function updateDefaulterCohortViewCallback(result) {
     $("#list_defaulter_cohort_id").val(cohort.id);
     $("#defaulter_cohort").val(cohort.id);
     $("#defaulter_cohort").selectmenu("refresh");
+}
+
+
+function patientDashboardView(patient_uuid,cohort_id) {
+    $(".app").hide();
+    $("#dash_encounter_data").empty(); //).find("tr:gt(0)").remove();
+    $("#patient_dashboard_view").css("display","inline");    
+    getPatient(patient_uuid,cohort_id,patientDashboardViewCallback);
+}
+
+function patientDashboardViewCallback(patient,cohort_id) {
+    $("#dash_patient_name").text(patient["given_name"] + " " + patient["middle_name"] + " " + patient["family_name"]);
+    $("#dash_identifier").text(patient["identifier"]);
+    $("#dash_birthdate").text(patient["birthdate"].substring(0,10));
+    $("#dash_phone_number").val(patient["phone_number"]);
+    $("#dash_patient_uuid").val(patient["uuid"]);
+    $("#dash_last_encounter_date").text(patient.last_encounter_date);
+    $("#dash_last_encounter_type").text(patient["last_encounter_type"]);
+    $("#dash_last_rtc_date").text(patient["last_rtc_date"]);
+
+    $("#dash_encounters").find("tr:gt(0)").remove();
+    if(cohort_id === undefined || cohort_id === null || cohort_id === "") {
+	$("#dash_back_button").attr("onClick","patientSearchView()");
+    }
+    else {
+	$("#dash_back_button").attr("onClick","defaulterCohortListView()");
+    }
 }
 
 
@@ -243,53 +269,22 @@ function encounterDataToTable(encounterData) {
 function getEncounterDataView() {
     if(navigator.onLine) {
 	var patientUuid = $("#dash_patient_uuid").val();
-	var encounterData = getEncounterData(patientUuid);
-	encounterDataToTable(encounterData);
-	tbDataToTable(encounterData.tb);	
+	getEncounterData(patientUuid,getEncounterDataViewCallback);
     }
     else {
 	alert('You must be online to access encounter data');
     }
 }
 
+function getEncounterDataViewCallback(encounterData) {
+    encounterDataToTable(encounterData);
+    tbDataToTable(encounterData.tb);	
+}
 
 
 
 
   
-function patientDashboardView(patient_uuid,cohort_id) {
-    $(".app").hide();
-    $("#dash_encounter_data").empty(); //).find("tr:gt(0)").remove();
-
-    $("#patient_dashboard_view").css("display","inline");    
-    var patient = getPatient(patient_uuid,cohort_id);
-
-    $("#dash_patient_name").text(patient["given_name"] + " " + patient["middle_name"] + " " + patient["family_name"]);
-    $("#dash_identifier").text(patient["identifier"]);
-    $("#dash_birthdate").text(patient["birthdate"].substring(0,10));
-    $("#dash_phone_number").val(patient["phone_number"]);
-    $("#dash_patient_uuid").val(patient["uuid"]);
-
-    $("#dash_last_encounter_date").text(patient.last_encounter_date);
-    $("#dash_last_encounter_type").text(patient["last_encounter_type"]);
-    $("#dash_last_rtc_date").text(patient["last_rtc_date"]);
-
-    $("#dash_encounters").find("tr:gt(0)").remove();
-
-    if(cohort_id === undefined || cohort_id === null || cohort_id === "") {
-	$("#dash_back_button").attr("onClick","patientSearchView()");
-    }
-    else {
-	$("#dash_back_button").attr("onClick","defaulterCohortListView()");
-    }
-
-    var s = "";
-    for(var i=0;i<patient.encounters.length;i++) {
-	var e = patient.encounters[i];
-	s += "<tr><td>" + e.encounterDatetime.substring(0,10) + "</td><td>" + e.location.name + "</td><td>" + e.encounterType.name + "</td></tr>";	
-    }
-    $("#dash_encounters tr:last").after(s);
-}
 
 
 function initOutreachFormView() {
@@ -434,11 +429,11 @@ function patientSearchView() {
     
     var s = $("#search_string").val();
     if(s.length > 3) {
-	patientSearch(s,patientsToList);	
+	patientSearch(s,patientSearchViewCallback);	
     }
 }
 
-function patientsToList(patients) {
+function patientSearchViewCallback(patients) {
     $("#patient_list").empty();    
     for(var i=0; i<patients.length;i++) {
 	var row =  patients[i];        

@@ -149,8 +149,8 @@ function getCohort(id,viewCallback) {
 		data: data,
 		dataType: "json",
 		success: function(result) { 
-		    var cohort = getCohortCallback(result);		    
-		    viewCallback(cohort);
+		    var cohort = getCohortCallback(result);
+		    updateCohort(cohort.id,viewCallback)
 		},		    
 		error : function(xhr,errmsg,err) {
 		    alert(xhr.status + ": error : " + errmsg);
@@ -175,7 +175,6 @@ function getCohortCallback(response) {
 	defaulter_cohorts["defaulter_cohorts"] = response["defaulter_cohorts"];
 	local.setItem("defaulter_cohorts",JSON.stringify(defaulter_cohorts));
     }
-    cohort = updateCohort(cohort.id)[0];    
     return cohort;
 }
 
@@ -244,7 +243,6 @@ function updateCohort(id,viewCallback) {
 	else {
 	    cohort = JSON.parse(session.getItem(key));	    
 	}
-	
 	var data = {defaulter_cohort_id:id};
 	var url = '/outreach/ajax_update_defaulter_cohort';
 	var response =  $.ajax({
@@ -255,8 +253,8 @@ function updateCohort(id,viewCallback) {
 		data: data,
 		dataType: "json",
 		success: function(result) {
-		    cohort = updateCohortCallback(cohort,result);
-		    viewCallback(cohort);
+		    uc = updateCohortCallback(cohort,result);		    
+		    viewCallback(uc[0],uc[1]);
 		},
 		error : function(xhr,errmsg,err) {
 		    console.log(xhr.status + ": error : " + errmsg);
@@ -286,7 +284,7 @@ function updateCohortCallback(cohort,updatedPatients) {
     return [cohort,numUpdated];
 }
 
-function getPatient(patient_uuid,cohort_id){
+function getPatient(patient_uuid,cohort_id,viewCallback){
     console.log("getPatient(): patient_uuid: " + patient_uuid + " cohort_id: " + cohort_id);
     var patient;
     if(cohort_id === undefined || cohort_id === "") {
@@ -294,25 +292,64 @@ function getPatient(patient_uuid,cohort_id){
 	if (patient === null) {
 	    var data = {patient_uuid:patient_uuid};
 	    var response =  $.ajax({
+		    beforeSend: function() { $.mobile.loading("show"); }, //Show spinner
+		    complete: function() { $.mobile.loading("hide"); },
 		    type: "GET",
 		    url: "/outreach/ajax_get_patient",
 		    data: data,
 		    dataType: "json",
-		    success: function(data) { patient = data; },
-		    async:false,
+		    success: function(data) { 
+			patient = data; 
+			viewCallback(patient);
+			//session.setItem(patient_uuid,JSON.stringify(patient));			
+		    },
 		    error : function(xhr,errmsg,err) {
 			alert(xhr.status + ": " + errmsg);
 		    }
-		});	
-	    //session.setItem(patient_uuid,JSON.stringify(patient));
-	} else { patient = JSON.parse(patient); }
+		});	    
+	} else { 
+	    patient = JSON.parse(patient); 
+	    viewCallback(patient);
+	}
     }
     else {
-	var cohort = getCohort(cohort_id);
+	console.log("getPatient() : getting patient from session.cohort");
+	var cohort = JSON.parse(session.getItem("defaulter_cohort_id_" + cohort_id));	
 	patient = cohort["patients"][patient_uuid];
+	viewCallback(patient,cohort_id)
     }
-    return patient
 }
+
+function getEncounterData(patient_uuid,viewCallback){
+    var encounterData = session.getItem(patient_uuid);
+    if(encounterData === null) {
+	var data = {patient_uuid:patient_uuid};
+	console.log("uuid:" + patient_uuid);
+	var response = $.ajax({
+		beforeSend: function() { $.mobile.loading("show"); }, //Show spinner
+		complete: function() { $.mobile.loading("hide"); },
+		type: "GET",
+		url: "/outreach/ajax_get_encounter_data",
+		data: data,
+		dataType: "json",
+		success: function(encounterData) { 
+		    session.setItem(patient_uuid,JSON.stringify(encounterData));
+		    console.log("getEncounterData() : encounterData size = " + unescape(encodeURIComponent(JSON.stringify(encounterData))).length);
+		    viewCallback(encounterData);
+		},
+		error : function(xhr,errmsg,err) {
+		    console.log("ERROR: could not load encounter data : " + err);
+		}
+	    });	
+    }
+    else {
+	console.log("getEncounterData() : encounterData in session");
+	encounterData = JSON.parse(encounterData);
+	viewCallback(encounterData);
+    }
+}
+
+
 
 
 function getHashCode(s) {
@@ -398,37 +435,19 @@ function getSavedEncounters(response) {
 
 
 
-function patientSearch(search_string,onSuccessFunction) {    
+function patientSearch(search_string,viewCallback) {    
     var data = {search_string:search_string};
     console.log("patientSearch : " + search_string);
-    if(onSuccessFunction === undefined || onSuccessFunction === "") {	
-	var result;    
-	var response =  $.ajax({
-		type: "GET",
-		url: "/outreach/ajax_patient_search",
-		data: data,
-		dataType: "json",
-		success: function(data) { result = data; },
-		async:false,
-		error : function(xhr,errmsg,err) {
-		    console.log(xhr.status + ": " + errmsg);
-		}
-	    });	
-	return result;
-    }
-    else {
-	console.log("async");
-	var response = $.ajax({
-                type: "GET",
-		url: "/outreach/ajax_patient_search",
-		data: data,
-		dataType: "json",
-		success: onSuccessFunction,
-		error : function(xhr,errmsg,err) {
-                    console.log(xhr.status + ": " + errmsg);
-                }
-	    });
-    }
+    var response = $.ajax({
+	    type: "GET",
+	    url: "/outreach/ajax_patient_search",
+	    data: data,
+	    dataType: "json",
+	    success: viewCallback,
+	    error : function(xhr,errmsg,err) {
+		console.log(xhr.status + ": " + errmsg);
+	    }
+	});
 }
 
 
@@ -475,6 +494,7 @@ function getOutreachProviders() {
     return providers;   
 }
 
+
 function getOutreachLocations() {
     var locations = local.getItem("outreach_locations");
     var seven_days_ago = new Date();
@@ -499,34 +519,4 @@ function getOutreachLocations() {
 	else { locations = JSON.parse(locations); }
     }
     return locations;   
-}
-
-
-
-
-
-function getEncounterData(patient_uuid){
-    var encounterData = session.getItem(patient_uuid);
-    if(encounterData === null) {
-	var data = {patient_uuid:patient_uuid};
-	console.log("uuid:" + patient_uuid);
-	var response = $.ajax({
-		type: "GET",
-		url: "/outreach/ajax_get_encounter_data",
-		data: data,
-		dataType: "json",
-		async: false,
-		success: function(data) { encounterData = data; },
-		error : function(xhr,errmsg,err) {
-		    console.log("ERROR: could not load encounter data : " + err);
-		}
-	    });	
-	session.setItem(patient_uuid,JSON.stringify(encounterData));
-	console.log("getEncounterData() : encounterData size = " + unescape(encodeURIComponent(JSON.stringify(encounterData))).length);
-    }
-    else {
-	console.log("getEncounterData() : encounterData in session");
-	encounterData = JSON.parse(encounterData);
-    }
-    return encounterData;
 }

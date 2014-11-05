@@ -10,7 +10,7 @@ from amrs_interface.models import *
 @login_required
 def view_rest_errors(request):    
     log_ids = RESTLog.objects.filter(result_uuid=None,retired=False).values_list("id",flat=True)
-    logs = EncounterLog.objects.filter(rest_log_id__in=log_ids)    
+    logs = EncounterLog.objects.filter(rest_log_id__in=log_ids)
     errors = []
     return render(request,'encounter_form/view_rest_errors.html',{'errors':logs})
 
@@ -124,3 +124,18 @@ def ajax_concept_search(request):
     print 'returning ajax concept search'
     return HttpResponse(data,content_type='application/json')
 
+
+
+@login_required
+def test(request):
+
+    logs = RESTLog.objects.filter(result_uuid=None,retired=0)
+    for l in logs:
+        if "attribute" in l.url:
+            RESTHandler.repost(log=l)
+            print l.result_uuid
+            
+            
+
+    
+    

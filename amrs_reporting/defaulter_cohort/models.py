@@ -18,6 +18,7 @@ class DefaulterCohortMember(models.Model):
     next_encounter_date = models.DateField(null=True)
     next_encounter_type = models.CharField(max_length=200,null=True)
     next_rtc_date = models.DateField(null=True)
+
     retired = models.BooleanField(default=False)
     date_retired = models.DateTimeField(null=True)
 

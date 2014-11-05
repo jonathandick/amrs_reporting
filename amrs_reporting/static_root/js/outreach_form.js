@@ -197,16 +197,14 @@ function validateDates() {
     var dateFields = {encounter_datetime:"Encounter Date", missed_return_visit_date:"Missed Appointment Date",date_found:"Date Found",date_of_death:"Death Date",return_visit_date:"RTC Date"};
     
     var errors = '';
-    var re = /^\d{4}-\d{2}-\d{2}$/;
+    var re = /^201[3-4]-\d{2}-\d{2}$/;
     
     for(var key in dateFields) {
 	var selector = "#outreach_form #" + key;
 	var val = $(selector).val();
 	if(!(val === '' || re.test(val))) {
-	    errors += dateFields[key] + " in correct format. Must use YYYY-MM-DD";
+	    errors += dateFields[key] + " in correct format. Must use YYYY-MM-DD. ";
 	}
     }
     return errors;
 }
-	
-

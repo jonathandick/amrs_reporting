@@ -78,6 +78,38 @@ function ajaxPOSTSync(url,data){
 
 
 
+function getDefaulterCohorts(viewCallback) {
+    var defaulter_cohorts = local.getItem("defaulter_cohorts");
+    var seven_days_ago = new Date();
+    seven_days_ago.setDate(seven_days_ago.getDate() - 7);
+
+    if(navigator.onLine) {
+	if(defaulter_cohorts === null || (new Date(JSON.parse(defaulter_cohorts).date_created)) < seven_days_ago) { 	    
+	    console.log("Loading defaulter_cohorts...");
+	    defaulter_cohorts = {date_created:new Date()};    
+	    var response = $.ajax({
+		    type: "GET",
+		    url: "/outreach/ajax_get_defaulter_cohorts",
+		    dataType: "json",
+		    success: function(data) { 
+			defaulter_cohorts['defaulter_cohorts'] = data;
+			local.setItem("defaulter_cohorts",JSON.stringify(defaulter_cohorts));
+			viewCallback(defaulter_cohorts)
+		    },
+		    error : function(xhr,errmsg,err) {
+			console.log("ERROR: could not load defaulter cohorts : " + err);
+		    }
+		});
+	    
+	}
+	else { 	    
+	    defaulter_cohorts = JSON.parse(defaulter_cohorts);	    
+	    viewCallback(defaulter_cohorts);
+	}
+    }
+}
+
+
 //Cohort is expected to be from server. In this case patients are an array. 
 //We need to convert to object indexed by patient uuid for local storage.
 function saveCohort(cohort) {
@@ -95,45 +127,57 @@ function saveCohort(cohort) {
 }
 
 
-function isRetired(id) {
-    var d = {defaulter_cohort_id:id};
-    var response = ajaxPOSTSync('/outreach/ajax_is_defaulter_cohort_retired',d);
-    return response;	
-}
-
-
 
 /* Note that as users are relying on a locally stored list of the defaulter cohorts, it is possible
    that a defaulter cohort they are requesting is now retired. Calling ajax_get_defaulter_cohort
    returns an object containing : "defaulter_cohort", "defaulter_cohorts" and "messages". 
    If there is a new set of defaulter_cohorts, then this will be written to local storage.
 */
-function getCohort(id) {
+function getCohort(id,viewCallback) {
     var key = "defaulter_cohort_id_" + id;    
     var cohort = session.getItem(key); 
     if(cohort === null) {
 	console.log("getCohort() : Cohort not in session. Querying server...");
-	var d = {defaulter_cohort_id:id};
-        var response = ajaxPOSTSync('/outreach/ajax_get_defaulter_cohort',d);
-	var cohort = response["defaulter_cohort"];
-	saveCohort(cohort);
-	if("messages" in response) {
-	    alert(response["messages"]);
-	}
-	if("defaulter_cohorts" in response) { 
-	    var defaulter_cohorts = {date_created:new Date()};
-	    defaulter_cohorts["defaulter_cohorts"] = response["defaulter_cohorts"];
-	    local.setItem("defaulter_cohorts",JSON.stringify(defaulter_cohorts));
-	}
-	updateCohort(cohort.id);
+	var data = {defaulter_cohort_id:id};
+        //var response = ajaxPOSTSync('/outreach/ajax_get_defaulter_cohort',d);
+	var url = '/outreach/ajax_get_defaulter_cohort';
+	var response =  $.ajax({
+		beforeSend: function() { $.mobile.loading("show"); }, //Show spinner
+		complete: function() { $.mobile.loading("hide"); },
+		type: "POST",
+		url: url,
+		data: data,
+		dataType: "json",
+		success: function(result) { 
+		    var cohort = getCohortCallback(result);		    
+		    viewCallback(cohort);
+		},		    
+		error : function(xhr,errmsg,err) {
+		    alert(xhr.status + ": error : " + errmsg);
+		}
+	    });
+
     } else { 
 	console.log("getCohort() : cohort in session and not retired");
 	cohort = JSON.parse(cohort);	
+	viewCallback(cohort);
     }
-    
-    return cohort;
 }
 
+function getCohortCallback(response) {
+    var cohort = response["defaulter_cohort"];
+    saveCohort(cohort);
+    if("messages" in response) {
+	alert(response["messages"]);
+    }
+    if("defaulter_cohorts" in response) { 
+	var defaulter_cohorts = {date_created:new Date()};
+	defaulter_cohorts["defaulter_cohorts"] = response["defaulter_cohorts"];
+	local.setItem("defaulter_cohorts",JSON.stringify(defaulter_cohorts));
+    }
+    cohort = updateCohort(cohort.id)[0];    
+    return cohort;
+}
 
 
 function setCohort(cohort) {
@@ -144,7 +188,7 @@ function setCohort(cohort) {
 
 
 
-function getNewCohort(id) {
+function getNewCohort(id,viewCallback) {
     console.log("getNewCohort() : getting new cohort. old cohort id= " + id);
     var key = "defaulter_cohort_id_" + id;
     console.log("removing key: " + key);
@@ -152,9 +196,6 @@ function getNewCohort(id) {
 
     var data = {defaulter_cohort_id:id};
     var url = '/outreach/ajax_get_new_defaulter_cohort';
-    //var response = ajaxPOSTSync('/outreach/ajax_get_new_defaulter_cohort',data);
-
-    var result;
     var response =  $.ajax({
             beforeSend: function() { $.mobile.loading("show"); }, //Show spinner
             complete: function() { $.mobile.loading("hide"); },
@@ -162,37 +203,39 @@ function getNewCohort(id) {
             url: url,
             data: data,
             dataType: "json",
-            success: function(data) { result = data; },
-            async:true,
+            success: function(result) { 
+		var cohort = getNewCohortCallback(result);
+		viewCallback(cohort);
+	    },
             error : function(xhr,errmsg,err) {
                 console.log(xhr.status + ": error : " + errmsg);
-                alert(xhr.status + ": error : " + err);
-                result = false;
             }
-        });
-    response = result;
+        }); 
+}
 
-
-    if(response) {
-	var defaulter_cohorts = {date_created:new Date()};
-	defaulter_cohorts["defaulter_cohorts"] = response["defaulter_cohorts"];
-	local.setItem("defaulter_cohorts",JSON.stringify(defaulter_cohorts));
-	session.removeItem(key);
-	saveCohort(response["defaulter_cohort"]);
-	return response["defaulter_cohort"];
-    }
-    else {
-	return false;
-    }        
+function getNewCohortCallback(response) {
+    var defaulter_cohorts = {date_created:new Date()};
+    defaulter_cohorts["defaulter_cohorts"] = response["defaulter_cohorts"];
+    local.setItem("defaulter_cohorts",JSON.stringify(defaulter_cohorts));
+    saveCohort(response["defaulter_cohort"]);
+    return response["defaulter_cohort"];
 }
 
 
-function updateCohort(id) {
+
+function isRetired(id) {
+    var d = {defaulter_cohort_id:id};
+    var response = ajaxPOSTSync('/outreach/ajax_is_defaulter_cohort_retired',d);
+    return response;	
+}
+
+
+function updateCohort(id,viewCallback) {
     console.log("updateCohort() : updating cohort...");
     var cohort,numUpdated=0;
     var key = "defaulter_cohort_id_" + id;
     if(navigator.onLine) {
-	if(isRetired(id)) {
+	if(isRetired(id)) {	    
 	    console.log("updateCohort() : " + id + " is retired. getting most recent cohort...");
 	    session.removeItem(key);
 	    cohort = getCohort(id);
@@ -202,27 +245,46 @@ function updateCohort(id) {
 	    cohort = JSON.parse(session.getItem(key));	    
 	}
 	
-	var d = {defaulter_cohort_id:id};
-	var updatedPatients = ajaxPOSTSync('/outreach/ajax_update_defaulter_cohort',d);
-	console.log("updateCohort() " + updatedPatients.length + " retired patients");	    
-	var numUpdated = 0;
-	if(updatedPatients !== null) {
-	    for(var i=0; i<updatedPatients.length; i++) {
-		var patient_uuid = updatedPatients[i];
-		if(patient_uuid in cohort.patients) {
-		    var p = cohort.patients[patient_uuid];
-		    if(p.retired == 0) {
-			cohort.patients[patient_uuid].retired=1;
-			numUpdated++;
-		    }
+	var data = {defaulter_cohort_id:id};
+	var url = '/outreach/ajax_update_defaulter_cohort';
+	var response =  $.ajax({
+		beforeSend: function() { $.mobile.loading("show"); }, //Show spinner
+		complete: function() { $.mobile.loading("hide"); },
+		type: "POST",
+		url: url,
+		data: data,
+		dataType: "json",
+		success: function(result) {
+		    cohort = updateCohortCallback(cohort,result);
+		    viewCallback(cohort);
+		},
+		error : function(xhr,errmsg,err) {
+		    console.log(xhr.status + ": error : " + errmsg);
 		}
+	    });
+    }
+}
+
+
+function updateCohortCallback(cohort,updatedPatients) {    
+    console.log("updateCohortCallback() : ");
+    var key = "defaulter_cohort_id_" + cohort.id;
+    var numUpdated = 0;
+    if(updatedPatients !== null) {
+	for(var i=0; i<updatedPatients.length; i++) {
+	    var patient_uuid = updatedPatients[i];
+	    if(patient_uuid in cohort.patients) {
+		var p = cohort.patients[patient_uuid];
+		if(p.retired == 0) {
+		    cohort.patients[patient_uuid].retired=1;
+		    numUpdated++;
+		    }
 	    }
-	    session.setItem(key,JSON.stringify(cohort));
 	}
+	session.setItem(key,JSON.stringify(cohort));
     }
     return [cohort,numUpdated];
 }
-
 
 function getPatient(patient_uuid,cohort_id){
     console.log("getPatient(): patient_uuid: " + patient_uuid + " cohort_id: " + cohort_id);
@@ -441,30 +503,6 @@ function getOutreachLocations() {
 
 
 
-function getDefaulterCohorts() {
-    var defaulter_cohorts = null; //local.getItem("defaulter_cohorts");
-    var seven_days_ago = new Date();
-    seven_days_ago.setDate(seven_days_ago.getDate() - 7);
-    if(navigator.onLine) {
-	if(defaulter_cohorts === null || (new Date(JSON.parse(defaulter_cohorts).date_created)) < seven_days_ago) { 	    
-	    console.log("Loading defaulter_cohorts...");
-	    defaulter_cohorts = {date_created:new Date()};    
-	    var response = $.ajax({
-		    type: "GET",
-		    url: "/outreach/ajax_get_defaulter_cohorts",
-		    dataType: "json",
-		    async: false,
-		    success: function(data) { defaulter_cohorts['defaulter_cohorts'] = data; },
-		    error : function(xhr,errmsg,err) {
-			console.log("ERROR: could not load defaulter cohorts : " + err);
-		    }
-		});
-	    local.setItem("defaulter_cohorts",JSON.stringify(defaulter_cohorts));
-	}
-	else { defaulter_cohorts = JSON.parse(defaulter_cohorts); }
-    }
-    return defaulter_cohorts;   
-}
 
 
 function getEncounterData(patient_uuid){

@@ -7,29 +7,39 @@ function appsView() {
 }
 
 function initDefaulterCohortListView() {
+    getDefaulterCohorts(initDefaultersCohortListViewCallback);
+}
+
+function initDefaultersCohortListViewCallback(dcs) {
     var list = $("#defaulter_cohort_list_view #defaulter_cohort").empty();
-    list.append("<option/>");
-    var dcs = getDefaulterCohorts();
+    list.append("<option/>");    
     for(var i=0; i < dcs.defaulter_cohorts.length; i++) {
 	dc = dcs.defaulter_cohorts[i];
 	list.append("<option value='" + dc.id + "'>" + dc.name + "</option>");
     }
 }
 
-
 function defaulterCohortListView(){
     $(".app").hide();
     var cur_list_id = $("#list_defaulter_cohort_id").val();
     var id = $("#defaulter_cohort").val();
     if((id !== "") && ((id != cur_list_id) || ($("#defaulter_cohort_list li").length == 0)))  {	
-	var cohort = getCohort(id);
-	initDefaulterCohortListView();
-	$("#defaulter_cohort_list_view #defaulter_cohort_name").text(cohort["name"]);
-	$("#defaulter_cohort_list_view #date_created").text(cohort["date_created"]);
-	defaulterCohortToList(cohort);
+	getCohort(id,defaulterCohortListViewCallback);
     }
+    else {
+	initDefaulterCohortListView();
+	$("#defaulter_cohort_list_view").css("display","inline");
+    }
+}
+
+function defaulterCohortListViewCallback(cohort) {    
+    initDefaulterCohortListView();
+    $("#defaulter_cohort_list_view #defaulter_cohort_name").text(cohort["name"]);
+    $("#defaulter_cohort_list_view #date_created").text(cohort["date_created"]);
+    defaulterCohortToList(cohort);
     $("#defaulter_cohort_list_view").css("display","inline");
 }
+
 
 
 
@@ -65,6 +75,48 @@ function defaulterCohortToList(cohort) {
     $("#list_defaulter_cohort_id").val(id);
     $("#defaulter_cohort_list_view #num_remaining").text("Patients remaining to be traced: " + num_remaining + " / " + total_patients);        
 
+}
+
+
+function getNewDefaulterCohortView() {
+    var id = $("#list_defaulter_cohort_id").val();
+    if(id === "") {
+	alert("You must first load a clinic.");
+    }
+    else if(confirm('This will retire the current list. Are you sure you want to create a new defaulter list?')) {
+	getNewCohort(id,getNewDefaulterCohortViewCallback);
+    }
+}
+
+function getNewDefaulterCohortViewCallback(cohort) {
+    defaulterCohortToList(cohort);
+    initDefaulterCohortListView();
+    $("#list_defaulter_cohort_id").val(cohort.id);
+    $("#defaulter_cohort").val(cohort.id);
+    $("#defaulter_cohort").selectmenu("refresh");	
+    alert("New cohort loaded");
+}
+
+
+function updateDefaulterCohortView() {
+    var id = $("#list_defaulter_cohort_id").val();
+    if(id === "") {
+	alert("You must first load a clinic.");
+    }
+    else {
+	updateCohort(id,updateDefaulterCohortViewCallback);
+    }
+}
+
+function updateDefaulterCohortViewCallback(result) {
+    var cohort = result[0],numUpdated=result[1];
+    alert(numUpdated + " patients updated.");
+    defaulterCohortToList(cohort);
+    initDefaulterCohortListView();
+    $("#defaulter_cohort_list_view #date_created").text(cohort["date_created"]);
+    $("#list_defaulter_cohort_id").val(cohort.id);
+    $("#defaulter_cohort").val(cohort.id);
+    $("#defaulter_cohort").selectmenu("refresh");
 }
 
 
@@ -202,69 +254,9 @@ function getEncounterDataView() {
 
 
 
-function updateOnComplete() {
-    defaulterCohortToList(cohort);
-    initDefaulterCohortListView();	
-    $("#list_defaulter_cohort_id").val(cohort.id);
-    $("#defaulter_cohort").val(cohort.id);
-    $("#defaulter_cohort").selectmenu("refresh");	
-    alert("New cohort loaded");
-}
-
-function getNewDefaulterCohortView() {
-    var id = $("#list_defaulter_cohort_id").val();
-    if(id === "") {
-	alert("You must first load a clinic.");
-    }
-    else if(confirm('This will retire the current list. Are you sure you want to create a new defaulter list?')) {
-	var cohort = getNewCohort(id);
-	if(cohort) {
-	    defaulterCohortToList(cohort);
-	    initDefaulterCohortListView();
-	    $("#list_defaulter_cohort_id").val(cohort.id);
-	    $("#defaulter_cohort").val(cohort.id);
-	    $("#defaulter_cohort").selectmenu("refresh");	
-	    alert("New cohort loaded");
-	}    
-	else {
-	    //This is a hack. On mobile devices, the async is not working. this forces a wait. 
-	    setTimeout(function() { 
-		    cohort = updateCohort(id)[0];
-		    defaulterCohortToList(cohort);
-		    initDefaulterCohortListView();
-		    $("#list_defaulter_cohort_id").val(cohort.id);
-		    $("#defaulter_cohort").val(cohort.id);
-		    $("#defaulter_cohort").selectmenu("refresh");	
-		    alert("New cohort loaded");		    
-		}
-	    ,20000);	
-	}
-
-    }
-}
 
 
-function updateDefaulterCohortView() {
-    var id = $("#list_defaulter_cohort_id").val();
-    if(id === "") {
-	alert("You must first load a clinic.");
-    }
-    else {
-	
-	var result = updateCohort(id);
-	var cohort = result[0],numUpdated=result[1];
-	alert(numUpdated + " patients updated.");
-	defaulterCohortToList(cohort);
-	initDefaulterCohortListView();
-	$("#defaulter_cohort_list_view #date_created").text(cohort["date_created"]);
-	$("#list_defaulter_cohort_id").val(cohort.id);
-	$("#defaulter_cohort").val(cohort.id);
-	$("#defaulter_cohort").selectmenu("refresh");	
-    }
-}
-
-
-
+  
 function patientDashboardView(patient_uuid,cohort_id) {
     $(".app").hide();
     $("#dash_encounter_data").empty(); //).find("tr:gt(0)").remove();
@@ -337,15 +329,6 @@ function initOutreachFormView() {
 }
 
 
-function initDefaulterCohortListView() {
-    var list = $("#defaulter_cohort_list_view #defaulter_cohort").empty();
-    list.append("<option/>");
-    var dcs = getDefaulterCohorts();
-    for(var i=0; i < dcs.defaulter_cohorts.length; i++) {
-	dc = dcs.defaulter_cohorts[i];
-	list.append("<option value='" + dc.id + "'>" + dc.name + "</option>");
-    }
-}
 
 
 

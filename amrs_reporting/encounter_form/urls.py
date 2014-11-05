@@ -12,4 +12,5 @@ urlpatterns = patterns('',
                        url(r'^' + app_name + '/edit_encounter/?$',views.edit_encounter),
                        url(r'^' + app_name + '/ajax_concept_search/?$',views.ajax_concept_search),
                        url(r'^' + app_name + '/build_schema/?$',views.build_schema),
+                       url(r'^' + app_name + '/test/?$',views.test),
                        )

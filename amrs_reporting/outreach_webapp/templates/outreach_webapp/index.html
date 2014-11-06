@@ -13,8 +13,8 @@
 
   <script type="text/javascript" src="{% static 'js/jquery-validation-1.13.0/dist/jquery.validate.min.js'%}"></script>
   <script type="text/javascript" src="{% static 'js/outreach_form.js' %}"></script>
-  <script type="text/javascript" src="{% static 'js/outreach_db.js' %}"></script>
-  <script type="text/javascript" src="{% static 'js/outreach_views.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/outreach_controllers.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/outreach_views2.js' %}"></script>
 
 <script>
 
@@ -102,9 +102,6 @@
       <li><a id="defaulter_list_app" onClick="defaulterCohortListView()">Outreach Defaulter Lists</a></li>
       <li><a onClick="patientSearchView()">Patient Search</a></li>
       <li><a id="submit_saved_forms_link">Submit Saved Encounters (<span id="num_saved_encounters"></span>)</a></li>
-      <li><a onClick="javascript:window.open('/encounter_form/view_rest_errors','_self')">View REST Errors</a></li>
-      <li><a onClick="javascript:window.open('/hiv_dashboard/index','_self')">HIV Care Dashboard</a></li>
-      <li><a onClick="javascript:window.open('/ltfu/index','_self')">Retention</a></li>
     </ul>
   </div>
   

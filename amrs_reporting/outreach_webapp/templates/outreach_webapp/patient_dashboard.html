@@ -1,3 +1,10 @@
+<script>
+  function hideRows() {
+
+  }
+
+</script>
+
 
     <input type="hidden" name="patient_uuid" id="dash_patient_uuid"/>
     <input type="hidden" name="dash_cohort_key" id="dash_cohort_key"/>
@@ -27,7 +34,16 @@
     </ul>
     
     <div data-role='collapsible' id="encounter_history_div">
-      <h2>Encounter History</h2>        
+      <h3>Encounter History</h3>
+	<div class='ui-grid-b'>
+	  <div class='ui-block-a' style="font-size:large;width:30%;">Hide empty/none : 	    
+	    <select id="hide_rows_select" onChange="javascript:console.log('hello')";>
+	      <option/>
+	      <option>CD4/VL</option>
+	    </select>
+	  </div>
+	</div>
+
       <div id="dash_encounter_data" style="height:350px; overflow:scroll;display:none">
       </div>      
     </div>

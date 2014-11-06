@@ -283,31 +283,42 @@ function getEncounterDataViewCallback(encounterData) {
 
 
 
+function initLocations() {
+    var locations = $("#outreach_form_view #location_uuid");
+    if(locations.size() == 1) {
+	getLocations(initLocationsCallback);
+    }
+}
 
-  
-
-
-function initOutreachFormView() {
+function initLocationsCallback(locations) {
     var outreach_locations = $("#outreach_form_view #location_uuid");
     var transfer_locations = $("#outreach_form_view #transfer_location");
-    if(outreach_locations.size() == 1) {
-	var locations = getOutreachLocations();	
-	for(var i=0; i <locations.locations.length; i++) {
-	    l = locations.locations[i];
-	    outreach_locations.append("<option value='" + l.uuid + "'>" + l.name + "</option>");
-	    transfer_locations.append("<option value='" + l.location_id + "'>" + l.name + "</option>");
-	}
+    for(var i=0; i <locations.locations.length; i++) {
+	l = locations.locations[i];
+	outreach_locations.append("<option value='" + l.uuid + "'>" + l.name + "</option>");
+	transfer_locations.append("<option value='" + l.location_id + "'>" + l.name + "</option>");
     }
-    
+}
+
+
+function initProviders() {
     var outreach_providers = $("#outreach_form_view #provider_uuid");
     if(outreach_providers.size() == 1) {
-	var providers = getOutreachProviders();
-	for(var i=0; i<providers.providers.length;i++) {
-	    var p = providers.providers[i];
-	    outreach_providers.append("<option value='" + p.uuid + "'>" + p.given_name + " " + p.family_name + "</option>");
-	}
+	providers = getOutreachProviders(initProvidersCallback);
     }
+}
 
+function initProvidersCallback(providers) {
+    var outreach_providers = $("#outreach_form_view #provider_uuid");	
+    for(var i=0; i<providers.providers.length;i++) {
+	var p = providers.providers[i];
+	outreach_providers.append("<option value='" + p.uuid + "'>" + p.given_name + " " + p.family_name + "</option>");
+    }    
+}
+
+function initOutreachFormView() {
+    initLocations();
+    initProviders();
     $("#patient_status").rules("add",{required:true});
     $("#date_found").rules("add",{needs_date_found:true});
     $("#location_of_contact").rules("add",{needs_location_of_contact:true});
@@ -320,11 +331,7 @@ function initOutreachFormView() {
     $("#cause_for_death").rules("add",{needs_death_info:true});
     $("#provider_uuid").rules("add",{required:true});
     $("#encounter_datetime").rules("add",{required:true});
-    
 }
-
-
-
 
 
 function outreachFormView(){
@@ -433,6 +440,7 @@ function patientSearchView() {
     }
 }
 
+
 function patientSearchViewCallback(patients) {
     $("#patient_list").empty();    
     for(var i=0; i<patients.length;i++) {
@@ -445,6 +453,7 @@ function patientSearchViewCallback(patients) {
 	$("#patient_list").append(html).listview("refresh");
     }
 }
+
 
 function updatePhoneNumberView() {
     var num = $("#patient_dashboard_view #dash_phone_number").val();

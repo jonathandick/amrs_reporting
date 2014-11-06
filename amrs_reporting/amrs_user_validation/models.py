@@ -167,7 +167,6 @@ class AMRSUser(models.Model):
     def has_role(self,role_type_ids):
         
         if role_type_ids is None : return True
-        print role_type_ids
         return Role.objects.filter(user_id=self.id,role_type_id__in=role_type_ids).exists()
 
     def get_role_type_names(self):

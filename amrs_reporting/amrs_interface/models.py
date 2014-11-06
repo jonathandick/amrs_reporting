@@ -348,7 +348,6 @@ class Patient():
                 split = a['display'].split(' = ')
                 phone_number += split[1] + ' '
         
-        encounters = {} #Encounter.get_encounters(patient_uuid)
         patient = {'given_name':given_name,
                    'middle_name':middle_name,
                    'family_name':family_name,
@@ -357,7 +356,6 @@ class Patient():
                    'birthdate':birthdate,
                    'uuid':patient_uuid,
                    'phone_number':phone_number,
-                   'encounters':encounters,
                    }
         return patient
     

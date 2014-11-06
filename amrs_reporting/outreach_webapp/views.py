@@ -18,7 +18,9 @@ from outreach_webapp.models import *
 @login_required    
 def index(request):    
     print 'rendering outreach webapp'
-    return render(request,'outreach_webapp/index.html',{})
+    if Authorize.authorize(request.user,['superuser','outreach_manager','outreach_all']) :
+        return render(request,'outreach_webapp/index_superuser.html',{})
+    else : return render(request,'outreach_webapp/index.html',{})
 
 
 @login_required
@@ -106,6 +108,7 @@ def ajax_patient_search(request):
 @login_required
 def ajax_get_patient(request):
     patient_uuid = request.GET.get('patient_uuid',None)
+    print "User : " + str(request.user.id) + " : requesting information on patient : " + patient_uuid
     p = Patient.get_patient_by_uuid(patient_uuid)
     data = json.dumps(p)
     return HttpResponse(data,content_type='application/json')

@@ -55,7 +55,6 @@ function ajaxPOST(url,data,onSuccessFunction){
     return response;
 }
 
-
 function ajaxPOSTSync(url,data){     
     var result;
     var response =  $.ajax({
@@ -75,8 +74,6 @@ function ajaxPOSTSync(url,data){
 	});
     return result;
 }
-
-
 
 function getDefaulterCohorts(viewCallback) {
     var defaulter_cohorts = local.getItem("defaulter_cohorts");
@@ -265,7 +262,6 @@ function updateCohort(id,viewCallback) {
 
 
 function updateCohortCallback(cohort,updatedPatients) {    
-    console.log("updateCohortCallback() : ");
     var key = "defaulter_cohort_id_" + cohort.id;
     var numUpdated = 0;
     if(updatedPatients !== null) {
@@ -288,7 +284,7 @@ function getPatient(patient_uuid,cohort_id,viewCallback){
     console.log("getPatient(): patient_uuid: " + patient_uuid + " cohort_id: " + cohort_id);
     var patient;
     if(cohort_id === undefined || cohort_id === "") {
-	var patient = null; //session.getItem(patient_uuid);
+	var patient = session.getItem(patient_uuid);
 	if (patient === null) {
 	    var data = {patient_uuid:patient_uuid};
 	    var response =  $.ajax({
@@ -298,10 +294,9 @@ function getPatient(patient_uuid,cohort_id,viewCallback){
 		    url: "/outreach/ajax_get_patient",
 		    data: data,
 		    dataType: "json",
-		    success: function(data) { 
-			patient = data; 
+		    success: function(patient) { 
 			viewCallback(patient);
-			//session.setItem(patient_uuid,JSON.stringify(patient));			
+			session.setItem(patient_uuid,JSON.stringify(patient));			
 		    },
 		    error : function(xhr,errmsg,err) {
 			alert(xhr.status + ": " + errmsg);
@@ -309,20 +304,35 @@ function getPatient(patient_uuid,cohort_id,viewCallback){
 		});	    
 	} else { 
 	    patient = JSON.parse(patient); 
-	    viewCallback(patient);
+	    if(viewCallback) {
+		viewCallback(patient);
+	    }
+	    else { return patient };
 	}
     }
     else {
 	console.log("getPatient() : getting patient from session.cohort");
 	var cohort = JSON.parse(session.getItem("defaulter_cohort_id_" + cohort_id));	
 	patient = cohort["patients"][patient_uuid];
-	viewCallback(patient,cohort_id)
+	session.setItem(patient_uuid,JSON.stringify(patient));
+	if(viewCallback) {
+	    viewCallback(patient,cohort_id);
+	}
+	else { return patient; }
     }
 }
 
 function getEncounterData(patient_uuid,viewCallback){
-    var encounterData = session.getItem(patient_uuid);
-    if(encounterData === null) {
+    var patient = session.getItem(patient_uuid);    
+    if(patient) {
+	patient = JSON.parse(patient);
+    }
+
+    if(patient && patient.encounterData) {
+	console.log("getEncounterData() : encounterData in session");
+	viewCallback(patient.encounterData);
+    }
+    else {
 	var data = {patient_uuid:patient_uuid};
 	console.log("uuid:" + patient_uuid);
 	var response = $.ajax({
@@ -333,7 +343,9 @@ function getEncounterData(patient_uuid,viewCallback){
 		data: data,
 		dataType: "json",
 		success: function(encounterData) { 
-		    session.setItem(patient_uuid,JSON.stringify(encounterData));
+		    var patient = JSON.parse(session.getItem(patient_uuid));
+		    patient.encounterData = encounterData;
+		    session.setItem(patient_uuid,JSON.stringify(patient));
 		    console.log("getEncounterData() : encounterData size = " + unescape(encodeURIComponent(JSON.stringify(encounterData))).length);
 		    viewCallback(encounterData);
 		},
@@ -341,15 +353,78 @@ function getEncounterData(patient_uuid,viewCallback){
 		    console.log("ERROR: could not load encounter data : " + err);
 		}
 	    });	
-    }
-    else {
-	console.log("getEncounterData() : encounterData in session");
-	encounterData = JSON.parse(encounterData);
-	viewCallback(encounterData);
+
     }
 }
 
 
+
+function getOutreachProviders(viewCallback) {
+    var providers = local.getItem("outreach_providers");
+    var seven_days_ago = new Date();
+    seven_days_ago.setDate(seven_days_ago.getDate() - 7);
+
+    if(navigator.onLine) {
+	if(providers === null || (new Date(JSON.parse(providers).date_created )) < seven_days_ago) { 
+	    console.log("Loading providers...");
+	    providers = {date_created:new Date()};    
+	    var response = $.ajax({
+		    type: "GET",
+		    url: "/outreach/ajax_get_outreach_providers",
+		    dataType: "json",
+		    success: function(data) { 
+			console.log(data);
+			providers['providers'] = data; 
+			local.setItem("outreach_providers",JSON.stringify(providers));
+			if(viewCallback) { viewCallback(providers); }
+		    },
+		    error : function(xhr,errmsg,err) {
+			console.log("ERROR: Could not load providers : " + err);
+		    }
+		});	
+	    
+	}    
+	else { 
+	    providers = JSON.parse(providers); 
+	    if(viewCallback) { viewCallback(providers); }
+	    else { return providers; }		    
+	}
+    }
+    return providers;   
+}
+
+
+function getLocations(viewCallback) {
+    var locations = local.getItem("outreach_locations");
+    var seven_days_ago = new Date();
+    seven_days_ago.setDate(seven_days_ago.getDate() - 7);
+
+    if(navigator.onLine) {
+	if(locations === null || (new Date(JSON.parse(locations).date_created)) < seven_days_ago) { 
+	    console.log("Loading locations...");
+	    locations = {date_created:new Date()};    
+	    var response = $.ajax({
+		    type: "GET",
+		    url: "/outreach/ajax_get_locations",
+		    dataType: "json",
+		    success: function(data) { 
+			locations['locations'] = data; 
+			local.setItem("outreach_locations",JSON.stringify(locations));
+			if(viewCallback) {viewCallback(locations)};
+		    },
+		    error : function(xhr,errmsg,err) {
+			console.log("ERROR: could not load locations : " + err);
+		    }
+		});	
+
+	}    
+	else { 
+	    locations = JSON.parse(locations); 
+	    if(viewCallback) { viewCallback(locations); }
+	    else { return locations; }
+	}
+    }
+}
 
 
 function getHashCode(s) {
@@ -468,55 +543,3 @@ function updatePhoneNumber(patient_uuid,number) {
 }
 
 
-function getOutreachProviders() {
-    var providers = local.getItem("outreach_providers");
-    var seven_days_ago = new Date();
-    seven_days_ago.setDate(seven_days_ago.getDate() - 7);
-
-    if(navigator.onLine) {
-	if(providers === null || (new Date(JSON.parse(providers).date_created )) < seven_days_ago) { 
-	    console.log("Loading providers...");
-	    providers = {date_created:new Date()};    
-	    var response = $.ajax({
-		    type: "GET",
-		    url: "/outreach/ajax_get_outreach_providers",
-		    dataType: "json",
-		    async: false,
-		    success: function(data) { providers['providers'] = data; },
-		    error : function(xhr,errmsg,err) {
-			console.log("ERROR: Could not load providers : " + err);
-		    }
-		});	
-	    local.setItem("outreach_providers",JSON.stringify(providers));
-	}    
-	else { providers = JSON.parse(providers); }
-    }
-    return providers;   
-}
-
-
-function getOutreachLocations() {
-    var locations = local.getItem("outreach_locations");
-    var seven_days_ago = new Date();
-    seven_days_ago.setDate(seven_days_ago.getDate() - 7);
-
-    if(navigator.onLine) {
-	if(locations === null || (new Date(JSON.parse(locations).date_created)) < seven_days_ago) { 
-	    console.log("Loading locations...");
-	    locations = {date_created:new Date()};    
-	    var response = $.ajax({
-		    type: "GET",
-		    url: "/outreach/ajax_get_locations",
-		    dataType: "json",
-		    async: false,
-		    success: function(data) { locations['locations'] = data; },
-		    error : function(xhr,errmsg,err) {
-			console.log("ERROR: could not load locations : " + err);
-		    }
-		});	
-	    local.setItem("outreach_locations",JSON.stringify(locations));
-	}    
-	else { locations = JSON.parse(locations); }
-    }
-    return locations;   
-}

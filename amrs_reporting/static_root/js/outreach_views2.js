@@ -118,6 +118,10 @@ function updateDefaulterCohortViewCallback(cohort,numUpdated) {
     $("#defaulter_cohort").selectmenu("refresh");
 }
 
+function backToPatientDashboardView() {
+    $(".app").hide();
+    $("#patient_dashboard_view").css("display","inline"); 
+}
 
 function patientDashboardView(patient_uuid,cohort_id) {
     $(".app").hide();
@@ -239,7 +243,7 @@ function encounterDataToTable(encounterData) {
 	s += ">";
 	
 
-	s += "<td>" + row["encounter_datetime"].substring(0,10) + "</td>";
+	s += "<td><a href='' onClick='getEncounterFullView(\"" + row["uuid"] + "\")'>" + row["encounter_datetime"].substring(0,10) + "</a></td>";
 	s += "<td>" + row["encounter_type"] + "</td>";
 	s += "<td>" + row["location"] + "</td>";
 	s += "<td>" + row["provider"] + "</td>";
@@ -282,6 +286,30 @@ function getEncounterDataViewCallback(encounterData) {
 }
 
 
+function getEncounterFullView(uuid) {
+    $(".app").hide();    
+    $("#encounter_full_view").css("display","inline");        
+
+    if(navigator.onLine) {
+	getEncounterFull(uuid,getEncounterFullViewCallback);
+    }
+}
+
+function getEncounterFullViewCallback(encounter) {
+    $("#encounter_full_table tr:gt(3)").remove();
+    $("#encounter_full_view #encounterDatetime").val(encounter.encounterDatetime.substring(0,10));
+    $("#encounter_full_view #encounterType").val(encounter.encounterType);
+    $("#encounter_full_view #location").val(encounter.location);
+    $("#encounter_full_view #provider").val(encounter.provider);
+    var s = "";
+    var keys = Object.keys(encounter.obs).sort();
+    for(var i=0; i<keys.length;i++) {
+	s += "<tr><td>" + keys[i] + "</td><td>" + encounter.obs[keys[i]] + "</td></tr>";
+    }
+    $("#encounter_full_table").append(s);
+    
+}
+
 
 function initLocations() {
     var locations = $("#outreach_form_view #location_uuid");
@@ -320,6 +348,7 @@ function initOutreachFormView() {
     initLocations();
     initProviders();
     $("#patient_status").rules("add",{required:true});
+    $("#patient_status").rules("add",{needs_reason_missed_appt:true});
     $("#date_found").rules("add",{needs_date_found:true});
     $("#location_of_contact").rules("add",{needs_location_of_contact:true});
     $("#return_visit_date").rules("add",{needs_rtc_date:true});
@@ -330,6 +359,7 @@ function initOutreachFormView() {
     $("#date_of_death").rules("add",{check_death_date:true});
     $("#cause_for_death").rules("add",{needs_death_info:true});
     $("#provider_uuid").rules("add",{required:true});
+    $("#encounter_datetime").rules("add",{required:true});
     $("#encounter_datetime").rules("add",{required:true});
 }
 
@@ -343,7 +373,7 @@ function outreachFormView(){
     var patient = getPatient(patient_uuid,cohort_id);
     
 
-    $("#return_to_dashboard").attr("onClick","patientDashboardView('" + patient["uuid"] + "')");
+    $("#return_to_dashboard").attr("onClick","backToPatientDashboardView()");
 
     $("#outreach_form_view input[auto-populate='True']").each(function(index) {
 	    $(this).attr("value",(patient[$(this).attr("id")])); 
@@ -395,16 +425,22 @@ function retirePatient(cohort_id,patient_uuid) {
 
 
 function getFormData($form){
-    var unindexed_array = $form.serializeArray();
-    var indexed_array = {};
-    
-    $.map(unindexed_array, function(n, i){
-        if(n['value'] !== '') {
-            indexed_array[n['name']] = n['value'];
-        }
-	});
-    
-    return indexed_array;
+    var o = {};
+    var a = $form.serializeArray();
+
+    $.each(a, function() {
+	    if(this.value != '') {
+		if (o[this.name] !== undefined) {
+		    if (!o[this.name].push) {
+			o[this.name] = [o[this.name]];
+		    }
+		    o[this.name].push(this.value);
+		} else {
+		    o[this.name] = this.value;
+		}
+	    }
+	});    
+    return o;
 }
 
 
@@ -444,7 +480,7 @@ function patientSearchView() {
 function patientSearchViewCallback(patients) {
     $("#patient_list").empty();    
     for(var i=0; i<patients.length;i++) {
-	var row =  patients[i];        
+	var row =  patients[i];
 	var html = "<li><a onClick=\"patientDashboardView('"+ row['uuid'] + "')\">";
 	html += row['family_name'] + ", " + row['given_name'] + " " + row['middle_name'] + "<br/>";
 	html += "Sex: " + row['gender'] + "; Birthdate: " + row['birthdate'] + "<br/>";

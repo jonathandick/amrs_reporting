@@ -10,7 +10,7 @@ class EncounterForm():
         obs = []
         for key,value in args.iteritems():
             if key.startswith('obs__') and value.strip() != '':
-                question_uuid = key[5:]
+                question_uuid = key[5:].replace("[]","")
                 l = args.getlist(key)
                 for val in l:
                     obs.append({'concept':question_uuid,'value':val})
@@ -130,7 +130,7 @@ class EncounterForm():
             rest_log = EncounterForm.submit(form_args)
             #rest_log is None when the encounter is a duplicate
             print "process_encounter()"
-            print rest_log
+            
 
             if rest_log :
                 log = EncounterLog.log(creator,patient_uuid,encounter_type_uuid,encounter_datetime,rest_log.id)
@@ -199,7 +199,6 @@ class EncounterLog(models.Model):
                      'location_uuid':vals['location'],
                      }
                 
-        print vals['obs']
         obs = []
         for o in vals['obs']:            
             question = Concept.get_concept_info(o['concept'])            

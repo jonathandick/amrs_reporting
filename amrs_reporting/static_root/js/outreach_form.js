@@ -154,6 +154,19 @@ $(document).ready(function() {
 	    );
 
 
+	jQuery.validator.addMethod("needs_reason_missed_appt", function(value, element) {
+		if(!($("#patient_status option:selected").text() in ['Outreach worker does not believe patient can be traced',
+								     'Patient in process of being traced']))
+		    {
+			return $("#reason_missed_div").find('input:checkbox:checked').length > 0;
+		    }
+		else { return true; }
+	    }, "* Must provide reason for missing appointment"
+	    );
+
+
+
+
 	jQuery.validator.addMethod("needs_transfer_location", function(value, element) {
 		if($("#patient_status option:selected").text().toLowerCase().match('to ampath')) {
 		    return value != '';
@@ -180,7 +193,6 @@ $(document).ready(function() {
 	    );
 
 	jQuery.validator.addMethod("check_death_date", function(value, element) {
-		console.log("validator: checking death date");	    
 		var re = /^\d{4}-\d{2}-\d{2}$/;
 		// valid if optional and empty OR if it passes the regex test
 		return (this.optional(element) && value=="") || re.test(value);

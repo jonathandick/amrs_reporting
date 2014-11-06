@@ -59,8 +59,6 @@ def ajax_update_defaulter_cohort(request):
 @login_required
 def ajax_submit_encounter(request):
     log = EncounterForm.process_encounter(request.POST,request.user.id)           
-    print "ajax_submit_encounter() : " + str(log)
-
     key = request.POST.get("key","")
     data = json.dumps({"key":key})
 
@@ -70,11 +68,8 @@ def ajax_submit_encounter(request):
             import datetime
             patient_uuid = get_var_from_request(request,'patient_uuid')
             enc_date = datetime.datetime.strptime(get_var_from_request(request,"encounter_datetime"),"%Y-%m-%d")
-            print "patient_uuid: " + patient_uuid
             print "encounter date: " + str(enc_date)            
             member = DefaulterCohortMember.objects.filter(defaulter_cohort_id=defaulter_cohort_id,patient_uuid=patient_uuid)[0]
-            print "member: " + str(member)
-
             member.update_status({"next_appt_date":enc_date,"next_encounter_type":"21"})        
         except Exception, e:
             print "ajax_submit_encounter(): error updating member : " + str(e)
@@ -172,6 +167,15 @@ def ajax_get_encounter_data(request):
     print "ajax_get_encounter_data() : getting data for patient uuid = " + str(patient_uuid)
     encounter_data = Patient.get_encounter_data(patient_uuid)
     data = json.dumps(encounter_data)
+    return HttpResponse(data,content_type="application/json")
+
+
+@login_required
+def ajax_get_encounter_full(request):
+    encounter_uuid = get_var_from_request(request,"encounter_uuid")
+    print "ajax_get_encounter() : getting data for encounter uuid = " + str(encounter_uuid)
+    encounter = Encounter.get_encounter(encounter_uuid)
+    data = json.dumps(encounter)
     return HttpResponse(data,content_type="application/json")
 
 

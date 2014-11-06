@@ -358,6 +358,24 @@ function getEncounterData(patient_uuid,viewCallback){
 }
 
 
+function getEncounterFull(uuid,viewCallback) {
+    var data = {encounter_uuid:uuid};
+    var response = $.ajax({
+	    beforeSend: function() { $.mobile.loading("show"); }, //Show spinner
+	    complete: function() { $.mobile.loading("hide"); },
+	    type: "GET",
+	    url: "/outreach/ajax_get_encounter_full",
+	    data: data,
+	    dataType: "json",
+	    success: function(encounter) {
+		viewCallback(encounter);
+	    },
+	    error : function(xhr,errmsg,err) {
+		console.log("ERROR: could not load encounter data : " + err);
+	    }
+	});    
+}
+
 
 function getOutreachProviders(viewCallback) {
     var providers = local.getItem("outreach_providers");

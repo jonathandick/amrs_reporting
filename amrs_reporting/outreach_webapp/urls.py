@@ -19,6 +19,7 @@ urlpatterns = patterns('',
                        url(r'^' + app_name + '/ajax_update_cohort_cache/?$',views.ajax_update_cohort_cache),
                        url(r'^' + app_name + '/ajax_is_defaulter_cohort_retired/?$',views.ajax_is_defaulter_cohort_retired),
                        url(r'^' + app_name + '/ajax_get_encounter_data/?$',views.ajax_get_encounter_data),
+                       url(r'^' + app_name + '/ajax_get_encounter_full/?$',views.ajax_get_encounter_full),
                        url(r'^' + app_name + '/test/?$',views.test),
                        url(r'^' + app_name + '/update_datasets/?$',views.update_datasets),
                        )

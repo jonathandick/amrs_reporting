@@ -409,7 +409,8 @@ class Patient():
         data = RESTHandler.get(encounter_url)
         for e in data['results']:            
             provider_name = e["provider"]["display"]
-            encounter = {"encounter_datetime":e["encounterDatetime"],
+            encounter = {"uuid":e["uuid"],
+                         "encounter_datetime":e["encounterDatetime"],
                          "provider": provider_name,
                          "encounter_type":e["encounterType"]["name"].title(),
                          "location":e["location"]["name"].title(),
@@ -722,7 +723,29 @@ class Encounter():
         data = result['results']
         return data
             
-    
+
+    @staticmethod
+    def get_encounter(uuid):        
+        url = amrs_settings.amrs_url + '/ws/rest/v1/encounter/' + uuid
+        url += '?v=custom:(location:(uuid,name),encounterDatetime,encounterType:(uuid,name),provider,obs:ref)'
+        result = RESTHandler.get(url)
+        encounter = {"encounterDatetime":result.get("encounterDatetime","")}
+        if(result.get("encounterType")) : encounter["encounterType"] = result.get("encounterType")["name"]
+        if(result.get("provider")) : encounter["provider"] = result.get("provider")["display"]
+        if(result.get("location")) : encounter["location"] = result.get("location")["name"]
+        if(result.get("obs")) :
+            obs = {}
+            for o in result.get("obs") :
+                parts = o["display"].split(": ")
+                obs[parts[0]] = parts[1]
+            encounter['obs'] = obs
+        return encounter
+        
+        
+            
+
+                     
+        
             
 
 class RetentionDataset():

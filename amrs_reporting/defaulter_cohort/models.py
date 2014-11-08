@@ -4,6 +4,7 @@ import amrs_settings
 from amrs_interface.models import *
 import requests
 import json
+import uuid
 
 class DefaulterCohortMember(models.Model):
     defaulter_cohort_id = models.IntegerField()
@@ -21,6 +22,8 @@ class DefaulterCohortMember(models.Model):
 
     retired = models.BooleanField(default=False)
     date_retired = models.DateTimeField(null=True)
+    uuid = models.CharField(max_length=100)
+    
 
     def update_status(self,encounter=None):
         import datetime
@@ -72,6 +75,8 @@ class DefaulterCohort(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
     retired = models.BooleanField(default=False)
     date_retired = models.DateTimeField(null=True)
+    
+    uuid = models.CharField(max_length=100)
 
     
     @staticmethod
@@ -85,7 +90,9 @@ class DefaulterCohort(models.Model):
         self.description = args['description']
         self.location_id = args['location_id']
         self.location_uuid = args['location_uuid']
+        if self.uuid is None : self.uuid = uuid.uuid1()            
         self.save()
+
         self.set_members()
 
 
@@ -107,7 +114,8 @@ class DefaulterCohort(models.Model):
                                       last_encounter_date = row['encounter_datetime'],
                                       last_encounter_type = row['name'],
                                       last_rtc_date = row['rtc_date'],
-                                      risk_category = row['risk_category']
+                                      risk_category = row['risk_category'],
+                                      uuid = uuid.uuid1()
                                       )
             c.save()
             
@@ -120,7 +128,8 @@ class DefaulterCohort(models.Model):
             dc = DefaulterCohort(name=l['name'] + ' Defaulter Cohort',
                                  description = 'Defaulter list for ' + l['name'],
                                  location_id = l['location_id'],
-                                 location_uuid = l['uuid'])
+                                 location_uuid = l['uuid'],
+                                 uuid = uuid.uuid1())
             dc.save()
             dc.set_members()
 
@@ -163,7 +172,8 @@ class DefaulterCohort(models.Model):
         new_dc = DefaulterCohort(name=dc.name,
                                  description = dc.description,
                                  location_id = dc.location_id,
-                                 location_uuid = dc.location_uuid)
+                                 location_uuid = dc.location_uuid,
+                                 uuid=uuid.uuid1())
         new_dc.save()
         new_dc.set_members()
         print "DefaulterCohort.create_defaulter_cohort() : finished creating new defaulter cohort"
@@ -215,7 +225,7 @@ class DefaulterCohort(models.Model):
 
     def get_json(self):
         patients = self.get_patients()
-        d = {"name":self.name,"date_created":self.date_created,"patients":patients,"id":self.id,"location_uuid":self.location_uuid}
+        d = {"name":self.name,"date_created":self.date_created,"patients":patients,"id":self.id,"location_uuid":self.location_uuid,"uuid":self.uuid}
         d = json.dumps(d,cls=DjangoJSONEncoder)
         return d
 

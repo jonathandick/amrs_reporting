@@ -282,44 +282,40 @@ function updateCohortCallback(cohort,updatedPatients) {
 
 function getPatient(patient_uuid,cohort_id,viewCallback){
     console.log("getPatient(): patient_uuid: " + patient_uuid + " cohort_id: " + cohort_id);
-    var patient;
-    if(cohort_id === undefined || cohort_id === "") {
-	var patient = session.getItem(patient_uuid);
-	if (patient === null) {
-	    var data = {patient_uuid:patient_uuid};
-	    var response =  $.ajax({
-		    beforeSend: function() { $.mobile.loading("show"); }, //Show spinner
-		    complete: function() { $.mobile.loading("hide"); },
-		    type: "GET",
-		    url: "/outreach/ajax_get_patient",
-		    data: data,
-		    dataType: "json",
-		    success: function(patient) { 
-			viewCallback(patient);
-			session.setItem(patient_uuid,JSON.stringify(patient));			
-		    },
-		    error : function(xhr,errmsg,err) {
-			alert(xhr.status + ": " + errmsg);
-		    }
-		});	    
-	} else { 
-	    patient = JSON.parse(patient); 
-	    if(viewCallback) {
-		viewCallback(patient);
-	    }
-	    else { return patient };
-	}
+    var patient = session.getItem(patient_uuid);
+    if(patient) {
+	console.log("getPatient() : patient in session.");
+	patient = JSON.parse(patient); 	
     }
-    else {
+    else if(!(cohort_id === undefined || cohort_id === "")) {
 	console.log("getPatient() : getting patient from session.cohort");
 	var cohort = JSON.parse(session.getItem("defaulter_cohort_id_" + cohort_id));	
-	patient = cohort["patients"][patient_uuid];
+	patient = cohort["patients"][patient_uuid];	
 	session.setItem(patient_uuid,JSON.stringify(patient));
-	if(viewCallback) {
-	    viewCallback(patient,cohort_id);
-	}
+    }
+
+    if(patient) {
+	if(viewCallback) { viewCallback(patient,cohort_id); }
 	else { return patient; }
     }
+    else {
+	var data = {patient_uuid:patient_uuid};
+	var response =  $.ajax({
+		beforeSend: function() { $.mobile.loading("show"); }, //Show spinner
+		complete: function() { $.mobile.loading("hide"); },
+		type: "GET",
+		url: "/outreach/ajax_get_patient",
+		data: data,
+		dataType: "json",
+		success: function(patient) { 
+		    viewCallback(patient);
+		    session.setItem(patient_uuid,JSON.stringify(patient));			
+		},
+		error : function(xhr,errmsg,err) {
+		    alert(xhr.status + ": " + errmsg);
+		}
+	    });	    
+    }    
 }
 
 function getEncounterData(patient_uuid,viewCallback){
@@ -327,7 +323,7 @@ function getEncounterData(patient_uuid,viewCallback){
     if(patient) {
 	patient = JSON.parse(patient);
     }
-
+    console.log(patient);
     if(patient && patient.encounterData) {
 	console.log("getEncounterData() : encounterData in session");
 	viewCallback(patient.encounterData);

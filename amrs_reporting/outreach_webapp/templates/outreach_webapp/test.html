@@ -15,6 +15,7 @@
   <script type="text/javascript" src="{% static 'js/outreach_form.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/outreach_controllers.js' %}"></script>
   <script type="text/javascript" src="{% static 'js/outreach_views2.js' %}"></script>
+  <script type="text/javascript" src="{% static 'js/amrs_rest.js' %}"></script>
 
 <script>
 
@@ -102,6 +103,9 @@
       <li><a id="defaulter_list_app" onClick="defaulterCohortListView()">Outreach Defaulter Lists</a></li>
       <li><a onClick="patientSearchView()">Patient Search</a></li>
       <li><a id="submit_saved_forms_link">Submit Saved Encounters (<span id="num_saved_encounters"></span>)</a></li>
+      <li><a onClick="javascript:window.open('/encounter_form/view_rest_errors','_self')">View REST Errors</a></li>
+      <li><a onClick="javascript:window.open('/hiv_dashboard/index','_self')">HIV Care Dashboard</a></li>
+      <li><a onClick="javascript:window.open('/ltfu/index','_self')">Retention</a></li>
     </ul>
   </div>
   
@@ -144,6 +148,18 @@
   </div>
 
 
+  <div id="outreach_form_view" style="display:none" class="app">
+    {% include "outreach_webapp/outreach_form.html" %}
+  </div>
+
+
+  <div id="patient_search_view" style="display:none" class="app">
+    <input type="button" class="to_apps" value="Back to Apps"/>
+    <label for="search_string">Enter Patient Name or Identifier</label>
+    <input type='text' name='search_string' id='search_string'/>
+    <ul id="patient_list" data-role="listview"></ul>
+  </div>
+
   <div id="encounter_full_view" style="display:none" class="app">
     <input type="button" value="Back to Dashboard" onClick="backToPatientDashboardView() "/> 
     <table id="encounter_full_table">
@@ -160,19 +176,6 @@
 	<td>Provider</td><td><input type="text" id="provider"/></td>		
       </tr>
     </table>
-  </div>
-
-
-  <div id="outreach_form_view" style="display:none" class="app">
-    {% include "outreach_webapp/outreach_form.html" %}
-  </div>
-
-
-  <div id="patient_search_view" style="display:none" class="app">
-    <input type="button" class="to_apps" value="Back to Apps"/>
-    <label for="search_string">Enter Patient Name or Identifier</label>
-    <input type='text' name='search_string' id='search_string'/>
-    <ul id="patient_list" data-role="listview"></ul>
   </div>
  
  

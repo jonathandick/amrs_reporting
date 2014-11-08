@@ -1,0 +1,34 @@
+{% load staticfiles %}
+<!doctype html>
+
+<html lang="en" ng-app="amrsApp">
+<head>
+  <title>Angular AMRS</title>
+  <meta charset="utf-8">
+  <meta content='initial-scale=1.0, maximum-scale=1.0, user-scalable=no' name='viewport' />   
+
+  <link rel="stylesheet" href="{% static 'angular/angular-phonecat/app/bower_components/bootstrap/dist/css/bootstrap.css' %}">
+  <link rel="stylesheet" href="{% static 'angular/angular-phonecat/app/css/app.css'%}">
+  <link rel="stylesheet" href="{% static 'amrs_reports/css/mobile_huawei.css'%}" />
+
+
+  <script src="{% static 'angular/angular-phonecat/app/bower_components/jquery/jquery.js' %}"></script>
+  <script src="{% static 'angular/angular-phonecat/app/bower_components/angular/angular.js' %}"></script>
+  <script src="{% static 'angular/angular-phonecat/app/bower_components/angular-cookies/angular-cookies.js' %}"></script>
+  <script src="{% static 'angular/angular-phonecat/app/bower_components/angular-route/angular-route.js' %}"></script>
+  <script src="{% static 'angular/angular-phonecat/app/bower_components/angular-resource/angular-resource.js' %}"></script>
+  <script src="{% static 'angular/angular-phonecat/app/js/app.js' %}"></script>
+  <script src="{% static 'angular/angular-phonecat/app/js/animations.js' %}"></script>
+  <script src="{% static 'angular/angular-phonecat/app/js/controllers.js' %}"></script>
+  <script src="{% static 'angular/angular-phonecat/app/js/filters.js' %}"></script>
+  <script src="{% static 'angular/angular-phonecat/app/js/services.js' %}"></script>
+</head>
+<body>
+
+  <div class="view-container">
+    <div ng-view class="view-frame">
+    </div>
+  </div>
+
+</body>
+</html>

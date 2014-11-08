@@ -15,6 +15,12 @@ from amrs_user_validation.models import Authorize
 from outreach_webapp.models import *
 
 
+def login(request):
+    print request.GET
+    print request.POST
+    return HttpResponse('thank you',content_type='application/json')
+
+
 @login_required    
 def index(request):    
     print 'rendering outreach webapp'
@@ -27,7 +33,7 @@ def index(request):
 def ajax_get_defaulter_cohort(request):
     if not Authorize.authorize(request.user,['outreach_supervisor','outreach_all','outreach_worker']) :
         return HttpResponseRedirect('/amrs_user_validation/access_denied')
-    defaulter_cohort_id = request.POST['defaulter_cohort_id']
+    defaulter_cohort_id = get_var_from_request(request,'defaulter_cohort_id')    
     print 'getting defaulter list'
     d = CohortCache.get_cohort(defaulter_cohort_id)
     return HttpResponse(d,content_type='application/json')
@@ -145,7 +151,7 @@ def ajax_get_defaulter_cohorts(request):
 
 @login_required
 def test(request):
-    return render(request,"outreach_webapp/test.html",{})
+    return render(request,"outreach_webapp/angular_index.html",{})
 
 
 
@@ -185,4 +191,3 @@ def update_datasets(request):
     subprocess.call(["/home/amrs_reporting/amrs_reporting/database_updates/update_amrs_reporting_data"],shell=True)
     return HttpResponse("",content_type="application/json")
     
-

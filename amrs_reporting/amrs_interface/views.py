@@ -6,9 +6,18 @@ from django.http import HttpResponseRedirect, HttpResponse
 from amrs_user_validation.models import *
 from amrs_interface.models import *
 from utilities import *
+import amrs_settings
 
 def access_denied(request) :
     return render(request,'amrs_user_validation/access_denied.html',{})
+
+
+@login_required
+def ajax_amrs_rest_get(request):
+    url = amrs_settings + "/ws/rest/v1/" + get_var_from_request(request,'url')    
+    result = RESTHandler.get(url)
+    data = json.dumps(result)
+    return HttpResponse(data,content_type="application/json")
 
 
 @login_required

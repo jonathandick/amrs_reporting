@@ -22,6 +22,7 @@ urlpatterns = patterns('',
                        url(r'^' + app_name + '/ajax_get_encounter_full/?$',views.ajax_get_encounter_full),
                        url(r'^' + app_name + '/test/?$',views.test),
                        url(r'^' + app_name + '/update_datasets/?$',views.update_datasets),
+                       url(r'^' + app_name + '/login/?$',views.login),
                        )
                        
 

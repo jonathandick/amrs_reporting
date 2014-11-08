@@ -89,6 +89,3 @@ class CohortCache(models.Model):
         self.json = dc.get_json()
         self.save()
         
-
-    
-

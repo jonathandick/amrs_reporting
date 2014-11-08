@@ -405,7 +405,7 @@ class Patient():
                 
         encounters = {}
         encounter_url = amrs_settings.amrs_url + '/ws/rest/v1/encounter?patient=' + patient_uuid         
-        encounter_url += "&v=custom:(uuid,location:(uuid,name),encounterDatetime,encounterType:(uuid,name),provider)&limit=200"
+        encounter_url += "&v=custom:(uuid,location:(uuid,name),dateCreated,encounterDatetime,encounterType:(uuid,name),provider)&limit=200"
         data = RESTHandler.get(encounter_url)
         for e in data['results']:            
             provider_name = e["provider"]["display"]

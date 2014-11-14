@@ -114,6 +114,26 @@ class RESTLog(models.Model):
 
 
 
+class OpenmrsSession(models.Model):
+    
+    @staticmethod
+    def authenticate(username,password) :
+        headers = {'content-type': 'application/json','connection':'close'}        
+        try :
+            url = amrs_settings.amrs_url + '/ws/rest/v1/session'
+            res = requests.get(url,auth=(username,password),headers=headers,verify=False)
+            result = json.loads(res.text)
+            res.close()
+            if 'authenticated' in result : return result['authenticated']
+            else : return False 
+        except Exception, e:
+            print 'exception: ' + str(e)
+            result = {'error':{'message':e}}
+            
+        return False 
+
+    
+
 
 class Location(models.Model):
 

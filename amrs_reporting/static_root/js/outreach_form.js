@@ -154,16 +154,17 @@ $(document).ready(function() {
 	    );
 
 
+    
 	jQuery.validator.addMethod("needs_reason_missed_appt", function(value, element) {
-		if(!($("#patient_status option:selected").text() in ['Outreach worker does not believe patient can be traced',
-								     'Patient in process of being traced']))
-		    {
-			return $("#reason_missed_div").find('input:checkbox:checked').length > 0;
-		    }
-		else { return true; }
-	    }, "* Must provide reason for missing appointment"
-	    );
-
+	    if(!($("#patient_status option:selected").text().toLowerCase().trim().match('^outreach worker does not believe')		 
+		 || $("#patient_status option:selected").text().toLowerCase().trim().match('^patient in process')))
+	    {
+		return $("#reason_missed_div").find('input:checkbox:checked').length > 0;
+	    }
+	    else { return true; }
+	}, "* Must provide reason for missing appointment"
+	);
+				   
 
 
 

@@ -9,6 +9,7 @@ urlpatterns = patterns('',
                        url(r'^' + app_name + '/ajax_update_phone_number/?$',views.ajax_update_phone_number),
                        url(r'^' + app_name + '/ajax_get_defaulter_cohort/?$',views.ajax_get_defaulter_cohort),
                        url(r'^' + app_name + '/ajax_update_defaulter_cohort/?$',views.ajax_update_defaulter_cohort),
+                       url(r'^' + app_name + '/ajax_get_retired_members/?$',views.ajax_get_retired_members),
                        url(r'^' + app_name + '/ajax_get_new_defaulter_cohort/?$',views.ajax_get_new_defaulter_cohort),
                        url(r'^' + app_name + '/ajax_submit_encounter/?$',views.ajax_submit_encounter),
                        url(r'^' + app_name + '/ajax_patient_search/?$',views.ajax_patient_search),
@@ -22,7 +23,7 @@ urlpatterns = patterns('',
                        url(r'^' + app_name + '/ajax_get_encounter_full/?$',views.ajax_get_encounter_full),
                        url(r'^' + app_name + '/test/?$',views.test),
                        url(r'^' + app_name + '/update_datasets/?$',views.update_datasets),
-                       url(r'^' + app_name + '/login/?$',views.login),
+                       url(r'^' + app_name + '/login/?$',views.angular_login),
                        )
                        
 

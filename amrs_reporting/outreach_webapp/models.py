@@ -24,10 +24,13 @@ class CohortCache(models.Model):
 
 
     @staticmethod
-    def get_cohort(cohort_id):
+    def get_cohort(cohort_id=None,cohort_uuid=None):
         import datetime
-        qs = CohortCache.objects.filter(defaulter_cohort_id=cohort_id)
-        dc = DefaulterCohort.objects.get(id=cohort_id)
+
+        if(cohort_uuid) : dc = DefaulterCohort.objects.filter(uuid=cohort_uuid)[0]
+        else : dc = DefaulterCohort.objects.get(id=cohort_id)
+        qs = CohortCache.objects.filter(defaulter_cohort_id=dc.id)
+
         response = {}
         
         if dc.retired :            
@@ -42,7 +45,7 @@ class CohortCache(models.Model):
             dcs = DefaulterCohort.objects.filter(retired=0).order_by("name")
             cohorts = []
             for d in dcs :
-                cohorts.append({"id":d.id,"name":d.name.title()})                
+                cohorts.append({"id":d.id,"name":d.name.title(),"uuid":d.uuid})                
             response['defaulter_cohorts'] = cohorts
 
 
